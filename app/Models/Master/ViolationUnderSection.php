@@ -30,7 +30,7 @@ class ViolationUnderSection extends Model
     /*Read Records by ID*/
     public function getRecordById($id)
     {
-        return DB::table('violation_under_sections as a')
+        return DB::table('violation_details as a')
         ->select(
             DB::raw("a.id,a.violation_section,a.violation_id,b.violation_name, a.penalty_amount,
             CASE WHEN a.status = '0' THEN 'Deactivated'  
@@ -48,7 +48,7 @@ class ViolationUnderSection extends Model
     /*Read all Records by*/
     public function retrieve()
     {
-        return DB::table('violation_under_sections as a')
+        return DB::table('violation_details as a')
         ->select(
             DB::raw("a.id,a.violation_section,a.violation_id,b.violation_name,a.penalty_amount,
             CASE WHEN a.status = '0' THEN 'Deactivated'  
