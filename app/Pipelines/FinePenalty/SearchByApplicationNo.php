@@ -12,6 +12,6 @@ class SearchByApplicationNo
             return $next($request);
         }
         return $next($request)
-            ->where('a.application_no', 'ilike', '%' . request()->input('applicationNo') . '%');
+            ->where('application_no', 'ilike', '%' . request()->input('applicationNo') . '%');
     }
 }

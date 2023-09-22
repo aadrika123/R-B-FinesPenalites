@@ -11,6 +11,7 @@ class PenaltyRecord extends Model
 {
     use HasFactory;
 
+    protected $table = "penalty_applied_records";
     protected $guarded = [];
 
     /*Add Records*/
@@ -61,21 +62,21 @@ class PenaltyRecord extends Model
     public function getRecordById($id)
     {
         $data = [];
-        $irfDetails =  DB::table('infraction_recording_forms as a')
+        $data =  DB::table('penalty_applied_records')
             ->select(
-                DB::raw("a.*,b.violation_name,c.violation_section,
-            CASE WHEN a.status = '0' THEN 'Deactivated'  
-            WHEN a.status = '1' THEN 'Active'
+
+                DB::raw("penalty_applied_records.*,b.violation_name,violation_section,
+            CASE WHEN penalty_applied_records.status = '0' THEN 'Deactivated'  
+            WHEN penalty_applied_records.status = '1' THEN 'Active'
             END as status,
-            TO_CHAR(a.created_at::date,'dd-mm-yyyy') as date,
-            TO_CHAR(a.created_at,'HH12:MI:SS AM') as time
+            TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
+            TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time
             ")
             )
-            ->join('violations as b', 'b.id', '=', 'a.violation_id')
-            ->join('violation_under_sections as c', 'c.id', '=', 'a.violation_section_id')
-            ->where('a.id', $id)
+            ->join('violations as b', 'b.id', '=', 'penalty_applied_records.violation_id')
+            ->where('penalty_applied_records.id', $id)
             ->first();
-        $data['basic_details'] = $irfDetails;
+        // $data['basic_details'] = $irfDetails;
         return $data;
     }
 
@@ -107,43 +108,27 @@ class PenaltyRecord extends Model
         return $data;
     }
 
-
-    /*Read all Records by*/
-    public function retrieve()
-    {
-        return DB::table('infraction_recording_forms as a')
-            ->select(
-                DB::raw("a.*,b.violation_name,c.violation_section,
-            CASE WHEN a.status = '0' THEN 'Deactivated'  
-            WHEN a.status = '1' THEN 'Active'
-            END as status,
-            TO_CHAR(a.created_at::date,'dd-mm-yyyy') as date,
-            TO_CHAR(a.created_at,'HH12:MI:SS AM') as time
-            ")
-            )
-            ->join('violations as b', 'b.id', '=', 'a.violation_id')
-            ->join('violation_under_sections as c', 'c.id', '=', 'a.violation_section_id')
-            ->orderByDesc('id');
-        // ->get();
-    }
-
-    /*Read all Active Records*/
+    /**
+     * | Read all Active Records
+     */
     public function active()
     {
-        return DB::table('infraction_recording_forms as a')
-            ->select(
-                DB::raw("a.*,b.violation_name,c.violation_section,
-            CASE WHEN a.status = '0' THEN 'Deactivated'  
-            WHEN a.status = '1' THEN 'Active'
-            END as status,
-            TO_CHAR(a.created_at::date,'dd-mm-yyyy') as date,
-            TO_CHAR(a.created_at,'HH12:MI:SS AM') as time
-            ")
+        return PenaltyDocument::select(
+            'penalty_applied_records.*',
+            'b.violation_name',
+            'violation_section',
+            DB::raw(
+                "CASE 
+                        WHEN penalty_applied_records.status = '1' THEN 'Active'
+                        WHEN penalty_applied_records.status = '0' THEN 'Deactivated'  
+                    END as status,
+                    TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
+                    TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time"
             )
-            ->join('violations as b', 'b.id', '=', 'a.violation_id')
-            ->join('violation_under_sections as c', 'c.id', '=', 'a.violation_section_id')
-            ->where('a.status', 1)
-            ->orderBy('a.id');
+        )
+            ->join('violations as b', 'b.id', '=', 'penalty_applied_records.violation_id')
+            ->where('penalty_applied_records.status', 1)
+            ->orderBy('penalty_applied_records.id');
     }
 
     /**
@@ -205,24 +190,21 @@ class PenaltyRecord extends Model
     //Get Records by name
     public function searchByName($req)
     {
-        return DB::table('infraction_recording_forms as a')
+        return DB::table('penalty_applied_records as a')
 
-            // ->where("a.section_name", "Ilike", DB::raw("'%" . $req->search . "%'"))
+            // ->where("penalty_applied_records.section_name", "Ilike", DB::raw("'%" . $req->search . "%'"))
             // ->orWhere("b.class_name", "Ilike", DB::raw("'%" . $req->search . "%'"))
             ->select(
-                DB::raw("a.*,b.violation_name,c.violation_section,
-        CASE WHEN a.status = '0' THEN 'Deactivated'  
-        WHEN a.status = '1' THEN 'Active'
+                DB::raw("penalty_applied_records.*,b.violation_name,c.violation_section,
+        CASE WHEN penalty_applied_records.status = '0' THEN 'Deactivated'  
+        WHEN penalty_applied_records.status = '1' THEN 'Active'
         END as status,
-        TO_CHAR(a.created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(a.created_at,'HH12:MI:SS AM') as time
+        TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time
         ")
             )
-            ->join('violations as b', 'b.id', '=', 'a.violation_id')
-            ->join('violation_under_sections as c', 'c.id', '=', 'a.violation_section_id')
-            ->where("a.application_no", "Ilike",  DB::raw("'%" . $req->applicationNo . "%'"));
-        // ->where('a.school_id', $schoolId);
-        // ->where('a.created_by', $createdBy);
-        // ->get();
+            ->join('violations as b', 'b.id', '=', 'penalty_applied_records.violation_id')
+            ->join('violation_under_sections as c', 'c.id', '=', 'penalty_applied_records.violation_section_id')
+            ->where("penalty_applied_records.application_no", "Ilike",  DB::raw("'%" . $req->applicationNo . "%'"));
     }
 }

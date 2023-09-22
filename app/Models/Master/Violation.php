@@ -22,15 +22,15 @@ class Violation extends Model
     public function checkExisting($req)
     {
         return Violation::where(DB::raw('upper(violation_name)'), strtoupper($req->violationName))
-        ->where('status', 1)
-        ->get();
+            ->where('status', 1)
+            ->get();
     }
 
     /*Read Records by ID*/
     public function getRecordById($id)
     {
         return Violation::select(
-        DB::raw("id,violation_name,
+            DB::raw("id,violation_name,violation_section,penalty_amount,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
@@ -39,15 +39,15 @@ class Violation extends Model
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('id', $id)
-        ->first();
+            ->where('id', $id)
+            ->first();
     }
 
     /*Read all Records by*/
     public function retrieve()
     {
         return Violation::select(
-        DB::raw("id,violation_name,violation_section,penalty_amount,
+            DB::raw("id,violation_name,violation_section,penalty_amount,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
@@ -56,8 +56,8 @@ class Violation extends Model
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('status', 1)
-        ->orderByDesc('id')
-        ->get();
+            ->where('status', 1)
+            ->orderByDesc('id')
+            ->get();
     }
 }

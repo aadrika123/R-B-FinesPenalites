@@ -66,17 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation/crud/delete', 'deleteViolation');                               // Delete ------------------ 1.5
     });
 
-    /**
-     * | API Violation's Section CRUD operation
-         Controller No : 2
-     */
-    Route::controller(ViolationSectionController::class)->group(function () {
-        Route::post('violation-section/crud/save', 'createViolationSection');                    // Save ------------------ 2.1
-        Route::post('violation-section/crud/edit', 'updateViolationSection');                    // Edit ------------------ 2.2
-        Route::post('violation-section/crud/get', 'ViolationSectionById');                       // Get By Id ------------- 2.3
-        Route::post('violation-section/crud/list', 'getViolationSection');                       // Get All  -------------- 2.4
-        Route::post('violation-section/crud/delete', 'deleteViolationSection');                  // Delete ---------------- 2.5
-    });
+
 
     Route::controller(UserTypeController::class)->group(function () {
         Route::post('user-type/retrieve-all', 'retrieveAll');                           // Get all                  M_API_7.1
