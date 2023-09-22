@@ -42,7 +42,6 @@ trait FinesTrait
             ['displayString' => 'City', 'key' => 'city', 'value' => $data->city,],
             ['displayString' => 'Region', 'key' => 'region', 'value' => $data->region,],
             ['displayString' => 'Postal Code', 'key' => 'postal_code', 'value' => $data->postal_code,],
-            ['displayString' => 'Country', 'key' => 'country', 'value' => $data->country,]
         ]);
     }
 

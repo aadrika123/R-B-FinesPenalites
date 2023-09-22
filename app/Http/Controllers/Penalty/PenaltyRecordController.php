@@ -5,17 +5,21 @@ namespace App\Http\Controllers\Penalty;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InfractionRecordingFormRequest;
 use App\Models\Fine_Penalty\InfractionRecordingForm;
+use App\Models\PenaltyChallan;
+use App\Models\PenaltyFinalRecord;
 use App\Models\PenaltyRecord;
 use App\Models\WfRoleusermap;
 use App\Models\WfWorkflowrolemap;
 use App\Pipelines\FinePenalty\SearchByApplicationNo;
 use App\Pipelines\FinePenalty\SearchByMobile;
 use App\Traits\Fines\FinesTrait;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Pipeline\Pipeline;
 
 class PenaltyRecordController extends Controller
@@ -208,8 +212,6 @@ class PenaltyRecordController extends Controller
                 ->where('penalty_applied_records.ulb_id', $ulbId)
                 ->whereIn('penalty_applied_records.current_role', $roleId)
                 ->orderByDesc('penalty_applied_records.id');
-            // ->paginate($perPage);
-
 
             $inbox = app(Pipeline::class)
                 ->send(
@@ -230,7 +232,6 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Penalty Details by Id
-         Currently Not In Use
      */
     public function penaltyDetails(Request $req)
     {
@@ -303,6 +304,74 @@ class PenaltyRecordController extends Controller
             return responseMsgs(true, "Penalty Details", $fullDetailsData, "100108", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100108", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Approve Penalty
+     */
+    public function approvePenalty(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|numeric'
+        ]);
+        if ($validator->fails())
+            return responseMsgs(false, $validator->errors(), []);
+
+        try {
+            $user = authUser($req);
+            $userId = $user->id;
+            $ulbId = $user->ulb_id;
+            $mWfWorkflowRoleMaps = new WfWorkflowrolemap();
+            $mWfRoleusermap = new WfRoleusermap();
+            $mPenaltyFinalRecord = new PenaltyFinalRecord();
+            $mPenaltyChallan = new PenaltyChallan();
+
+            $penaltyRecord = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
+
+            $finalRecordReqs = [
+                'full_name'                   => $req->fullName,
+                'mobile'                      => $req->mobile,
+                'email'                       => $req->email,
+                'holding_no'                  => $req->holdingNo,
+                'street_address'              => $req->streetAddress,
+                'street_address_2'            => $req->streetAddress2,
+                'city'                        => $req->city,
+                'region'                      => $req->region,
+                'postal_code'                 => $req->postalCode,
+                'violation_id'                => $req->violationId,
+                'penalty_amount'              => $req->penaltyAmount,
+                'previous_violation_offence'  => $req->previousViolationOffence,
+                'witness'                     => $req->witness,
+                'witness_name'                => $req->witnessName,
+                'witness_mobile'              => $req->witnessMobile,
+                'penalty_previous_id'         => $req->id,
+                'version_no'                  => 0,
+                'application_no'              => $penaltyRecord->application_no,
+                'current_role'                => $penaltyRecord->current_role,
+                'workflow_id'                 => $penaltyRecord->workflow_id,
+                'ulb_id'                      => $penaltyRecord->ulb_id,
+                'approved_by'                 => $userId,
+            ];
+
+            $challanReqs = [
+                'challan_no'                   => 134,
+                'challan_date'                 => Carbon::now(),
+                'payment_date'                 => $req->paymentDate,
+                'penalty_record_id'            => $penaltyRecord->id
+            ];
+
+            DB::beginTransaction();
+            $data = $mPenaltyFinalRecord->store($finalRecordReqs);
+            $data = $mPenaltyChallan->store($challanReqs);
+            $penaltyRecord->status = 2;
+            $penaltyRecord->save();
+            DB::commit();
+
+            return responseMsgs(true, "", ["challanNo" => $data->challan_no], "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

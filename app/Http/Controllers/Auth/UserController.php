@@ -20,7 +20,7 @@ class UserController extends Controller
     {
         $this->_mUser = new User();
     }
-    
+
     /**
      * | Registration for users 
      */
@@ -33,7 +33,7 @@ class UserController extends Controller
             return responseMsgs(false, $e->getMessage(), [], "API_1.01", "", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
-     /**
+    /**
      * | User Login
      */
     public function loginAuth(Request $req)
@@ -160,13 +160,10 @@ class UserController extends Controller
      * |
      */
 
-     public function edit(InfractionRecordingFormRequest $req)
+    public function edit(InfractionRecordingFormRequest $req)
     {
         try {
             $getData = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
-            // $isExists = $this->_mInfracRecForms->checkExisting($req);  // check if existing
-            // if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
-            //     throw new Exception("Record Already Existing");
 
             $data = $this->_mInfracRecForms->edit($req, $getData);  // update record
             $metaReqs = [
@@ -197,54 +194,5 @@ class UserController extends Controller
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "3.2", responseTime(), "POST", $req->deviceId ?? "");
         }
-    }
-
-    /**
-     * | Model
-     */
-    /**
-     * | Update the details
-     */
-    public function edit($req, $getData)
-    {
-        $metaReqs = [];
-        // $metaReqs['photo'] = $req->photo ? 'FinePenalty/Documents/'.$req->mobile.'-'.$req->photo->getClientOriginalName() : $getData->photo;
-        // if ($req->hasFile('photo')) {
-        //     $req->file('photo')->move(public_path('FinePenalty/Documents/'.$req->mobile), $req->photo->getClientOriginalName());
-        // }
-
-        // $metaReqs['video_audio'] = $req->audioVideo ? 'FinePenalty/Documents/'.$req->mobile.'-'.$req->audioVideo->getClientOriginalName() : $getData->video_audio;
-        // if ($req->hasFile('audioVideo')) {
-        //     $req->file('audioVideo')->move(public_path('FinePenalty/Documents/'.$req->mobile), $req->audioVideo->getClientOriginalName());
-        // }
-
-        // $metaReqs['pdf'] = $req->pdf ? 'FinePenalty/Documents/'.$req->mobile.'-'.$req->pdf->getClientOriginalName() : $getData->pdf;
-        // if ($req->hasFile('pdf')) {
-        //     $req->file('pdf')->move(public_path('FinePenalty/Documents/'.$req->mobile), $req->pdf->getClientOriginalName());
-        // }
-
-        $metaReqs = array_merge($metaReqs, [
-            'full_name'                 => $req->fullName,
-            'mobile' => $req->mobile,
-            'email' => $req->email,
-            'holding_no' => $req->holdingNo,
-            'street_address' => $req->streetAddress,
-            'street_address_2' => $req->streetAddress2,
-            'city' => $req->city,
-            'region' => $req->region,
-            'postal_code' => $req->country,
-            'country' => $req->country,
-            'violation_id' => $req->violationId,
-            'violation_section_id' => $req->violationSectionId,
-            'penalty_amount' => $req->penaltyAmount,
-            'previous_violation_offence' => $req->previousViolationOffence,
-            'witness' => $req->witness,
-            'witness_name' => $req->witnessName,
-            'witness_mobile' => $req->witnessMobile,
-            'version_no' => $getData->version_no + 1,
-            'updated_at' => Carbon::now()
-        ]);
-        $getData->update($metaReqs);
-        return $metaReqs;
     }
 }

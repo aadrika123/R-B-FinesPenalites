@@ -95,6 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/crud/show-document', 'showDocument');                       // Get By Id ----------- 3.3
         Route::post('penalty-record/inbox', 'inbox');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/detail', 'penaltyDetails');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/approve', 'approvePenalty');                                       // Get By Id ----------- 3.3
 
     });
 });

@@ -113,7 +113,7 @@ class PenaltyRecord extends Model
      */
     public function active()
     {
-        return PenaltyDocument::select(
+        return PenaltyRecord::select(
             'penalty_applied_records.*',
             'b.violation_name',
             'violation_section',
