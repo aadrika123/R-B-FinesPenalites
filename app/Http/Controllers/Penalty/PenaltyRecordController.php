@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\API\Fine_Penalty;
+namespace App\Http\Controllers\Penalty;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InfractionRecordingFormRequest;
 use App\Models\Fine_Penalty\InfractionRecordingForm;
+use App\Models\PenaltyRecord;
 use App\Models\WfRoleusermap;
 use App\Models\WfWorkflowrolemap;
 use App\Pipelines\FinePenalty\SearchByApplicationNo;
@@ -16,14 +17,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Pipeline\Pipeline;
 
-class InfractionRecordingFormController extends Controller
+class PenaltyRecordController extends Controller
 {
     private $_mInfracRecForms;
 
     public function __construct()
     {
         DB::enableQueryLog();
-        $this->_mInfracRecForms = new InfractionRecordingForm();
+        $this->_mInfracRecForms = new PenaltyRecord();
     }
 
     /**
@@ -49,7 +50,7 @@ class InfractionRecordingFormController extends Controller
     public function edit(InfractionRecordingFormRequest $req)
     {
         try {
-            $getData = InfractionRecordingForm::findOrFail($req->id);  // check the id is exists or not
+            $getData = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
             $isExists = $this->_mInfracRecForms->checkExisting($req);  // check if existing
             if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
                 throw new Exception("Record Already Existing");
@@ -231,7 +232,7 @@ class InfractionRecordingFormController extends Controller
             $roleId = $mWfRoleusermap->getRoleIdByUserId($userId)->pluck('wf_role_id');
             $workflowIds = $mWfWorkflowRoleMaps->getWfByRoleId($roleId)->pluck('workflow_id');
 
-            $list = InfractionRecordingForm::whereIn('workflow_id', $workflowIds)
+            $list = PenaltyRecord::whereIn('workflow_id', $workflowIds)
                 ->where('infraction_recording_forms.ulb_id', $ulbId)
                 ->whereIn('infraction_recording_forms.current_role', $roleId)
                 ->orderByDesc('infraction_recording_forms.id')
@@ -266,11 +267,11 @@ class InfractionRecordingFormController extends Controller
 
         try {
             $details = array();
-            $mMarriageActiveRegistration = new InfractionRecordingForm();
+            $mPenaltyRecord = new PenaltyRecord();
             // $mWorkflowTracks = new WorkflowTrack();
             // $mCustomDetails = new CustomDetail();
             // $mForwardBackward = new WorkflowMap();
-            $details = MarriageActiveRegistration::find($req->applicationId);
+            $details = $mPenaltyRecord::find($req->applicationId);
             if (!$details)
                 throw new Exception("Application Not Found");
             $witnessDetails = array();

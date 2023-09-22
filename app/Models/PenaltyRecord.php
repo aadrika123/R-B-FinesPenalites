@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Models\Fine_Penalty;
+namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Nette\Utils\Random;
 
-class InfractionRecordingForm extends Model
+class PenaltyRecord extends Model
 {
     use HasFactory;
 
@@ -42,9 +41,9 @@ class InfractionRecordingForm extends Model
             'workflow_id'                => 1,
             'ulb_id'                     => 2,
         ];
-        $data = InfractionRecordingForm::create($metaReqs);  // Store Record into database
+        $data = PenaltyRecord::create($metaReqs);  // Store Record into database
         if ($req->file('photo')) {
-            $ifdObj = new InfractionFormDocument();
+            $ifdObj = new PenaltyDocument();
             $metaReqs['documents'] = $ifdObj->storeDocument($req, $data->id, $applicationNo);
         }
         $appNo['application_no'] = $applicationNo;
@@ -54,7 +53,7 @@ class InfractionRecordingForm extends Model
     // Check Email is Already exist or not
     public function checkExisting($req)
     {
-        return InfractionRecordingForm::where('email', $req->email)
+        return PenaltyRecord::where('email', $req->email)
             ->first();
     }
 
@@ -84,7 +83,7 @@ class InfractionRecordingForm extends Model
     public function getDocument($id)
     {
         $docUrl = "http://192.168.0.174:8000";
-        $stdSibling = InfractionFormDocument::select(
+        $stdSibling = PenaltyDocument::select(
             DB::raw("id,document_type,document_path,latitude,longitude,document_verified_by,document_verified_at"),
         )
             ->where('irf_id', $id)
@@ -93,7 +92,7 @@ class InfractionRecordingForm extends Model
         if (!$stdSibling->isEmpty()) {
             foreach ($stdSibling as $v) {
                 $dataArr['id'] = $v->id;
-                $dataArr['document_path'] = $docUrl.'/'.$v->document_path;
+                $dataArr['document_path'] = $docUrl . '/' . $v->document_path;
                 $dataArr['document_type'] = $v->document_type;
                 $dataArr['latitude'] = $v->latitude;
                 $dataArr['longitude'] = $v->longitude;
@@ -196,7 +195,7 @@ class InfractionRecordingForm extends Model
     function generateApplicationNumber()
     {
         $randomNumber  = str_pad(rand(0, 99999), 5, '0', STR_PAD_LEFT);
-        $count = InfractionRecordingForm::all()->count();
+        $count = PenaltyRecord::all()->count();
         $count++;
         $serialNo = str_pad($count, 5, '0', STR_PAD_LEFT);
         $applicationNo = 'FNP' . $randomNumber . $serialNo;

@@ -1,13 +1,13 @@
 <?php
 
-use App\Http\Controllers\API\Fine_Penalty\InfractionRecordingFormController;
 use App\Http\Controllers\API\Master\CountryController;
 use App\Http\Controllers\API\Master\UserTypeController;
 use App\Http\Controllers\API\Master\ViolationController;
 use App\Http\Controllers\API\Master\ViolationSectionController;
 use App\Http\Controllers\Auth\UserController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Penalty\PenaltyRecordController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
      * | API Infraction Recording Form  
          Controller No : 3
      */
-    Route::controller(InfractionRecordingFormController::class)->group(function () {
+    Route::controller(PenaltyRecordController::class)->group(function () {
         Route::post('penalty-record/crud/save', 'store');                                      // Save ---------------- 3.1
         Route::post('penalty-record/crud/edit', 'edit');                                       // Edit ---------------- 3.2
         Route::post('penalty-record/crud/show', 'show');                                       // Get By Id ----------- 3.3
