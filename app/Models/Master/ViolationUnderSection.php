@@ -10,6 +10,7 @@ class ViolationUnderSection extends Model
 {
     use HasFactory;
 
+    protected $table = "violation_details";
     protected $guarded = [];
 
     /*Add Records*/
@@ -22,15 +23,15 @@ class ViolationUnderSection extends Model
     public function checkExisting($req)
     {
         return ViolationUnderSection::where('violation_id', $req->violationId)
-        ->where(DB::raw('upper(violation_section)'), strtoupper($req->violationSection))
-        ->where('status', 1)
-        ->get();
+            ->where(DB::raw('upper(violation_section)'), strtoupper($req->violationSection))
+            ->where('status', 1)
+            ->get();
     }
 
     /*Read Records by ID*/
     public function getRecordById($id)
     {
-        return DB::table('violation_details as a')
+        return DB::table('violation_under_sections as a')
         ->select(
             DB::raw("a.id,a.violation_section,a.violation_id,b.violation_name, a.penalty_amount,
             CASE WHEN a.status = '0' THEN 'Deactivated'  
@@ -39,16 +40,16 @@ class ViolationUnderSection extends Model
             TO_CHAR(a.created_at::date,'dd-mm-yyyy') as date,
             TO_CHAR(a.created_at,'HH12:MI:SS AM') as time
             ")
-        )
-        ->join('violations as b', 'b.id', '=', 'a.violation_id')
-        ->where('a.id', $id)
-        ->first();
+            )
+            ->join('violations as b', 'b.id', '=', 'a.violation_id')
+            ->where('a.id', $id)
+            ->first();
     }
 
     /*Read all Records by*/
     public function retrieve()
     {
-        return DB::table('violation_details as a')
+        return DB::table('violation_under_sections as a')
         ->select(
             DB::raw("a.id,a.violation_section,a.violation_id,b.violation_name,a.penalty_amount,
             CASE WHEN a.status = '0' THEN 'Deactivated'  
@@ -57,8 +58,8 @@ class ViolationUnderSection extends Model
             TO_CHAR(a.created_at::date,'dd-mm-yyyy') as date,
             TO_CHAR(a.created_at,'HH12:MI:SS AM') as time
             ")
-        )
-        ->join('violations as b', 'b.id', '=', 'a.violation_id')
-        ->get();
+            )
+            ->join('violations as b', 'b.id', '=', 'a.violation_id')
+            ->get();
     }
 }
