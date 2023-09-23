@@ -4,13 +4,16 @@ namespace App\Http\Controllers\Penalty;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InfractionRecordingFormRequest;
+use App\IdGenerator\IdGeneration;
 use App\Models\Fine_Penalty\InfractionRecordingForm;
 use App\Models\PenaltyChallan;
 use App\Models\PenaltyFinalRecord;
 use App\Models\PenaltyRecord;
+use App\Models\PenaltyTransaction;
 use App\Models\WfRoleusermap;
 use App\Models\WfWorkflowrolemap;
 use App\Pipelines\FinePenalty\SearchByApplicationNo;
+use App\Pipelines\FinePenalty\SearchByChallan;
 use App\Pipelines\FinePenalty\SearchByMobile;
 use App\Traits\Fines\FinesTrait;
 use Carbon\Carbon;
@@ -44,8 +47,7 @@ class PenaltyRecordController extends Controller
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("Email Already Existing");
             $data = $this->_mInfracRecForms->store($req);  // Store record
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Added Successfully", $data, "3.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "Records Added Successfully", $data, "3.1",  responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "3.1", responseTime(), "POST", $req->deviceId ?? "");
         }
@@ -77,8 +79,9 @@ class PenaltyRecordController extends Controller
         $validator = Validator::make($req->all(), [
             'id' => 'required|numeric'
         ]);
+
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
             $show = $this->_mInfracRecForms->getRecordById($req->id);  // get record by id
             if (collect($show)->isEmpty())
@@ -316,7 +319,7 @@ class PenaltyRecordController extends Controller
             'id' => 'required|numeric'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
 
         try {
             $user = authUser($req);
@@ -354,21 +357,154 @@ class PenaltyRecordController extends Controller
                 'approved_by'                 => $userId,
             ];
 
+            DB::beginTransaction();
+            $finalRecord = $mPenaltyFinalRecord->store($finalRecordReqs);
+
             $challanReqs = [
-                'challan_no'                   => 134,
-                'challan_date'                 => Carbon::now(),
-                'payment_date'                 => $req->paymentDate,
-                'penalty_record_id'            => $penaltyRecord->id
+                'challan_no'        => 134,
+                'challan_date'      => Carbon::now(),
+                'payment_date'      => $req->paymentDate,
+                'penalty_record_id' => $finalRecord->id,
+                'amount'            => $finalRecord->penalty_amount,
+                'total_amount'      => $finalRecord->penalty_amount,
             ];
 
-            DB::beginTransaction();
-            $data = $mPenaltyFinalRecord->store($finalRecordReqs);
-            $data = $mPenaltyChallan->store($challanReqs);
+            $challanRecord = $mPenaltyChallan->store($challanReqs);
             $penaltyRecord->status = 2;
             $penaltyRecord->save();
             DB::commit();
 
-            return responseMsgs(true, "", ["challanNo" => $data->challan_no], "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", ["challanNo" => $challanRecord->challan_no], "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Recent Challans
+     */
+    public function recentChallans(Request $req)
+    {
+        try {
+            $todayDate = Carbon::now();
+            $user = authUser($req);
+            $userId = $user->id;
+            $ulbId = $user->ulb_id;
+            $challanDtl = PenaltyChallan::where('challan_date', $todayDate)
+                ->orderbyDesc('id')
+                ->take(10)
+                ->get();
+
+            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Search Challans
+     */
+    public function searchChallan(Request $req)
+    {
+        try {
+            $todayDate = Carbon::now();
+            $perPage = $req->perPage ?? 10;
+            $user = authUser($req);
+            $userId = $user->id;
+            $ulbId = $user->ulb_id;
+            $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->orderbyDesc('penalty_challans.id');
+
+            $challanList = app(Pipeline::class)
+                ->send($challanDtl)
+                ->through([
+                    SearchByApplicationNo::class,
+                    SearchByMobile::class,
+                    SearchByChallan::class
+                ])->thenReturn()
+                ->paginate($perPage);
+
+            return responseMsgs(true, "", $challanList, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | challanDetails
+     */
+    public function challanDetails(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'challanId' => 'required|numeric'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $todayDate = Carbon::now();
+            $perPage = $req->perPage ?? 10;
+            $user = authUser($req);
+
+            $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->orderbyDesc('penalty_challans.id')
+                ->where('penalty_challans.id', $req->challanId)
+                ->first();
+
+            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Challan Payment
+     */
+    public function challanPayment(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'applicationId' => 'required|numeric',
+            'challanId' => 'required|numeric',
+            'paymentMode' => 'required'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $mPenaltyTransaction = new PenaltyTransaction();
+            $user = authUser($req);
+            $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
+            $challanDetails = PenaltyChallan::find($req->challanId);
+
+            if (!$penaltyDetails)
+                throw new Exception("Application Not Found");
+            if (!$challanDetails)
+                throw new Exception("Challan Not Found");
+
+            $idGeneration = new IdGeneration(3, $penaltyDetails->ulb_id);
+            $transactionNo = $idGeneration->generate();
+
+            $reqs = [
+                "application_id" => $req->applicationId,
+                "challan_id"     => $req->challanId,
+                "tran_no"        => $transactionNo,
+                "tran_date"      => Carbon::now(),
+                "tran_by"        => $user->id,
+                "payment_mode"   => strtoupper($req->paymentMode),
+                "amount"         => $challanDetails->amount,
+                "penalty_amount" => $challanDetails->penalty_amount,
+                "total_amount"   => $challanDetails->total_amount,
+            ];
+            DB::beginTransaction();
+            $tranDtl = $mPenaltyTransaction->store($reqs);
+            $penaltyDetails->payment_status = 1;
+            $penaltyDetails->save();
+            DB::commit();
+            return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);

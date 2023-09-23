@@ -155,44 +155,4 @@ class UserController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
         }
     }
-
-    /**
-     * |
-     */
-
-    public function edit(InfractionRecordingFormRequest $req)
-    {
-        try {
-            $getData = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
-
-            $data = $this->_mInfracRecForms->edit($req, $getData);  // update record
-            $metaReqs = [
-                'full_name'                   => $req->fullName,
-                'mobile'                      => $req->mobile,
-                'email'                       => $req->email,
-                'holding_no'                  => $req->holdingNo,
-                'street_address'              => $req->streetAddress,
-                'street_address_2'            => $req->streetAddress2,
-                'city'                        => $req->city,
-                'region'                      => $req->region,
-                'postal_code'                 => $req->country,
-                'country'                     => $req->country,
-                'violation_id'                => $req->violationId,
-                'violation_section_id'        => $req->violationSectionId,
-                'penalty_amount'              => $req->penaltyAmount,
-                'previous_violation_offence'  => $req->previousViolationOffence,
-                'witness'                     => $req->witness,
-                'witness_name'                => $req->witnessName,
-                'witness_mobile'              => $req->witnessMobile,
-                'penalty_previous_id'         => $req->id,
-                'version_no'                  => $getData->version_no + 1,
-                'updated_at'                  => Carbon::now()
-            ];
-            $data = DB::table('penalty_final_records')->insert($metaReqs);
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Updated Successfully", $data, "3.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.2", responseTime(), "POST", $req->deviceId ?? "");
-        }
-    }
 }
