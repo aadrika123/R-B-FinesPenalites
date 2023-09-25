@@ -64,8 +64,8 @@ class PenaltyRecord extends Model
     {
         return PenaltyRecord::select(
             'penalty_applied_records.*',
-            'violations.violation_name',
-            'violations.violation_section_id',
+            'violations.violation_name','violations.violation_section_id',
+            'violation_sections.violation_section','violation_sections.department','violation_sections.section_definition',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -77,6 +77,7 @@ class PenaltyRecord extends Model
             )
         )
             ->join('violations', 'violations.id', '=', 'penalty_applied_records.violation_id')
+            ->join('violation_sections', 'violation_sections.id', '=', 'violations.violation_section_id')
             ->orderBy('penalty_applied_records.id');
     }
 
