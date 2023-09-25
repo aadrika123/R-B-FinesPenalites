@@ -4,14 +4,15 @@ namespace App\Pipelines\FinePenalty;
 
 use Closure;
 
-class SearchByApplicationNo
+
+class SearchByChallan
 {
     public function handle($request, Closure $next)
     {
-        if (!request()->has('applicationNo')) {
+        if (!request()->has('challanNo')) {
             return $next($request);
         }
         return $next($request)
-            ->where('application_no', 'ilike', '%' . request()->input('applicationNo') . '%');
+            ->where('challan_no', 'ilike', '%' . request()->input('challanNo') . '%');
     }
 }

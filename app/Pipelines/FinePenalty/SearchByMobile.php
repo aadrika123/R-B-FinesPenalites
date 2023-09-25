@@ -12,6 +12,6 @@ class SearchByMobile
             return $next($request);
         }
         return $next($request)
-            ->where('a.mobile', 'ilike', '%' . request()->input('mobile') . '%');
+            ->where('mobile', 'ilike', '%' . request()->input('mobile') . '%');
     }
 }

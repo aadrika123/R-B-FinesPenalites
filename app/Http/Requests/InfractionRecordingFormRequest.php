@@ -35,7 +35,6 @@ class InfractionRecordingFormRequest extends FormRequest
             'postalCode' => 'nullable|string',
             'country' => 'nullable|string',
             'violationId' => 'required|integer',
-            'violationSectionId' => 'required|integer',
             'penaltyAmount' => 'required|integer',
             'previousViolationOffence' => 'nullable|boolean',
             'isWitness' => 'nullable|integer',
@@ -57,8 +56,8 @@ class InfractionRecordingFormRequest extends FormRequest
      * @return Illuminate\Http\Exceptions\HttpResponseException
      */
 
-     protected function failedValidation(Validator $validator)
-     {
-         throw new HttpResponseException(response()->json($validator->errors(), 422));
-     }
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(validationError($validator));
+    }
 }

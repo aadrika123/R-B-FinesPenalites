@@ -66,17 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation/crud/delete', 'deleteViolation');                               // Delete ------------------ 1.5
     });
 
-    /**
-     * | API Violation's Section CRUD operation
-         Controller No : 2
-     */
-    Route::controller(ViolationSectionController::class)->group(function () {
-        Route::post('violation-section/crud/save', 'createViolationSection');                    // Save ------------------ 2.1
-        Route::post('violation-section/crud/edit', 'updateViolationSection');                    // Edit ------------------ 2.2
-        Route::post('violation-section/crud/get', 'ViolationSectionById');                       // Get By Id ------------- 2.3
-        Route::post('violation-section/crud/list', 'getViolationSection');                       // Get All  -------------- 2.4
-        Route::post('violation-section/crud/delete', 'deleteViolationSection');                  // Delete ---------------- 2.5
-    });
+
 
     Route::controller(UserTypeController::class)->group(function () {
         Route::post('user-type/retrieve-all', 'retrieveAll');                           // Get all                  M_API_7.1
@@ -105,6 +95,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/crud/show-document', 'showDocument');                              // Get By Id ----------- 3.3
         Route::post('penalty-record/inbox', 'inbox');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/detail', 'penaltyDetails');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/approve', 'approvePenalty');                                       // Get By Id ----------- 3.3
+
+        Route::post('penalty-record/recent-challans', 'recentChallans');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/challan-search', 'searchChallan');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/get-challan', 'challanDetails');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/challan-payment', 'challanPayment');                                       // Get By Id ----------- 3.3
 
     });
 });
