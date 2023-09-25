@@ -7,6 +7,7 @@ use App\Http\Requests\InfractionRecordingFormRequest;
 use App\IdGenerator\IdGeneration;
 use App\Models\Fine_Penalty\InfractionRecordingForm;
 use App\Models\PenaltyChallan;
+use App\Models\PenaltyDocument;
 use App\Models\PenaltyFinalRecord;
 use App\Models\PenaltyRecord;
 use App\Models\PenaltyTransaction;
@@ -29,12 +30,12 @@ class PenaltyRecordController extends Controller
 {
 
     use FinesTrait;
-    private $_mInfracRecForms;
+    private $mPenaltyRecord;
 
     public function __construct()
     {
         DB::enableQueryLog();
-        $this->_mInfracRecForms = new PenaltyRecord();
+        $this->mPenaltyRecord = new PenaltyRecord();
     }
 
     /**
@@ -43,10 +44,10 @@ class PenaltyRecordController extends Controller
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
-            $isGroupExists = $this->_mInfracRecForms->checkExisting($req); // Check if record already exists or not
+            $isGroupExists = $this->mPenaltyRecord->checkExisting($req); // Check if record already exists or not
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("Email Already Existing");
-            $data = $this->_mInfracRecForms->store($req);  // Store record
+            $data = $this->mPenaltyRecord->store($req);  // Store record
             return responseMsgs(true, "Records Added Successfully", $data, "3.1",  responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "3.1", responseTime(), "POST", $req->deviceId ?? "");
@@ -60,10 +61,10 @@ class PenaltyRecordController extends Controller
     {
         try {
             $getData = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
-            $isExists = $this->_mInfracRecForms->checkExisting($req);  // check if existing
+            $isExists = $this->mPenaltyRecord->checkExisting($req);  // check if existing
             if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
                 throw new Exception("Record Already Existing");
-            $data = $this->_mInfracRecForms->edit($req, $getData);  // update record
+            $data = $this->mPenaltyRecord->edit($req, $getData);  // update record
             $queryTime = collect(DB::getQueryLog())->sum("time");
             return responseMsgsT(true, "Records Updated Successfully", $data, "3.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
@@ -83,7 +84,7 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
-            $show = $this->_mInfracRecForms->getRecordById($req->id);  // get record by id
+            $show = $this->mPenaltyRecord->getRecordById($req->id);  // get record by id
             if (collect($show)->isEmpty())
                 throw new Exception("Data Not Found");
             $queryTime = collect(DB::getQueryLog())->sum("time");
@@ -93,19 +94,24 @@ class PenaltyRecordController extends Controller
         }
     }
 
-    public function showDocument(Request $req)
+    public function getUploadedDocuments(Request $req)
     {
         $validator = Validator::make($req->all(), [
             'applicationId' => 'required|numeric'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
-            $show = $this->_mInfracRecForms->getDocument($req->applicationId);  // get record by id
+            $mPenaltyDocument = new PenaltyDocument();
+            $applicationDtls = $this->mPenaltyRecord->find($req->applicationId);
+            if (!$applicationDtls)
+                throw new Exception("Application Not Found for this application Id");
+
+            $show = $mPenaltyDocument->getDocument($req->applicationId);  // get record by id
             if (collect($show)->isEmpty())
                 throw new Exception("Data Not Found");
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View Records", $show, "3.3", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+
+            return responseMsgsT(true, "View Records", $show, "3.3", responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "3.3", responseTime(), "POST", $req->deviceId ?? "");
         }
@@ -118,7 +124,7 @@ class PenaltyRecordController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
-            $getData = $this->_mInfracRecForms->active();
+            $getData = $this->mPenaltyRecord->active();
 
             $userList = app(Pipeline::class)
                 ->send($getData)
@@ -148,7 +154,7 @@ class PenaltyRecordController extends Controller
             $metaReqs =  [
                 'status' => 0
             ];
-            $delete = $this->_mInfracRecForms::findOrFail($req->id);
+            $delete = $this->mPenaltyRecord::findOrFail($req->id);
             $delete->update($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
             return responseMsgsT(true, "Deleted Successfully", $req->id, "3.6", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
@@ -166,7 +172,7 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->_mInfracRecForms->searchByName($req);
+            $getData = $this->mPenaltyRecord->searchByName($req);
             $perPage = $req->perPage ? $req->perPage : 10;
             $paginater = $getData->paginate($perPage);
             // if ($paginater == "")
@@ -348,7 +354,7 @@ class PenaltyRecordController extends Controller
                 'witness'                     => $req->witness,
                 'witness_name'                => $req->witnessName,
                 'witness_mobile'              => $req->witnessMobile,
-                'penalty_previous_id'         => $req->id,
+                'applied_record_id'         => $req->id,
                 'version_no'                  => 0,
                 'application_no'              => $penaltyRecord->application_no,
                 'current_role'                => $penaltyRecord->current_role,
@@ -357,11 +363,14 @@ class PenaltyRecordController extends Controller
                 'approved_by'                 => $userId,
             ];
 
+            $idGeneration = new IdGeneration(2, $penaltyRecord->ulb_id);
+            $challanNo = $idGeneration->generate();
+
             DB::beginTransaction();
             $finalRecord = $mPenaltyFinalRecord->store($finalRecordReqs);
 
             $challanReqs = [
-                'challan_no'        => 134,
+                'challan_no'        => $challanNo,
                 'challan_date'      => Carbon::now(),
                 'payment_date'      => $req->paymentDate,
                 'penalty_record_id' => $finalRecord->id,
@@ -451,8 +460,8 @@ class PenaltyRecordController extends Controller
 
             $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->orderbyDesc('penalty_challans.id')
                 ->where('penalty_challans.id', $req->challanId)
+                ->orderbyDesc('penalty_challans.id')
                 ->first();
 
             return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
