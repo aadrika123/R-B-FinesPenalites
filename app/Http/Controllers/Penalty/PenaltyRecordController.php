@@ -365,13 +365,15 @@ class PenaltyRecordController extends Controller
                 'witness'                     => $req->witness,
                 'witness_name'                => $req->witnessName,
                 'witness_mobile'              => $req->witnessMobile,
-                'applied_record_id'         => $req->id,
+                'applied_record_id'           => $req->id,
                 'version_no'                  => 0,
                 'application_no'              => $penaltyRecord->application_no,
                 'current_role'                => $penaltyRecord->current_role,
                 'workflow_id'                 => $penaltyRecord->workflow_id,
                 'ulb_id'                      => $penaltyRecord->ulb_id,
                 'approved_by'                 => $userId,
+                'guardian_name'               => $req->guardianName,
+                'violation_place'             => $req->violationPlace,
             ];
 
             $idGeneration = new IdGeneration(2, $penaltyRecord->ulb_id);

@@ -42,6 +42,8 @@ class PenaltyRecord extends Model
             'current_role'               => 2,
             'workflow_id'                => 1,
             'ulb_id'                     => 2,
+            'guardian_name'              => $req->guardianName,
+            'violation_place'            => $req->violationPlace,
         ];
         $data = PenaltyRecord::create($metaReqs);  // Store Record into database
         return $data;
