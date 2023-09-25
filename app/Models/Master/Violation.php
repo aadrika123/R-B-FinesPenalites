@@ -30,16 +30,18 @@ class Violation extends Model
     public function getRecordById($id)
     {
         return Violation::select(
-            DB::raw("id,violation_name,violation_section_id,penalty_amount,
+            DB::raw("violations.id,violations.violation_name,violations.penalty_amount,violations.violation_section_id,
+            violation_sections.violation_section,violation_sections.department,violation_sections.section_definition,
         CASE 
-            WHEN status = '0' THEN 'Deactivated'  
-            WHEN status = '1' THEN 'Active'
+            WHEN violations.status = '0' THEN 'Deactivated'  
+            WHEN violations.status = '1' THEN 'Active'
         END as status,
-        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        TO_CHAR(violations.created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
         ")
         )
-            ->where('id', $id)
+        ->join('violation_sections' , 'violation_sections.id', '=', 'violations.violation_section_id')
+            ->where('violations.id', $id)
             ->first();
     }
 
@@ -47,17 +49,19 @@ class Violation extends Model
     public function retrieve()
     {
         return Violation::select(
-            DB::raw("id,violation_name,violation_section_id,penalty_amount,
+            DB::raw("violations.id,violations.violation_name,violations.penalty_amount,violations.violation_section_id,
+            violation_sections.violation_section,violation_sections.department,violation_sections.section_definition,
         CASE 
-            WHEN status = '0' THEN 'Deactivated'  
-            WHEN status = '1' THEN 'Active'
+            WHEN violations.status = '0' THEN 'Deactivated'  
+            WHEN violations.status = '1' THEN 'Active'
         END as status,
-        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        TO_CHAR(violations.created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
         ")
         )
-            ->where('status', 1)
-            ->orderByDesc('id')
+        ->join('violation_sections' , 'violation_sections.id', '=', 'violations.violation_section_id')
+            ->where('violations.status', 1)
+            ->orderByDesc('violations.id')
             ->get();
     }
 }

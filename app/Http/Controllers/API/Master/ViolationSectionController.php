@@ -27,7 +27,9 @@ class ViolationSectionController extends Controller
     public function createViolationSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'violationSection' => 'required|string'
+            'violationSection' => 'required|string',
+            'department' => 'required|string',
+            'sectionDefinition' => 'required|string',
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
@@ -37,6 +39,8 @@ class ViolationSectionController extends Controller
                 throw new Exception("Section Already Existing");
             $metaReqs = [
                 'violation_section' => $req->violationSection,
+                'department' => $req->department,
+                'section_definition' => $req->sectionDefinition,
             ];
             $this->_mViolationSections->store($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
@@ -51,7 +55,9 @@ class ViolationSectionController extends Controller
     {
         $validator = Validator::make($req->all(), [
             'id'               => 'required|numeric',
-            'violationSection' => 'required|string'
+            'violationSection' => 'required|string',
+            'department' => 'required|string',
+            'sectionDefinition' => 'required|string',
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
@@ -62,6 +68,8 @@ class ViolationSectionController extends Controller
             $getData = $this->_mViolationSections::findOrFail($req->id);
             $metaReqs = [
                 'violation_section' => $req->violationSection ?? $getData->violation_section,
+                'department' => $req->department ?? $getData->department,
+                'section_definition' => $req->sectionDefinition ?? $getData->sectionDefinition,
                 'version_no' => $getData->version_no + 1,
                 'updated_at' => Carbon::now()
             ];
