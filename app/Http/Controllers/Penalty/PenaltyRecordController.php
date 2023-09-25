@@ -418,7 +418,7 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $challanDtl = PenaltyRecord::select(
                 'penalty_applied_records.*',
-                'penalty_challans.id as challan_id',
+                // 'penalty_challans.id as challan_id',
                 DB::raw(
                     "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -427,8 +427,7 @@ class PenaltyRecordController extends Controller
                     TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date"
                 )
             )
-                ->leftjoin('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
-                // ->leftjoin('penalty_final_records', 'penalty_final_records.applied_record_id', 'penalty_applied_records.id')
+                // ->leftjoin('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
                 ->whereDate('penalty_applied_records.created_at', $todayDate)
                 ->orderbyDesc('penalty_applied_records.id')
                 ->take(10)
@@ -512,7 +511,7 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
+            $challanDtl = PenaltyChallan::select('penalty_final_records.*', 'penalty_challans.*', 'penalty_challans.id', 'violations.violation_name', 'violation_sections.violation_section')
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('violation_sections', 'violation_sections.id', 'violations.violation_section_id')
@@ -542,6 +541,7 @@ class PenaltyRecordController extends Controller
         try {
             $mPenaltyTransaction = new PenaltyTransaction();
             $user = authUser($req);
+            $todayDate = Carbon::now();
             $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
 
@@ -557,7 +557,7 @@ class PenaltyRecordController extends Controller
                 "application_id" => $req->applicationId,
                 "challan_id"     => $req->challanId,
                 "tran_no"        => $transactionNo,
-                "tran_date"      => Carbon::now(),
+                "tran_date"      => $todayDate,
                 "tran_by"        => $user->id,
                 "payment_mode"   => strtoupper($req->paymentMode),
                 "amount"         => $challanDetails->amount,
@@ -568,8 +568,73 @@ class PenaltyRecordController extends Controller
             $tranDtl = $mPenaltyTransaction->store($reqs);
             $penaltyDetails->payment_status = 1;
             $penaltyDetails->save();
+
+            $challanDetails->payment_mode = $todayDate;
+            $challanDetails->save();
             DB::commit();
             return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | On Spot Challan
+     */
+    public function onSpotChallan(InfractionRecordingFormRequest $req)
+    {
+        try {
+            $mPenaltyFinalRecord = new PenaltyFinalRecord();
+            $mPenaltyChallan = new PenaltyChallan();
+            $user = authUser($req);
+            $idGeneration = new IdGeneration(1, 2);
+            $applicationNo = $idGeneration->generate();
+            $metaReqs = [
+                'full_name'                  => $req->fullName,
+                'mobile'                     => $req->mobile,
+                'email'                      => $req->email,
+                'holding_no'                 => $req->holdingNo,
+                'street_address'             => $req->streetAddress1,
+                'street_address_2'           => $req->streetAddress2,
+                'city'                       => $req->city,
+                'region'                     => $req->region,
+                'postal_code'                => $req->postalCode,
+                'violation_id'               => $req->violationId,
+                'penalty_amount'             => $req->penaltyAmount,
+                'previous_violation_offence' => $req->previousViolationOffence ?? 0,
+                'witness'                    => $req->isWitness ?? 0,
+                'witness_name'               => $req->witnessName,
+                'witness_mobile'             => $req->witnessMobile,
+                'application_no'             => $applicationNo,
+                'current_role'               => 2,
+                'workflow_id'                => 1,
+                'ulb_id'                     => 2,
+                'guardian_name'              => $req->guardianName,
+                'violation_place'            => $req->violationPlace,
+                'challan_type'               => $req->challanType,
+            ];
+
+            DB::beginTransaction();
+            $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
+            $idGeneration = new IdGeneration(2, $finalRecord->ulb_id);
+            $challanNo = $idGeneration->generate();
+
+            $challanReqs = [
+                'challan_no'        => $challanNo,
+                'challan_date'      => Carbon::now(),
+                'payment_date'      => $req->paymentDate,
+                'penalty_record_id' => $finalRecord->id,
+                'amount'            => $finalRecord->penalty_amount,
+                'total_amount'      => $finalRecord->penalty_amount,
+            ];
+
+            $challanRecord = $mPenaltyChallan->store($challanReqs);
+            $data['id'] = $challanRecord->id;
+            $data['challanNo'] = $challanRecord->challan_no;
+
+            DB::commit();
+            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);

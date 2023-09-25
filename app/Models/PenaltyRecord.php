@@ -32,7 +32,6 @@ class PenaltyRecord extends Model
             'region'                     => $req->region,
             'postal_code'                => $req->postalCode,
             'violation_id'               => $req->violationId,
-            // 'violation_section_id'       => $req->violationSectionId,
             'penalty_amount'             => $req->penaltyAmount,
             'previous_violation_offence' => $req->previousViolationOffence ?? 0,
             'witness'                    => $req->isWitness ?? 0,
