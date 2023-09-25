@@ -79,33 +79,7 @@ class PenaltyRecord extends Model
         return $data;
     }
 
-    // Get Document Details
-    public function getDocument($id)
-    {
-        $docUrl = "http://192.168.0.174:8000";
-        $stdSibling = PenaltyDocument::select(
-            DB::raw("id,document_type,document_path,latitude,longitude,document_verified_by,document_verified_at"),
-        )
-            ->where('irf_id', $id)
-            ->where('status', 1)
-            ->get();
-        if (!$stdSibling->isEmpty()) {
-            foreach ($stdSibling as $v) {
-                $dataArr['id'] = $v->id;
-                $dataArr['document_path'] = $docUrl . '/' . $v->document_path;
-                $dataArr['document_type'] = $v->document_type;
-                $dataArr['latitude'] = $v->latitude;
-                $dataArr['longitude'] = $v->longitude;
-                $dataArr['document_verified_by'] = $v->document_verified_by;
-                $dataArr['document_verified_at'] = $v->document_verified_at;
-                $getDoc[] = $dataArr;
-            }
-        } else {
-            $getDoc[] = $stdSibling;
-        }
-        $data['uploadDocs'] = $getDoc;
-        return $data;
-    }
+
 
     /**
      * | Read all Active Records

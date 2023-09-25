@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class PenaltyDocument extends Model
 {
@@ -66,6 +68,25 @@ class PenaltyDocument extends Model
             $docMetadata->save();
             $data['pdf_details'] = $docMetadata;
         }
+        return $data;
+    }
+
+    /**
+     * | Get Uploaded Document
+     */
+    public function getDocument($id)
+    {
+        $docUrl = Config::get('constants.DOC_URL');
+        $data = PenaltyDocument::select(
+            'id',
+            'latitude',
+            'longitude',
+            DB::raw("concat('$docUrl/',document_path) as document_path"),
+        )
+            ->where('applied_record_id', $id)
+            ->where('status', 1)
+            ->get();
+
         return $data;
     }
 }
