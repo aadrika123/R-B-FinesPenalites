@@ -30,7 +30,7 @@ class ViolationSection extends Model
     public function getRecordById($id)
     {
         return ViolationSection::select(
-            DB::raw("id,violation_name,violation_section,penalty_amount,
+            DB::raw("id,violation_section,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
@@ -47,7 +47,7 @@ class ViolationSection extends Model
     public function retrieve()
     {
         return ViolationSection::select(
-            DB::raw("id,violation_name,violation_section,penalty_amount,
+            DB::raw("id,violation_section,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
@@ -56,8 +56,8 @@ class ViolationSection extends Model
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-            ->where('status', 1)
-            ->orderByDesc('id')
-            ->get();
+        ->where('status', 1)
+        ->orderByDesc('id')
+        ->get();
     }
 }
