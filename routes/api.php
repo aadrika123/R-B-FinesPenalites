@@ -103,4 +103,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/challan-payment', 'challanPayment');                                       // Get By Id ----------- 3.3
 
     });
+
+    /**
+     * | API Violation Section CRUD operation
+         Controller No : 4
+     */
+    Route::controller(ViolationSectionController::class)->group(function () {
+        Route::post('violation/crud/save', 'createViolationSection');                                 // Save -------------------- 1.1
+        Route::post('violation/crud/edit', 'updateViolationSection');                                 // Edit  ------------------- 1.2
+        Route::post('violation/crud/get', 'getSectionById');                                    // Get By Id --------------- 1.3
+        Route::post('violation/crud/list', 'getSectionList');                                    // Get All ----------------- 1.4
+        Route::post('violation/crud/delete', 'deleteViolation');                               // Delete ------------------ 1.5
+    });
 });
