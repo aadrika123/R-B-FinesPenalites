@@ -88,8 +88,8 @@ class PenaltyRecord extends Model
     {
         return PenaltyRecord::select(
             'penalty_applied_records.*',
-            'b.violation_name',
-            'violation_section',
+            'violations.violation_name',
+            'violations.violation_section_id',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -99,7 +99,7 @@ class PenaltyRecord extends Model
                     TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time"
             )
         )
-            ->join('violations as b', 'b.id', '=', 'penalty_applied_records.violation_id')
+            ->join('violations', 'violations.id', '=', 'penalty_applied_records.violation_id')
             ->where('penalty_applied_records.status', 1)
             ->orderBy('penalty_applied_records.id');
     }
