@@ -70,7 +70,6 @@ class ViolationSectionController extends Controller
                 'violation_section' => $req->violationSection ?? $getData->violation_section,
                 'department' => $req->department ?? $getData->department,
                 'section_definition' => $req->sectionDefinition ?? $getData->sectionDefinition,
-                'version_no' => $getData->version_no + 1,
                 'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs);

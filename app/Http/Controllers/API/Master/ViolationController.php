@@ -72,7 +72,6 @@ class ViolationController extends Controller
                 'violation_name' => $req->violationName ?? $getData->violation_name,
                 'violation_section_id' => $req->violationSectionId,
                 'penalty_amount' => $req->penaltyAmount,
-                'version_no' => $getData->version_no + 1,
                 'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs);

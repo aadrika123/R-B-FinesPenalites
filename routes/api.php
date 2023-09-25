@@ -95,6 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/inbox', 'inbox');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/detail', 'penaltyDetails');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/approve', 'approvePenalty');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/recent-applications', 'recentApplications');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/recent-challans', 'recentChallans');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/challan-search', 'searchChallan');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/get-challan', 'challanDetails');                                       // Get By Id ----------- 3.3
