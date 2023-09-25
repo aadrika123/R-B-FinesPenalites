@@ -86,17 +86,15 @@ Route::middleware('auth:sanctum')->group(function () {
      */
     Route::controller(PenaltyRecordController::class)->group(function () {
         Route::post('penalty-record/crud/save', 'store');                                      // Save ---------------- 3.1
-        Route::post('penalty-record/crud/edit', 'edit');                                       // Edit ---------------- 3.2
         Route::post('penalty-record/crud/show', 'show');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/crud/retrieve-all', 'retrieveAll');                        // Get All ------------- 3.4
         Route::post('penalty-record/crud/active-all', 'activeAll');                            // Get Active All ------ 3.5
         Route::post('penalty-record/crud/delete', 'delete');                                   // Delete -------------- 3.6
         Route::post('penalty-record/crud/search', 'searchByApplicationNo');                    // search -------------- 3.6
+
         Route::post('penalty-record/get-uploaded-document', 'getUploadedDocuments');                       // Get By Id ----------- 3.3
         Route::post('penalty-record/inbox', 'inbox');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/detail', 'penaltyDetails');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/approve', 'approvePenalty');                                       // Get By Id ----------- 3.3
-
         Route::post('penalty-record/recent-challans', 'recentChallans');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/challan-search', 'searchChallan');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/get-challan', 'challanDetails');                                       // Get By Id ----------- 3.3

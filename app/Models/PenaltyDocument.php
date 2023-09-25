@@ -22,7 +22,7 @@ class PenaltyDocument extends Model
             $docType = $req->photo->getClientOriginalExtension();
             // Create a new PhotoMetadata record
             $docMetadata = new PenaltyDocument([
-                'irf_id' => $id,
+                'applied_record_id' => $id,
                 'document_type' => $docType,
                 'document_path' => $file_name,
                 'latitude' => $req->latitude,
@@ -40,7 +40,7 @@ class PenaltyDocument extends Model
             $docType = $req->audioVideo->getClientOriginalExtension();
             // Create a new PhotoMetadata record
             $docMetadata = new PenaltyDocument([
-                'irf_id' => $id,
+                'applied_record_id' => $id,
                 'document_type' => $docType,
                 'document_path' => $file_name,
                 'latitude' => $req->latitude ?? null,
@@ -57,7 +57,7 @@ class PenaltyDocument extends Model
             $docType = $req->pdf->getClientOriginalExtension();
             // Create a new PhotoMetadata record
             $docMetadata = new PenaltyDocument([
-                'irf_id' => $id,
+                'applied_record_id' => $id,
                 'document_type' => $docType,
                 'document_path' => $file_name,
                 'latitude' => $req->latitude ?? null,
