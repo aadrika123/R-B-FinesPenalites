@@ -76,6 +76,7 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            // $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $show = $this->mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.id', $req->id)
                 ->first();
@@ -406,6 +407,41 @@ class PenaltyRecordController extends Controller
     }
 
     /**
+     * | Recent Applications
+     */
+    public function recentApplications(Request $req)
+    {
+        try {
+            $todayDate = now()->toDateString();
+            $user = authUser($req);
+            $userId = $user->id;
+            $ulbId = $user->ulb_id;
+            $challanDtl = PenaltyRecord::select(
+                'penalty_applied_records.*',
+                'penalty_challans.id as challan_id',
+                DB::raw(
+                    "CASE 
+                        WHEN penalty_applied_records.status = '1' THEN 'Active'
+                        WHEN penalty_applied_records.status = '2' THEN 'Approved'  
+                    END as status,
+                    TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date"
+                )
+            )
+                ->leftjoin('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
+                // ->leftjoin('penalty_final_records', 'penalty_final_records.applied_record_id', 'penalty_applied_records.id')
+                ->whereDate('penalty_applied_records.created_at', $todayDate)
+                ->orderbyDesc('penalty_applied_records.id')
+                ->take(10)
+                ->get();
+
+            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
      * | Recent Challans
      */
     public function recentChallans(Request $req)
@@ -428,6 +464,7 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
 
     /**
      * | Search Challans
@@ -477,6 +514,8 @@ class PenaltyRecordController extends Controller
 
             $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+                ->join('violation_sections', 'violation_sections.id', 'violations.violation_section_id')
                 ->where('penalty_challans.id', $req->challanId)
                 ->orderbyDesc('penalty_challans.id')
                 ->first();
