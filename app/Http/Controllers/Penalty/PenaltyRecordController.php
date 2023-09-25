@@ -103,7 +103,8 @@ class PenaltyRecordController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
-            $getData = $this->mPenaltyRecord->active();
+            return $getData = $this->mPenaltyRecord->active()
+                ->get();
 
             $userList = app(Pipeline::class)
                 ->send($getData)
