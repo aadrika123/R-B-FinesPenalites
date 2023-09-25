@@ -334,12 +334,19 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
+            $mPenaltyRecord = new PenaltyRecord();
             $mWfWorkflowRoleMaps = new WfWorkflowrolemap();
             $mWfRoleusermap = new WfRoleusermap();
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $mPenaltyChallan = new PenaltyChallan();
 
-            $penaltyRecord = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
+            $penaltyRecord = $mPenaltyRecord->recordDetail()
+                ->where('penalty_applied_records.status', 1)
+                ->where('penalty_applied_records.id', $req->id)
+                ->first();
+
+            if (!$penaltyRecord)
+                throw new Exception("Record Not Found");
 
             $finalRecordReqs = [
                 'full_name'                   => $req->fullName,
@@ -386,7 +393,10 @@ class PenaltyRecordController extends Controller
             $penaltyRecord->save();
             DB::commit();
 
-            return responseMsgs(true, "", ["challanNo" => $challanRecord->challan_no], "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            $data['id'] = $challanRecord->id;
+            $data['challanNo'] = $challanRecord->challan_no;
+
+            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
