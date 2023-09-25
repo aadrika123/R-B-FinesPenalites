@@ -30,7 +30,7 @@ class Violation extends Model
     public function getRecordById($id)
     {
         return Violation::select(
-            DB::raw("id,violation_name,violation_section,penalty_amount,
+            DB::raw("id,violation_name,violation_section_id,penalty_amount,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
@@ -47,7 +47,7 @@ class Violation extends Model
     public function retrieve()
     {
         return Violation::select(
-            DB::raw("id,violation_name,violation_section,penalty_amount,
+            DB::raw("id,violation_name,violation_section_id,penalty_amount,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'

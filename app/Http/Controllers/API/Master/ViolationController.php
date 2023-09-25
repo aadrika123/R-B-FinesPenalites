@@ -30,7 +30,7 @@ class ViolationController extends Controller
     {
         $validator = Validator::make($req->all(), [
             'violationName'       => 'required|string',
-            'violationSection' => 'required|string',
+            'violationSectionId' => 'required|numeric',
             'penaltyAmount' => 'required|integer',
         ]);
         if ($validator->fails())
@@ -41,20 +41,12 @@ class ViolationController extends Controller
                 throw new Exception("Violation Name Already Existing");
             $metaReqs = [
                 'violation_name' => $req->violationName,
-                'violation_section' => $req->violationSection,
+                'violation_section_id' => $req->violationSectionId,
                 'penalty_amount' => $req->penaltyAmount,
             ];
-            $vioData = $this->_mViolations->store($metaReqs);
-            $data = ['Violation' => $req->violationName];
-            $violationSection = [
-                'violation_id' => $vioData->id,
-                'violation_section' => $req->violationSection,
-                'penalty_amount' => $req->penaltyAmount,
-            ];
-            $vioData = new Violation();
-            $vioData->store($violationSection);
+            $this->_mViolations->store($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Added Successfully", $data, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Records Added Successfully", $metaReqs, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.1", responseTime(), "POST", $req->deviceId ?? "");
         }
@@ -66,7 +58,7 @@ class ViolationController extends Controller
         $validator = Validator::make($req->all(), [
             'id'               => 'required|numeric',
             'violationName'    => 'required|string',
-            'violationSection' => 'required|string',
+            'violationSectionId' => 'required|numeric',
             'penaltyAmount'    => 'required|integer',
         ]);
         if ($validator->fails())
@@ -78,22 +70,14 @@ class ViolationController extends Controller
             $getData = $this->_mViolations::findOrFail($req->id);
             $metaReqs = [
                 'violation_name' => $req->violationName ?? $getData->violation_name,
-                'violation_section' => $req->violationSection,
+                'violation_section_id' => $req->violationSectionId,
                 'penalty_amount' => $req->penaltyAmount,
                 'version_no' => $getData->version_no + 1,
                 'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs);
-            $data = ['Violation' => $req->violationName];
-            $violationSection = [
-                'violation_id' => $req->id,
-                'violation_section' => $req->violationSection,
-                'penalty_amount' => $req->penaltyAmount,
-            ];
-            $vioData = Violation::where('violation_id', $req->id);
-            $vioData->update($violationSection);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Updated Successfully", $data, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Records Updated Successfully", $metaReqs, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.2", responseTime(), "POST", $req->deviceId ?? "");
         }
