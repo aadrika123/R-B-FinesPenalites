@@ -44,31 +44,23 @@ class PenaltyRecordController extends Controller
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
+            $mPenaltyDocument = new PenaltyDocument();
             $isGroupExists = $this->mPenaltyRecord->checkExisting($req); // Check if record already exists or not
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("Email Already Existing");
-            $data = $this->mPenaltyRecord->store($req);  // Store record
+
+            DB::beginTransaction();
+
+            $data = $this->mPenaltyRecord->store($req);
+            if ($req->file('photo')) {
+                $metaReqs['documents'] = $mPenaltyDocument->storeDocument($req, $data->id, $data->application_no);
+            }
+
+            DB::commit();
             return responseMsgs(true, "Records Added Successfully", $data, "3.1",  responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
+            DB::rollBack();
             return responseMsgs(false, $e->getMessage(), [], "", "3.1", responseTime(), "POST", $req->deviceId ?? "");
-        }
-    }
-
-    /**
-     * |  Edit Record | Update according to the given id
-     */
-    public function edit(InfractionRecordingFormRequest $req)
-    {
-        try {
-            $getData = PenaltyRecord::findOrFail($req->id);  // check the id is exists or not
-            $isExists = $this->mPenaltyRecord->checkExisting($req);  // check if existing
-            if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
-                throw new Exception("Record Already Existing");
-            $data = $this->mPenaltyRecord->edit($req, $getData);  // update record
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Updated Successfully", $data, "3.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.2", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
 
@@ -84,17 +76,17 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
-            $show = $this->mPenaltyRecord->getRecordById($req->id);  // get record by id
-            if (collect($show)->isEmpty())
+            $show = $this->mPenaltyRecord->recordDetail()
+                ->where('penalty_applied_records.id', $req->id)
+                ->first();
+
+            if (!$show)
                 throw new Exception("Data Not Found");
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View Records", $show, "3.3", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "View Records", $show, "3.3",  responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "3.3", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
-
-
 
     /**
      * |  Retrieve Only Active Records
@@ -103,8 +95,8 @@ class PenaltyRecordController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
-            return $getData = $this->mPenaltyRecord->active()
-                ->get();
+            $getData = $this->mPenaltyRecord->recordDetail()
+                ->where('penalty_applied_records.status', 1);
 
             $userList = app(Pipeline::class)
                 ->send($getData)
@@ -222,9 +214,10 @@ class PenaltyRecordController extends Controller
             $roleId = $mWfRoleusermap->getRoleIdByUserId($userId)->pluck('wf_role_id');
             $workflowIds = $mWfWorkflowRoleMaps->getWfByRoleId($roleId)->pluck('workflow_id');
 
-            $list = $mPenaltyRecord->active()
-                ->whereIn('workflow_id', $workflowIds)
+            $list = $mPenaltyRecord->recordDetail()
+                ->where('penalty_applied_records.status', 1)
                 ->where('penalty_applied_records.ulb_id', $ulbId)
+                ->whereIn('workflow_id', $workflowIds)
                 ->whereIn('penalty_applied_records.current_role', $roleId)
                 ->orderByDesc('penalty_applied_records.id');
 
@@ -260,7 +253,11 @@ class PenaltyRecordController extends Controller
             // $mWorkflowTracks = new WorkflowTrack();
             // $mCustomDetails = new CustomDetail();
             // $mForwardBackward = new WorkflowMap();
-            $details = $mPenaltyRecord->getRecordById($req->applicationId);
+            $details = $mPenaltyRecord->recordDetail()
+                ->where('penalty_applied_records.status', 1)
+                ->where('penalty_applied_records.id', $req->applicationId)
+                ->first();
+
             if (!$details)
                 throw new Exception("Application Not Found");
 
