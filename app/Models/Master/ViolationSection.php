@@ -22,6 +22,7 @@ class ViolationSection extends Model
     public function checkExisting($req)
     {
         return ViolationSection::where(DB::raw('upper(violation_section)'), strtoupper($req->violationSection))
+            ->where(DB::raw('upper(department)'), strtoupper($req->department))
             ->where('status', 1)
             ->get();
     }
@@ -30,7 +31,7 @@ class ViolationSection extends Model
     public function getRecordById($id)
     {
         return ViolationSection::select(
-            DB::raw("id,violation_section,
+            DB::raw("id,violation_section,department, section_definition,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
@@ -47,7 +48,7 @@ class ViolationSection extends Model
     public function retrieve()
     {
         return ViolationSection::select(
-            DB::raw("id,violation_section,
+            DB::raw("id,violation_section,department, section_definition,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'
