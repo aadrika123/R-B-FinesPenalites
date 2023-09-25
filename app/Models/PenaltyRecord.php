@@ -70,6 +70,7 @@ class PenaltyRecord extends Model
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
                         WHEN penalty_applied_records.status = '0' THEN 'Deactivated'  
+                        WHEN penalty_applied_records.status = '2' THEN 'Approved'  
                     END as status,
                     TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
                     TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time"
