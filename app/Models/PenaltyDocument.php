@@ -81,6 +81,7 @@ class PenaltyDocument extends Model
             'id',
             'latitude',
             'longitude',
+            'document_name',
             DB::raw("concat('$docUrl/',document_path) as doc_path"),
         )
             ->where('applied_record_id', $id)
