@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\Master\Violation;
-use App\Models\Master\ViolationUnderSection;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\req;
@@ -52,7 +51,7 @@ class ViolationController extends Controller
                 'violation_section' => $req->violationSection,
                 'penalty_amount' => $req->penaltyAmount,
             ];
-            $vioData = new ViolationUnderSection();
+            $vioData = new Violation();
             $vioData->store($violationSection);
             $queryTime = collect(DB::getQueryLog())->sum("time");
             return responseMsgsT(true, "Records Added Successfully", $data, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
@@ -91,7 +90,7 @@ class ViolationController extends Controller
                 'violation_section' => $req->violationSection,
                 'penalty_amount' => $req->penaltyAmount,
             ];
-            $vioData = ViolationUnderSection::where('violation_id', $req->id);
+            $vioData = Violation::where('violation_id', $req->id);
             $vioData->update($violationSection);
             $queryTime = collect(DB::getQueryLog())->sum("time");
             return responseMsgsT(true, "Records Updated Successfully", $data, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");

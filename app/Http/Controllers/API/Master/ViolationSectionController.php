@@ -34,15 +34,13 @@ class ViolationSectionController extends Controller
         try {
             $isGroupExists = $this->_mViolationSections->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
-                throw new Exception("Violation Section Already Existing");
-            $violationSection = [
+                throw new Exception("Section Already Existing");
+            $metaReqs = [
                 'violation_section' => $req->violationSection,
             ];
-            return $violationSection; die; 
-            $mViolationSection = new ViolationSection();
-            $mViolationSection->store($violationSection);
+            $this->_mViolationSections->store($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Added Successfully", $violationSection, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Records Added Successfully", $metaReqs, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.1", responseTime(), "POST", $req->deviceId ?? "");
         }
@@ -53,35 +51,23 @@ class ViolationSectionController extends Controller
     {
         $validator = Validator::make($req->all(), [
             'id'               => 'required|numeric',
-            'violationName'    => 'required|string',
-            'violationSection' => 'required|string',
-            'penaltyAmount'    => 'required|integer',
+            'violationSection' => 'required|string'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
             $isExists = $this->_mViolationSections->checkExisting($req);
             if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
-                throw new Exception("Violation Name Already Existing");
+                throw new Exception("Section Already Existing");
             $getData = $this->_mViolationSections::findOrFail($req->id);
             $metaReqs = [
-                'violation_name' => $req->violationName ?? $getData->violation_name,
-                'violation_section' => $req->violationSection,
-                'penalty_amount' => $req->penaltyAmount,
+                'violation_section' => $req->violationSection ?? $getData->violation_section,
                 'version_no' => $getData->version_no + 1,
                 'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs);
-            $data = ['Violation' => $req->violationName];
-            $violationSection = [
-                'violation_id' => $req->id,
-                'violation_section' => $req->violationSection,
-                'penalty_amount' => $req->penaltyAmount,
-            ];
-            $vioData = ViolationSection::where('violation_id', $req->id);
-            $vioData->update($violationSection);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Updated Successfully", $data, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Records Updated Successfully", $metaReqs, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.2", responseTime(), "POST", $req->deviceId ?? "");
         }
@@ -106,7 +92,7 @@ class ViolationSectionController extends Controller
         }
     }
     //View All
-    public function getViolation(Request $req)
+    public function getSectionList(Request $req)
     {
         try {
             $getData = $this->_mViolationSections->retrieve();
@@ -118,7 +104,7 @@ class ViolationSectionController extends Controller
     }
 
     //Activate / Deactivate
-    public function deleteViolation(Request $req)
+    public function deleteSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
             'id' => 'required'
