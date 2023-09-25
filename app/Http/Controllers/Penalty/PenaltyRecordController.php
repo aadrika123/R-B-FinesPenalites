@@ -94,28 +94,7 @@ class PenaltyRecordController extends Controller
         }
     }
 
-    public function getUploadedDocuments(Request $req)
-    {
-        $validator = Validator::make($req->all(), [
-            'applicationId' => 'required|numeric'
-        ]);
-        if ($validator->fails())
-            return validationError($validator);
-        try {
-            $mPenaltyDocument = new PenaltyDocument();
-            $applicationDtls = $this->mPenaltyRecord->find($req->applicationId);
-            if (!$applicationDtls)
-                throw new Exception("Application Not Found for this application Id");
 
-            $show = $mPenaltyDocument->getDocument($req->applicationId);  // get record by id
-            if (collect($show)->isEmpty())
-                throw new Exception("Data Not Found");
-
-            return responseMsgsT(true, "View Records", $show, "3.3", responseTime(), "POST", $req->deviceId ?? "");
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.3", responseTime(), "POST", $req->deviceId ?? "");
-        }
-    }
 
     /**
      * |  Retrieve Only Active Records
@@ -197,6 +176,32 @@ class PenaltyRecordController extends Controller
      * ===================         Created On : 22-09-2023         ============================================
      * ========================================================================================================
      */
+
+    /**
+     * | Get Uploaded Document
+     */
+    public function getUploadedDocuments(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'applicationId' => 'required|numeric'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $mPenaltyDocument = new PenaltyDocument();
+            $applicationDtls = $this->mPenaltyRecord->find($req->applicationId);
+            if (!$applicationDtls)
+                throw new Exception("Application Not Found for this application Id");
+
+            $show = $mPenaltyDocument->getDocument($req->applicationId);  // get record by id
+            if (collect($show)->isEmpty())
+                throw new Exception("Data Not Found");
+
+            return responseMsgsT(true, "View Records", $show, "3.3", responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "3.3", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
 
 
     /**
@@ -400,8 +405,10 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $challanDtl = PenaltyChallan::where('challan_date', $todayDate)
-                ->orderbyDesc('id')
+            $challanDtl = PenaltyChallan::select('penalty_challans.*', 'full_name')
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->where('challan_date', $todayDate)
+                ->orderbyDesc('penalty_challans.id')
                 ->take(10)
                 ->get();
 
