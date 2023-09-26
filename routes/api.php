@@ -100,6 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/challan-search', 'searchChallan');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/get-challan', 'challanDetails');                                       // Get By Id ----------- 3.3
         Route::post('penalty-record/challan-payment', 'challanPayment');                                       // Get By Id ----------- 3.3
+        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                                       // Get By Id ----------- 3.3
 
     });
 

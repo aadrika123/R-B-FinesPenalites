@@ -32,7 +32,6 @@ class PenaltyRecord extends Model
             'region'                     => $req->region,
             'postal_code'                => $req->postalCode,
             'violation_id'               => $req->violationId,
-            // 'violation_section_id'       => $req->violationSectionId,
             'penalty_amount'             => $req->penaltyAmount,
             'previous_violation_offence' => $req->previousViolationOffence ?? 0,
             'witness'                    => $req->isWitness ?? 0,
@@ -64,13 +63,13 @@ class PenaltyRecord extends Model
     {
         return PenaltyRecord::select(
             'penalty_applied_records.*',
-            'violations.violation_name',
-            'violations.violation_section_id',
+            'violations.violation_name','violations.violation_section_id',
             'violation_sections.violation_section','violation_sections.department','violation_sections.section_definition',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
                         WHEN penalty_applied_records.status = '0' THEN 'Deactivated'  
+                        WHEN penalty_applied_records.status = '2' THEN 'Approved'  
                     END as status,
                     TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
                     TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time"

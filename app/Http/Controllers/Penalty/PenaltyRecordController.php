@@ -419,7 +419,7 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $challanDtl = PenaltyRecord::select(
                 'penalty_applied_records.*',
-                'penalty_challans.id as challan_id',
+                // 'penalty_challans.id as challan_id',
                 DB::raw(
                     "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -428,8 +428,7 @@ class PenaltyRecordController extends Controller
                     TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date"
                 )
             )
-                ->leftjoin('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
-                // ->leftjoin('penalty_final_records', 'penalty_final_records.applied_record_id', 'penalty_applied_records.id')
+                // ->leftjoin('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
                 ->whereDate('penalty_applied_records.created_at', $todayDate)
                 ->orderbyDesc('penalty_applied_records.id')
                 ->take(10)
@@ -513,7 +512,7 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
+            $challanDtl = PenaltyChallan::select('penalty_final_records.*', 'penalty_challans.*', 'penalty_challans.id', 'violations.violation_name', 'violation_sections.violation_section')
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('violation_sections', 'violation_sections.id', 'violations.violation_section_id')
@@ -543,6 +542,7 @@ class PenaltyRecordController extends Controller
         try {
             $mPenaltyTransaction = new PenaltyTransaction();
             $user = authUser($req);
+            $todayDate = Carbon::now();
             $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
 
@@ -558,7 +558,7 @@ class PenaltyRecordController extends Controller
                 "application_id" => $req->applicationId,
                 "challan_id"     => $req->challanId,
                 "tran_no"        => $transactionNo,
-                "tran_date"      => Carbon::now(),
+                "tran_date"      => $todayDate,
                 "tran_by"        => $user->id,
                 "payment_mode"   => strtoupper($req->paymentMode),
                 "amount"         => $challanDetails->amount,
@@ -569,6 +569,9 @@ class PenaltyRecordController extends Controller
             $tranDtl = $mPenaltyTransaction->store($reqs);
             $penaltyDetails->payment_status = 1;
             $penaltyDetails->save();
+
+            $challanDetails->payment_mode = $todayDate;
+            $challanDetails->save();
             DB::commit();
             return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -576,6 +579,4 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
-
 }
