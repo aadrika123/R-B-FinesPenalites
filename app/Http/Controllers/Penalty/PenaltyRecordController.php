@@ -175,6 +175,7 @@ class PenaltyRecordController extends Controller
         }
     }
 
+
     /**
      * ========================================================================================================
      * ===================         Created By : Mrinal Kumar       ============================================
@@ -640,7 +641,6 @@ class PenaltyRecordController extends Controller
             $idGeneration = new IdGeneration(1, 2);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
-            $metaReqs['challan_type'] = "On Spot";
 
             DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
@@ -652,8 +652,8 @@ class PenaltyRecordController extends Controller
                 'challan_date'      => Carbon::now(),
                 'payment_date'      => $req->paymentDate,
                 'penalty_record_id' => $finalRecord->id,
-                'amount'            => $finalRecord->amount,
-                'total_amount'      => $finalRecord->amount,
+                'amount'            => $finalRecord->penalty_amount,
+                'total_amount'      => $finalRecord->penalty_amount,
             ];
 
             $challanRecord = $mPenaltyChallan->store($challanReqs);
@@ -695,33 +695,6 @@ class PenaltyRecordController extends Controller
             'guardian_name'              => $req->guardianName,
             'violation_place'            => $req->violationPlace,
             'challan_type'               => $req->challanType,
-            'vehicle_no'                 => $req->vehicleNo,
-            'category_type_id'           => $req->categoryTypeId,
         ];
-    }
-
-    /**
-     * | Check E-Rickshaw Conditions
-     */
-    public function checkRickshawCondition($req)
-    {
-        $fineDetails = Config::get('constants.E_RICKSHAW_FINES');
-        $mPenaltyRecord = new PenaltyRecord();
-        $mPenaltyFinalRecord = new PenaltyFinalRecord();
-
-        $appliedCount = $mPenaltyRecord->where('vehicle_no', $req->vehicleNo)->where('status', 1)
-            ->count();
-
-        $finalCount = $mPenaltyFinalRecord->where('vehicle_no', $req->vehicleNo)
-            ->where('status', '!=', 0)
-            ->count();
-
-        $totalCount = $appliedCount + $finalCount;
-
-
-        if ($totalCount == 5)
-            throw new Exception("E-Rickshaw whose number is " . $req->vehicleNo . " has been Seized from Fine & Penalty Department.");
-
-        return $fine = $fineDetails[$totalCount];
     }
 }

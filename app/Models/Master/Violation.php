@@ -64,4 +64,24 @@ class Violation extends Model
             ->orderByDesc('violations.id')
             ->get();
     }
+
+    /*Read all Records by*/
+    public function getList($req)
+    {
+        return Violation::select(
+            DB::raw("id,violation_name,penalty_amount,section_id,department_id,
+        CASE 
+            WHEN status = '0' THEN 'Deactivated'  
+            WHEN status = '1' THEN 'Active'
+        END as status,
+        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        ")
+        )
+        ->where('section_id',$req->sectionId)
+        ->where('department_id',$req->departmentId)
+        ->where('status', 1)
+        ->orderByDesc('id')
+        ->get();
+    }
 }
