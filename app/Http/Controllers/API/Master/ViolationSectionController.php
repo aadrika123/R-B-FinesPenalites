@@ -135,7 +135,9 @@ class ViolationSectionController extends Controller
         }
     }
 
-    //show data by id
+    /**
+     * | Get 
+     */
     public function getRecordByDepartmentName(Request $req)
     {
         $validator = Validator::make($req->all(), [
@@ -192,7 +194,9 @@ class ViolationSectionController extends Controller
         }
     }
 
-    // Get Challan Category List ...
+    /**
+     * | Get Department List
+     */
     public function getDepartmentList(Request $req)
     {
         try {
@@ -207,7 +211,9 @@ class ViolationSectionController extends Controller
     }
 
 
-    // Get Challan Category List ...
+    /**
+     * | Get Section List By Department Id
+     */
     public function getSectionListById(Request $req)
     {
         try {
@@ -221,7 +227,9 @@ class ViolationSectionController extends Controller
         }
     }
 
-    // Get Challan Category List ...
+    /**
+     * | Get Violation List By Department Id & Section Id
+     */
     public function getViolationListBySectionId(Request $req)
     {
         try {
