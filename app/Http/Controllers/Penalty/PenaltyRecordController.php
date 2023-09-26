@@ -838,4 +838,25 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+    /**
+     * |
+     */
+    public function checkRickshawCondition($req)
+    {
+        $rickshawFine =  Config::get('constants.E_RICKSHAW_FINES');
+        $appliedRecord =  PenaltyRecord::where('vehicle_no', $req->vehicleNo)
+            ->where('status', 1)
+            ->count();
+
+        $finalRecord = PenaltyFinalRecord::where('vehicle_no', $req->vehicleNo)
+            ->where('status', '<>', 1)
+            ->count();
+
+        $totalRecord = $appliedRecord + $finalRecord;
+
+        if ($totalRecord == 5)
+            throw new Exception("E-Rickshaw has been Seized");
+        return $fine = $rickshawFine[$totalRecord];
+    }
 }
