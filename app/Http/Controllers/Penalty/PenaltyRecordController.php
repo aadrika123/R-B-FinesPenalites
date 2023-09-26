@@ -174,7 +174,7 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_36.7", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
-    
+
 
     /**
      * ========================================================================================================
@@ -300,6 +300,8 @@ class PenaltyRecordController extends Controller
             ];
 
             $fullDetailsData['application_no'] = $details->application_no;
+            $fullDetailsData['payment_status'] = false;
+            $fullDetailsData['challan_status'] = false;
             $fullDetailsData['apply_date'] = date('d-m-Y', strtotime($details->created_at));
             $fullDetailsData['fullDetailsData']['dataArray'] = new Collection([$basicElement, $addressElement, $penaltyElement, $witnessElement]);
 
@@ -614,6 +616,8 @@ class PenaltyRecordController extends Controller
             $tranDtl = $mPenaltyTransaction->tranDtl()
                 ->where('tran_no', $req->transactionNo)
                 ->first();
+            $totalAmountInWord = getHindiIndianCurrency($tranDtl->total_amount);
+            $tranDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
             return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -692,5 +696,31 @@ class PenaltyRecordController extends Controller
             'violation_place'            => $req->violationPlace,
             'challan_type'               => $req->challanType,
         ];
+    }
+
+    /**
+     * |
+     */
+    public function violationData(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'fromDate' => 'required|date',
+            'uptoDate' => 'required|date',
+            'violationId' => 'required|int'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $user = authUser($req);
+            $perPage = $req->perPage ?? 10;
+            $todayDate =  $req->date ?? now()->toDateString();
+            $tranDtl = PenaltyFinalRecord::whereBetween('created_at', [$req->fromDate, $req->uptoDate])
+                ->orderbyDesc('id')
+                ->paginate($perPage);
+
+            return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
     }
 }

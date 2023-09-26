@@ -569,8 +569,8 @@ if (!function_exists("responseTime")) {
 }
 
 
-if (!function_exists('getIndianCurrency')) {
-    function getIndianCurrency(float $number)
+if (!function_exists('getHindiIndianCurrency')) {
+    function getHindiIndianCurrency(float $number)
     {
         $decimal = round($number - ($no = floor($number)), 2) * 100;
         $decimal_part = $decimal;
@@ -582,17 +582,17 @@ if (!function_exists('getIndianCurrency')) {
         $str = array();
         $str2 = array();
         $words = array(
-            0 => '', 1 => 'one', 2 => 'two',
-            3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six',
-            7 => 'seven', 8 => 'eight', 9 => 'nine',
-            10 => 'ten', 11 => 'eleven', 12 => 'twelve',
-            13 => 'thirteen', 14 => 'fourteen', 15 => 'fifteen',
-            16 => 'sixteen', 17 => 'seventeen', 18 => 'eighteen',
-            19 => 'nineteen', 20 => 'twenty', 30 => 'thirty',
-            40 => 'forty', 50 => 'fifty', 60 => 'sixty',
-            70 => 'seventy', 80 => 'eighty', 90 => 'ninety'
+            0 => '', 1 => 'एक', 2 => 'दो',
+            3 => 'तीन', 4 => 'चार', 5 => 'पांच', 6 => 'छह',
+            7 => 'सात', 8 => 'आठ', 9 => 'नौ',
+            10 => 'दस', 11 => 'ग्यारह', 12 => 'बारह',
+            13 => 'तेरह', 14 => 'चौदह', 15 => 'पंद्रह',
+            16 => 'सोलह', 17 => 'सत्रह', 18 => 'अठारह',
+            19 => 'उन्नीस', 20 => 'बीस', 30 => 'तीस',
+            40 => 'चालीस', 50 => 'पचास', 60 => 'साठ',
+            70 => 'सत्तासी', 80 => 'अस्सी', 90 => 'नब्बे'
         );
-        $digits = array('', 'hundred', 'thousand', 'lakh', 'crore');
+        $digits = array('', 'सौ', 'हज़ार', 'लाख', 'करोड़');
 
         while ($i < $digits_length) {
             $divider = ($i == 2) ? 10 : 100;
@@ -601,7 +601,7 @@ if (!function_exists('getIndianCurrency')) {
             $i += $divider == 10 ? 1 : 2;
             if ($number) {
                 $plural = (($counter = count($str)) && $number > 9) ? 's' : null;
-                $hundred = ($counter == 1 && $str[0]) ? ' and ' : null;
+                $hundred = ($counter == 1 && $str[0]) ? ' और ' : null;
                 $str[] = ($number < 21) ? $words[$number] . ' ' . $digits[$counter] . $plural . ' ' . $hundred : $words[floor($number / 10) * 10] . ' ' . $words[$number % 10] . ' ' . $digits[$counter] . $plural . ' ' . $hundred;
             } else $str[] = null;
         }
@@ -614,14 +614,14 @@ if (!function_exists('getIndianCurrency')) {
             $d += $divider == 10 ? 1 : 2;
             if ($decimal_number) {
                 $plurals = (($counter = count($str2)) && $decimal_number > 9) ? 's' : null;
-                $hundreds = ($counter == 1 && $str2[0]) ? ' and ' : null;
+                $hundreds = ($counter == 1 && $str2[0]) ? ' और ' : null;
                 @$str2[] = ($decimal_number < 21) ? $words[$decimal_number] . ' ' . $digits[$decimal_number] . $plural . ' ' . $hundred : $words[floor($decimal_number / 10) * 10] . ' ' . $words[$decimal_number % 10] . ' ' . $digits[$counter] . $plural . ' ' . $hundred;
             } else $str2[] = null;
         }
 
         $Rupees = implode('', array_reverse($str));
         $paise = implode('', array_reverse($str2));
-        $paise = ($decimal_part > 0) ? $paise . ' Paise' : '';
-        return ucfirst(($Rupees ? $Rupees . ' Rupees' : '')) . $paise;
+        $paise = ($decimal_part > 0) ? $paise . ' पैसे' : '';
+        return ucfirst(($Rupees ? $Rupees . ' रुपये' : '')) . $paise;
     }
 }
