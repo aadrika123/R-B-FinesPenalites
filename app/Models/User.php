@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -93,5 +94,12 @@ class User extends Authenticatable
             // ->leftjoin('wf_roles', 'wf_roles.id', 'wf_roleusermaps.wf_role_id')
             ->where('suspended', false);
             // ->where('wf_roleusermaps.is_suspended', false);
+    }
+    /*Read all Records by*/
+    public function getList()
+    {
+        return User::select('*')
+        ->orderBy('id')
+        ->get();
     }
 }

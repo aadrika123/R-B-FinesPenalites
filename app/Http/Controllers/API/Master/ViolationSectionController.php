@@ -9,6 +9,7 @@ use App\Models\Master\Section;
 use App\Models\Master\Violation;
 use App\Models\Master\ViolationSection;
 use App\Models\PenaltyChallan;
+use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -251,6 +252,8 @@ class ViolationSectionController extends Controller
     public function todayApplyChallans(Request $req)
     {
         $validator = Validator::make($req->all(), [
+            'fromDate' => 'required',
+            'uptoDate' => 'required',
         ]);
         if ($validator->fails())
             return validationError($validator);
@@ -260,14 +263,32 @@ class ViolationSectionController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $challanDtl = PenaltyChallan::whereDate('created_at', $todayDate)
+            $fromDate = $req->fromDate; // Replace with your input method
+            $toDate = $req->uptoDate ?? Carbon::now();
+            $dataInRange = PenaltyChallan::whereBetween('created_at', [$fromDate, $toDate])
             ->paginate($perPage);
-
-            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $dataInRange, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+
+    /**
+     * | Get Violation List By Department Id & Section Id
+     */
+    public function getUserList(Request $req)
+    {
+        try {
+            // $getData = $this->_mViolationSections->retrieve();
+            $mChallanCategories = new User();
+            $getData = $mChallanCategories->getList();
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
+
 
 }

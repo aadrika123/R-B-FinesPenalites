@@ -122,8 +122,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
 
-        Route::post('report', 'todayApplyChallans');                                    // Get By Id --------------- 1.3
-
+        Route::post('challan-wise-report', 'todayApplyChallans');                                    // Get By Id --------------- 1.3
+        Route::post('user-list', 'getUserList');                                    // Get By Id --------------- 1.3
 
     });
 });
