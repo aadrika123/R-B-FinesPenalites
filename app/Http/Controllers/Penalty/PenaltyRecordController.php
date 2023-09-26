@@ -537,6 +537,9 @@ class PenaltyRecordController extends Controller
                 ->orderbyDesc('penalty_challans.id')
                 ->first();
 
+            $totalAmountInWord = getHindiIndianCurrency($challanDtl->total_amount);
+            $challanDtl->amount_in_words = $totalAmountInWord . ' मात्र';
+
             return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
@@ -796,33 +799,27 @@ class PenaltyRecordController extends Controller
         $validator = Validator::make($req->all(), [
             'fromDate'        => 'required|date',
             'uptoDate'        => 'required|date',
-            'challanType'     => 'nullable|int',
-            'userId'          => 'nullable|int',
-            'challanCategory' => 'nullable|int',
+            'paymentMode'     => 'nullable',
         ]);
         if ($validator->fails())
             return validationError($validator);
         try {
             $user = authUser($req);
             $perPage = $req->perPage ?? 10;
-            $todayDate =  $req->date ?? now()->toDateString();
-            $data = PenaltyFinalRecord::select(
-                'full_name',
-                'penalty_final_records.mobile',
-                'violation_place',
-                'challan_no',
-                'violation_name',
-                'penalty_challans.total_amount',
-                'penalty_final_records.challan_type',
-                'users.user_name',
-                'category_type as challan_category',
+            $data = PenaltyTransaction::select(
+                '*'
+                // 'full_name',
+                // 'penalty_final_records.mobile',
+                // 'violation_place',
+                // 'challan_no',
+                // 'violation_name',
+                // 'penalty_challans.total_amount',
+                // 'penalty_final_records.challan_type',
             )
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_transactions.application_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
-                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
-                ->join('users', 'users.id', 'penalty_final_records.approved_by')
-                ->join('challan_categories', 'challan_categories.id', 'penalty_final_records.category_type_id')
-                ->whereBetween('penalty_challans.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
-                ->orderbyDesc('penalty_challans.id');
+                ->join('penalty_challans', 'penalty_challans.id', 'penalty_transactions.challan_id')
+                ->whereBetween('tran_date', [$req->fromDate, $req->uptoDate]);
 
             if ($req->challanType)
                 $data = $data->where("challan_type", $req->challanType);
