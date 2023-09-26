@@ -641,6 +641,7 @@ class PenaltyRecordController extends Controller
             $idGeneration = new IdGeneration(1, 2);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
+            $metaReqs['approved_by'] = $user->id;
 
             DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
@@ -751,15 +752,87 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
-            $data = PenaltyFinalRecord::select('full_name', 'mobile', 'violation_place', 'challan_no', 'violation_name', 'penalty_challans.total_amount')
+            $data = PenaltyFinalRecord::select(
+                'full_name',
+                'penalty_final_records.mobile',
+                'violation_place',
+                'challan_no',
+                'violation_name',
+                'penalty_challans.total_amount',
+                'penalty_final_records.challan_type',
+                'users.user_name',
+                'category_type as challan_category',
+            )
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->join('users', 'users.id', 'penalty_final_records.approved_by')
+                ->join('challan_categories', 'challan_categories.id', 'penalty_final_records.category_type_id')
                 ->whereBetween('penalty_challans.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
                 ->orderbyDesc('penalty_challans.id');
 
-            if ($req->violationId) {
-                $data = $data->where("violation_id", $req->violationId);
-            }
+            if ($req->challanType)
+                $data = $data->where("challan_type", $req->challanType);
+
+            if ($req->challanCategory)
+                $data = $data->where("category_type_id", $req->challanCategory);
+
+            if ($req->userId)
+                $data = $data->where("approved_by", $req->userId);
+
+            $data = $data
+                ->paginate($perPage);
+
+            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * |
+     */
+    public function collectionData(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'fromDate'        => 'required|date',
+            'uptoDate'        => 'required|date',
+            'challanType'     => 'nullable|int',
+            'userId'          => 'nullable|int',
+            'challanCategory' => 'nullable|int',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $user = authUser($req);
+            $perPage = $req->perPage ?? 10;
+            $todayDate =  $req->date ?? now()->toDateString();
+            $data = PenaltyFinalRecord::select(
+                'full_name',
+                'penalty_final_records.mobile',
+                'violation_place',
+                'challan_no',
+                'violation_name',
+                'penalty_challans.total_amount',
+                'penalty_final_records.challan_type',
+                'users.user_name',
+                'category_type as challan_category',
+            )
+                ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->join('users', 'users.id', 'penalty_final_records.approved_by')
+                ->join('challan_categories', 'challan_categories.id', 'penalty_final_records.category_type_id')
+                ->whereBetween('penalty_challans.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
+                ->orderbyDesc('penalty_challans.id');
+
+            if ($req->challanType)
+                $data = $data->where("challan_type", $req->challanType);
+
+            if ($req->challanCategory)
+                $data = $data->where("category_type_id", $req->challanCategory);
+
+            if ($req->userId)
+                $data = $data->where("approved_by", $req->userId);
+
             $data = $data
                 ->paginate($perPage);
 
