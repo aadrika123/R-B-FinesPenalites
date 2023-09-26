@@ -299,6 +299,8 @@ class PenaltyRecordController extends Controller
             ];
 
             $fullDetailsData['application_no'] = $details->application_no;
+            $fullDetailsData['payment_status'] = false;
+            $fullDetailsData['challan_status'] = false;
             $fullDetailsData['apply_date'] = date('d-m-Y', strtotime($details->created_at));
             $fullDetailsData['fullDetailsData']['dataArray'] = new Collection([$basicElement, $addressElement, $penaltyElement, $witnessElement]);
 
@@ -613,8 +615,8 @@ class PenaltyRecordController extends Controller
             $tranDtl = $mPenaltyTransaction->tranDtl()
                 ->where('tran_no', $req->transactionNo)
                 ->first();
-            $totalAmountInWord = getIndianCurrency($tranDtl->total_amount);
-            $tranDtl->amount_in_words = '₹ ' . $totalAmountInWord . 'Only';
+            $totalAmountInWord = getHindiIndianCurrency($tranDtl->total_amount);
+            $tranDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
             return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
