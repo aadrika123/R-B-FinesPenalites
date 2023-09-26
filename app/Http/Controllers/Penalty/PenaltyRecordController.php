@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Pipeline\Pipeline;
+use Illuminate\Support\Facades\Config;
 
 class PenaltyRecordController extends Controller
 {
@@ -44,15 +45,20 @@ class PenaltyRecordController extends Controller
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
+            if ($req->categoryTypeId == 1)
+                $req->penaltyAmount = $this->checkRickshawCondition($req);
+
             $mPenaltyDocument = new PenaltyDocument();
             $isGroupExists = $this->mPenaltyRecord->checkExisting($req); // Check if record already exists or not
-            if (collect($isGroupExists)->isNotEmpty())
-                throw new Exception("Email Already Existing");
+            // if (collect($isGroupExists)->isNotEmpty())
+            //     throw new Exception("Email Already Existing");
 
             $idGeneration = new IdGeneration(1, 2);
             $applicationNo = $idGeneration->generate();
 
             $metaReqs = $this->generateRequest($req, $applicationNo);
+            $metaReqs['challan_type'] = "Via Verification";
+
 
             DB::beginTransaction();
 
@@ -380,7 +386,9 @@ class PenaltyRecordController extends Controller
                 'guardian_name'               => $req->guardianName,
                 'violation_place'             => $req->violationPlace,
                 'remarks'                     => $req->remarks,
-                'category_type_id'            => $req->categoryTypeId,
+                'vehicle_no'                  => $req->vehicleNo,
+                'challan_type'                => $penaltyRecord->challanType,
+                'category_type_id'            => $penaltyRecord->categoryTypeId,
             ];
 
             $idGeneration = new IdGeneration(2, $penaltyRecord->ulb_id);
@@ -518,7 +526,7 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            $challanDtl = PenaltyChallan::select('penalty_final_records.*', 'penalty_challans.*', 'penalty_challans.id', 'violations.violation_name', 'violation_sections.violation_section')
+            $challanDtl = PenaltyChallan::select('penalty_final_records.*', 'penalty_final_records.id as application_id', 'penalty_challans.*', 'penalty_challans.id', 'violations.violation_name', 'violation_sections.violation_section')
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('violation_sections', 'violation_sections.id', 'violations.violation_section_id')
@@ -605,6 +613,8 @@ class PenaltyRecordController extends Controller
             $tranDtl = $mPenaltyTransaction->tranDtl()
                 ->where('tran_no', $req->transactionNo)
                 ->first();
+            $totalAmountInWord = getIndianCurrency($tranDtl->total_amount);
+            $tranDtl->amount_in_words = '₹ ' . $totalAmountInWord . 'Only';
 
             return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -621,9 +631,14 @@ class PenaltyRecordController extends Controller
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $mPenaltyChallan = new PenaltyChallan();
             $user = authUser($req);
+
+            if ($req->categoryTypeId == 1)
+                $req->penaltyAmount = $this->checkRickshawCondition($req);
+
             $idGeneration = new IdGeneration(1, 2);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
+            $metaReqs['challan_type'] = "On Spot";
 
             DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
@@ -678,6 +693,33 @@ class PenaltyRecordController extends Controller
             'guardian_name'              => $req->guardianName,
             'violation_place'            => $req->violationPlace,
             'challan_type'               => $req->challanType,
+            'vehicle_no'                 => $req->vehicleNo,
+            'category_type_id'           => $req->categoryTypeId,
         ];
+    }
+
+    /**
+     * | Check E-Rickshaw Conditions
+     */
+    public function checkRickshawCondition($req)
+    {
+        $fineDetails = Config::get('constants.E_RICKSHAW_FINES');
+        $mPenaltyRecord = new PenaltyRecord();
+        $mPenaltyFinalRecord = new PenaltyFinalRecord();
+
+        $appliedCount = $mPenaltyRecord->where('vehicle_no', $req->vehicleNo)->where('status', 1)
+            ->count();
+
+        $finalCount = $mPenaltyFinalRecord->where('vehicle_no', $req->vehicleNo)
+            ->where('status', '!=', 0)
+            ->count();
+
+        $totalCount = $appliedCount + $finalCount;
+
+
+        if ($totalCount == 5)
+            throw new Exception("E-Rickshaw whose number is " . $req->vehicleNo . " has been Seized from Fine & Penalty Department.");
+
+        return $fine = $fineDetails[$totalCount];
     }
 }
