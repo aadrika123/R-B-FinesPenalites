@@ -29,8 +29,12 @@ class PenaltyTransaction extends Model
             'penalty_transactions.amount',
             'penalty_transactions.penalty_amount',
             'penalty_transactions.total_amount',
-            'application_no'
+            'application_no',
+            'full_name',
+            'challan_no',
+            'challan_date',
         )
-            ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_transactions.application_id');
+            ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_transactions.application_id')
+            ->join('penalty_challans', 'penalty_challans.id', 'penalty_transactions.challan_id');
     }
 }
