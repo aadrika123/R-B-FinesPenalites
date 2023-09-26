@@ -697,4 +697,30 @@ class PenaltyRecordController extends Controller
             'challan_type'               => $req->challanType,
         ];
     }
+
+    /**
+     * |
+     */
+    public function violationData(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'fromDate' => 'required|date',
+            'uptoDate' => 'required|date',
+            'violationId' => 'required|int'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $user = authUser($req);
+            $perPage = $req->perPage ?? 10;
+            $todayDate =  $req->date ?? now()->toDateString();
+            $tranDtl = PenaltyFinalRecord::whereBetween('created_at', [$req->fromDate, $req->uptoDate])
+                ->orderbyDesc('id')
+                ->paginate($perPage);
+
+            return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
 }
