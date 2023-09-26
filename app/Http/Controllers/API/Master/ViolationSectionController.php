@@ -4,6 +4,9 @@ namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChallanCategory;
+use App\Models\Master\Department;
+use App\Models\Master\Section;
+use App\Models\Master\Violation;
 use App\Models\Master\ViolationSection;
 use Carbon\Carbon;
 use Exception;
@@ -152,8 +155,30 @@ class ViolationSectionController extends Controller
         }
     }
 
+    //show data by id
+    public function getRecordBySection(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'violationSection' => 'required'
+        ]);
+        if ($validator->fails())
+            return responseMsgs(false, $validator->errors(), []);
+        try {
+            $list = $this->_mViolationSections->recordDetail()
+                ->where('violation_section' , $req->violationSection)->get();
+            if (collect($list)->isEmpty())
+                throw new Exception("Data Not Found");
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View Records", $list, "M_API_9.3", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.3", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
 
-    //View All
+
+
+
+    // Get Challan Category List ...
     public function getCategoryList(Request $req)
     {
         try {
@@ -166,5 +191,49 @@ class ViolationSectionController extends Controller
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
+
+    // Get Challan Category List ...
+    public function getDepartmentList(Request $req)
+    {
+        try {
+            // $getData = $this->_mViolationSections->retrieve();
+            $mChallanCategories = new Department();
+            $getData = $mChallanCategories->getList();
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
+
+
+    // Get Challan Category List ...
+    public function getSectionListById(Request $req)
+    {
+        try {
+            // $getData = $this->_mViolationSections->retrieve();
+            $mChallanCategories = new Section();
+            $getData = $mChallanCategories->getList($req);
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
+
+    // Get Challan Category List ...
+    public function getViolationListBySectionId(Request $req)
+    {
+        try {
+            // $getData = $this->_mViolationSections->retrieve();
+            $mChallanCategories = new Violation();
+            $getData = $mChallanCategories->getList($req);
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
+
 
 }
