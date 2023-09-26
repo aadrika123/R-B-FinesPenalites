@@ -91,17 +91,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/crud/delete', 'delete');                                   // Delete -------------- 3.6
         Route::post('penalty-record/crud/search', 'searchByApplicationNo');                    // search -------------- 3.6
 
-        Route::post('penalty-record/get-uploaded-document', 'getUploadedDocuments');                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/inbox', 'inbox');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/detail', 'penaltyDetails');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/approve', 'approvePenalty');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/recent-applications', 'recentApplications');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/recent-challans', 'recentChallans');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/challan-search', 'searchChallan');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/get-challan', 'challanDetails');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/challan-payment', 'challanPayment');                                       // Get By Id ----------- 3.3
-        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                                       // Get By Id ----------- 3.3
-
+        Route::post('penalty-record/get-uploaded-document', 'getUploadedDocuments');
+        Route::post('penalty-record/inbox', 'inbox');
+        Route::post('penalty-record/detail', 'penaltyDetails');
+        Route::post('penalty-record/approve', 'approvePenalty');
+        Route::post('penalty-record/recent-applications', 'recentApplications');
+        Route::post('penalty-record/recent-challans', 'recentChallans');
+        Route::post('penalty-record/challan-search', 'searchChallan');
+        Route::post('penalty-record/get-challan', 'challanDetails');
+        Route::post('penalty-record/offline-challan-payment', 'challanPayment');
+        Route::post('penalty-record/payment-receipt', 'paymentReceipt');
+        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');
     });
 
     /**
@@ -114,17 +114,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation-section/crud/get', 'getSectionById');                                    // Get By Id --------------- 1.3
         Route::post('violation-section/crud/list', 'getSectionList');                                    // Get All ----------------- 1.4
         Route::post('violation-section/crud/delete', 'deleteSection');                               // Delete ------------------ 1.5
-        Route::post('violation-section/get-by-department', 'getRecordByDepartmentName');                                    // Get By Id --------------- 1.3
-        Route::post('violation-section/get-by-section', 'getRecordBySection');                                    // Get By Id --------------- 1.3
-
-
-        Route::post('challan-category/list', 'getCategoryList');                                    // Get By Id --------------- 1.3
-
-        Route::post('department/list', 'getDepartmentList');                                    // Get By Id --------------- 1.3
-        Route::post('section/list', 'getSectionListById');                                    // Get By Id --------------- 1.3
-
-        Route::post('violation/list', 'getViolationListBySectionId');                                    // Get By Id --------------- 1.3
-
     });
-
 });

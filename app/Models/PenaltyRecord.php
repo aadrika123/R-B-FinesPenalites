@@ -18,33 +18,7 @@ class PenaltyRecord extends Model
     /*Add Records*/
     public function store($req)
     {
-        $idGeneration = new IdGeneration(1, 2);
-        $applicationNo = $idGeneration->generate();
-        // Store all documents and values in $metaReqs array
-        $metaReqs = [
-            'full_name'                  => $req->fullName,
-            'mobile'                     => $req->mobile,
-            'email'                      => $req->email,
-            'holding_no'                 => $req->holdingNo,
-            'street_address'             => $req->streetAddress1,
-            'street_address_2'           => $req->streetAddress2,
-            'city'                       => $req->city,
-            'region'                     => $req->region,
-            'postal_code'                => $req->postalCode,
-            'violation_id'               => $req->violationId,
-            'penalty_amount'             => $req->penaltyAmount,
-            'previous_violation_offence' => $req->previousViolationOffence ?? 0,
-            'witness'                    => $req->isWitness ?? 0,
-            'witness_name'               => $req->witnessName,
-            'witness_mobile'             => $req->witnessMobile,
-            'application_no'             => $applicationNo,
-            'current_role'               => 2,
-            'workflow_id'                => 1,
-            'ulb_id'                     => 2,
-            'guardian_name'              => $req->guardianName,
-            'violation_place'            => $req->violationPlace,
-        ];
-        $data = PenaltyRecord::create($metaReqs);  // Store Record into database
+        $data = PenaltyRecord::create($req);  // Store Record into database
         return $data;
     }
 

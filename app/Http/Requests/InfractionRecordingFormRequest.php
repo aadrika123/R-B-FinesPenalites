@@ -29,7 +29,6 @@ class InfractionRecordingFormRequest extends FormRequest
             'email' => 'nullable|email',
             'holdingNo' => 'nullable|string',
             'streetAddress1' => 'nullable|string',
-            'streetAddress2' => 'nullable|string',
             'city' => 'nullable|string',
             'region' => 'nullable|string',
             'postalCode' => 'nullable|string',
