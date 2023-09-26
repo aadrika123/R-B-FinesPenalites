@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChallanCategory;
 use App\Models\Master\ViolationSection;
 use Carbon\Carbon;
 use Exception;
@@ -130,4 +131,40 @@ class ViolationSectionController extends Controller
             return responseMsgs(false, $e->getMessage(), [], "", "", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
+
+    //show data by id
+    public function getRecordByDepartmentName(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'department' => 'required'
+        ]);
+        if ($validator->fails())
+            return responseMsgs(false, $validator->errors(), []);
+        try {
+            $list = $this->_mViolationSections->recordDetail()
+                ->where('department' , $req->department)->get();
+            if (collect($list)->isEmpty())
+                throw new Exception("Data Not Found");
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View Records", $list, "M_API_9.3", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.3", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
+
+
+    //View All
+    public function getCategoryList(Request $req)
+    {
+        try {
+            // $getData = $this->_mViolationSections->retrieve();
+            $mChallanCategories = new ChallanCategory();
+            $getData = $mChallanCategories->getList();
+            $queryTime = collect(DB::getQueryLog())->sum("time");
+            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+        }
+    }
+
 }

@@ -61,4 +61,25 @@ class ViolationSection extends Model
         ->orderByDesc('id')
         ->get();
     }
+
+    /**
+     * | Read Record Details
+     */
+    public function recordDetail()
+    {
+
+        return ViolationSection::select(
+            DB::raw("id,violation_section,department, section_definition as violation, penalty_amount,
+        CASE 
+            WHEN status = '0' THEN 'Deactivated'  
+            WHEN status = '1' THEN 'Active'
+        END as status,
+        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        ")
+        )
+        ->where('status', 1)
+        ->orderByDesc('id');
+        // ->get();
+    }
 }

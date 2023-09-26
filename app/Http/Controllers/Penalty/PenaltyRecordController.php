@@ -163,6 +163,7 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), [], "", "M_API_36.7", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
+    
 
     /**
      * ========================================================================================================
@@ -575,4 +576,6 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+
 }
