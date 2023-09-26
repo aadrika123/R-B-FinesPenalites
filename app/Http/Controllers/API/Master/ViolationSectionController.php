@@ -8,6 +8,7 @@ use App\Models\Master\Department;
 use App\Models\Master\Section;
 use App\Models\Master\Violation;
 use App\Models\Master\ViolationSection;
+use App\Models\PenaltyChallan;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -243,5 +244,30 @@ class ViolationSectionController extends Controller
         }
     }
 
+
+    /**
+     * | Recent Challans
+     */
+    public function todayApplyChallans(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $perPage = $req->perPage ?? 10;
+            $todayDate = $req->date ?? now()->toDateString();
+            $user = authUser($req);
+            $userId = $user->id;
+            $ulbId = $user->ulb_id;
+            $challanDtl = PenaltyChallan::whereDate('created_at', $todayDate)
+            ->paginate($perPage);
+
+            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
 
 }
