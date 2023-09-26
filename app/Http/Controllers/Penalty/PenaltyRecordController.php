@@ -706,7 +706,7 @@ class PenaltyRecordController extends Controller
         $validator = Validator::make($req->all(), [
             'fromDate' => 'required|date',
             'uptoDate' => 'required|date',
-            'violationId' => 'required|int'
+            'violationId' => 'nullable|int'
         ]);
         if ($validator->fails())
             return validationError($validator);
@@ -714,11 +714,56 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
-            $tranDtl = PenaltyFinalRecord::whereBetween('created_at', [$req->fromDate, $req->uptoDate])
-                ->orderbyDesc('id')
+            $data = PenaltyFinalRecord::select('full_name', 'mobile', 'violation_place', 'challan_no', 'violation_name', 'penalty_challans.total_amount')
+                ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+                // ->join('violations as v', 'v.section_id', 'violation_sections.section_id')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->whereBetween('penalty_final_records.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
+                ->orderbyDesc('penalty_final_records.id');
+
+            if ($req->violationId) {
+                $data = $data->where("violation_id", $req->violationId);
+            }
+            $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * |
+     */
+    public function challanData(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'fromDate'        => 'required|date',
+            'uptoDate'        => 'required|date',
+            'challanType'     => 'nullable|int',
+            'userId'          => 'nullable|int',
+            'challanCategory' => 'nullable|int',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $user = authUser($req);
+            $perPage = $req->perPage ?? 10;
+            $todayDate =  $req->date ?? now()->toDateString();
+            $data = PenaltyFinalRecord::select('full_name', 'mobile', 'violation_place', 'challan_no', 'violation_name', 'penalty_challans.total_amount')
+                ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->whereBetween('penalty_challans.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
+                ->orderbyDesc('penalty_challans.id');
+
+            if ($req->violationId) {
+                $data = $data->where("violation_id", $req->violationId);
+            }
+            $data = $data
+                ->paginate($perPage);
+
+            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }

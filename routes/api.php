@@ -103,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/payment-receipt', 'paymentReceipt');
         Route::post('penalty-record/on-spot-challan', 'onSpotChallan');
         Route::post('report/violation-wise', 'violationData');
+        Route::post('report/challan-wise', 'challanData');
     });
 
     /**
