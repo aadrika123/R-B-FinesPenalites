@@ -554,7 +554,8 @@ class PenaltyRecordController extends Controller
                 'penalty_challans.*',
                 'penalty_challans.id',
                 'violations.violation_name',
-                'violation_sections.violation_section'
+                'violation_sections.violation_section',
+                DB::raw("'http://192.168.0.158:8000/FinePenalty/Documents/A03232400000125/cam.jpg' as geo_tagged_image"),
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
