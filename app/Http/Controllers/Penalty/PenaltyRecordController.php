@@ -494,8 +494,9 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id')
+            $challanDtl = PenaltyChallan::select('*', 'penalty_challans.id', 'tran_no as transaction_no')
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->join('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
                 ->orderbyDesc('penalty_challans.id');
 
             $challanList = app(Pipeline::class)
