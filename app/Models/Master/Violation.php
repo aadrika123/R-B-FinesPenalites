@@ -65,7 +65,7 @@ class Violation extends Model
             ->get();
     }
 
-    /*Read all Records by*/
+    /*Read all Records by sectionId and DepartmentId*/
     public function getList($req)
     {
         return Violation::select(

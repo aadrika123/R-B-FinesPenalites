@@ -113,7 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(ViolationSectionController::class)->group(function () {
         Route::post('violation-section/crud/save', 'createViolationSection');                                 // Save -------------------- 1.1
         Route::post('violation-section/crud/edit', 'updateViolationSection');                                 // Edit  ------------------- 1.2
-        Route::post('violation-section/crud/get', 'getSectionById');                                    // Get By Id --------------- 1.3
+        Route::post('violation-section/crud/get', 'getSectionById');                                          // Get By Id --------------- 1.3
         Route::post('violation-section/crud/list', 'getSectionList');                                    // Get All ----------------- 1.4
         Route::post('violation-section/crud/delete', 'deleteSection');                               // Delete ------------------ 1.5
 
@@ -121,10 +121,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('section/list', 'getSectionListById');                                    // Get All ----------------- 1.4
         Route::post('violation/list', 'getViolationListBySectionId');                                    // Get All ----------------- 1.4
 
+        Route::post('challan-wise-report', 'applyChallansData');                                    // Get By Id --------------- 1.3
+        Route::post('user-list', 'getUserList');                                                   // Get By Id --------------- 1.3
 
+        Route::post('challan-category/list', 'getCategoryList');                                    // Get By Id --------------- 1.3
 
-        Route::post('challan-wise-report', 'todayApplyChallans');                                    // Get By Id --------------- 1.3
-        Route::post('user-list', 'getUserList');                                    // Get By Id --------------- 1.3
 
     });
 });
