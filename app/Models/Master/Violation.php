@@ -31,7 +31,7 @@ class Violation extends Model
     {
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount,
-            sections.id, sections.violation_section, departments.id, departments.department_name,
+            sections.violation_section, departments.department_name,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
@@ -51,7 +51,7 @@ class Violation extends Model
     {
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount, 
-            sections.id, sections.violation_section, departments.id, departments.department_name,
+            sections.violation_section, departments.department_name,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
