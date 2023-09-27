@@ -658,6 +658,7 @@ class PenaltyRecordController extends Controller
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['approved_by'] = $user->id;
+            $metaReqs['challan_type'] = "On Spot";
 
             DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
@@ -669,8 +670,8 @@ class PenaltyRecordController extends Controller
                 'challan_date'      => Carbon::now(),
                 'payment_date'      => $req->paymentDate,
                 'penalty_record_id' => $finalRecord->id,
-                'amount'            => $finalRecord->penalty_amount,
-                'total_amount'      => $finalRecord->penalty_amount,
+                'amount'            => $finalRecord->amount,
+                'total_amount'      => $finalRecord->amount,
             ];
 
             $challanRecord = $mPenaltyChallan->store($challanReqs);
@@ -712,6 +713,7 @@ class PenaltyRecordController extends Controller
             'guardian_name'              => $req->guardianName,
             'violation_place'            => $req->violationPlace,
             'challan_type'               => $req->challanType,
+            'category_type_id'           => $req->categoryTypeId,
         ];
     }
 
@@ -784,7 +786,7 @@ class PenaltyRecordController extends Controller
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->join('users', 'users.id', 'penalty_final_records.approved_by')
                 ->join('challan_categories', 'challan_categories.id', 'penalty_final_records.category_type_id')
-                ->whereBetween('penalty_challans.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
+                ->whereBetween('penalty_challans.challan_date', [$req->fromDate, $req->uptoDate])
                 ->orderbyDesc('penalty_challans.id');
 
             if ($req->challanType)
