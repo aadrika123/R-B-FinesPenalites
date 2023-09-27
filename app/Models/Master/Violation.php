@@ -18,7 +18,9 @@ class Violation extends Model
         return Violation::create($req);
     }
 
-    /*Read Records by name*/
+    /**
+     * Checks the reord is already exists or not
+     */
     public function checkExisting($req)
     {
         return Violation::where(DB::raw('upper(violation_name)'), strtoupper($req->violationName))
@@ -26,28 +28,10 @@ class Violation extends Model
             ->get();
     }
 
-    /*Read Records by ID*/
-    public function getRecordById($id)
-    {
-        return Violation::select(
-            DB::raw("violations.id,violations.violation_name,violations.penalty_amount,
-            sections.violation_section, departments.department_name,
-        CASE 
-            WHEN violations.status = '0' THEN 'Deactivated'  
-            WHEN violations.status = '1' THEN 'Active'
-        END as status,
-        TO_CHAR(violations.created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
-        ")
-        )
-        ->join('sections' , 'sections.id', '=', 'violations.section_id')
-        ->join('departments' , 'departments.id', '=', 'violations.department_id')
-        ->where('violations.id', $id)
-        ->first();
-    }
-
-    /*Read all Records by*/
-    public function retrieve()
+    /**
+     * Get All Records
+     */
+    public function recordDetails()
     {
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount, 
@@ -63,11 +47,13 @@ class Violation extends Model
         ->join('sections' , 'sections.id', '=', 'violations.section_id')
         ->join('departments' , 'departments.id', '=', 'violations.department_id')
         ->where('violations.status', 1)
-        ->orderByDesc('violations.id')
-        ->get();
+        ->orderByDesc('violations.id');
+        // ->get();
     }
 
-    /*Read all Records by sectionId and DepartmentId*/
+    /**
+     * Get List By Ids
+     */
     public function getList($req)
     {
         return Violation::select(

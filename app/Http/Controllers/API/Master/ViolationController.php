@@ -25,9 +25,8 @@ class ViolationController extends Controller
     }
 
     /**
-     * |  Create Violation Name
+     * |  Create Violation 
      */
-    // Add records 
     public function createViolation(Request $req)
     {
         $validator = Validator::make($req->all(), [
@@ -43,18 +42,18 @@ class ViolationController extends Controller
             // if (collect($isGroupExists)->isNotEmpty())
             //     throw new Exception("Violation Name Already Existing");
 
-            $mDepartment = new Department();
+            $mDepartment = new Department();  
             $departmentData = [
                 'department_name' => $req->department,
             ];
-            $department = $mDepartment->store($departmentData);
+            $department = $mDepartment->store($departmentData);  // Store in departments table
 
             $mSections = new Section();
             $sectionReqs = [
                 'violation_section' => $req->violationSection,
                 'department_id' => $department->id,
             ];
-            $section = $mSections->store($sectionReqs);
+            $section = $mSections->store($sectionReqs);  // Store in sections table
 
             $metaReqs = [
                 'violation_name' => $req->violationName,
@@ -63,22 +62,22 @@ class ViolationController extends Controller
                 'penalty_amount' => $req->penaltyAmount,
 
             ];
-            $this->_mViolations->store($metaReqs);
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Added Successfully", $metaReqs, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            $this->_mViolations->store($metaReqs); // Store in Violations table
+            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.1", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     // Edit records
     public function updateViolation(Request $req)
-    {
+    { 
         $validator = Validator::make($req->all(), [
             'id'               => 'required|numeric',
-            'violationName'    => 'required|string',
-            'violationSectionId' => 'required|numeric',
-            'penaltyAmount'    => 'required|integer',
+            'department'        => 'required|string',
+            'violationName'     => 'required|string',
+            'violationSection'  => 'required|string',
+            'penaltyAmount'     => 'required|integer',
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
@@ -94,14 +93,15 @@ class ViolationController extends Controller
                 'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs);
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Updated Successfully", $metaReqs, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.2", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
-    //show data by id
+    /**
+     * Get Violation BY Id
+     */
     public function ViolationById(Request $req)
     {
         $validator = Validator::make($req->all(), [
@@ -110,28 +110,30 @@ class ViolationController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $show = $this->_mViolations->getRecordById($req->id);
-            if (collect($show)->isEmpty())
+            $getData = $this->_mViolations->recordDetails()->where('violations.id', $req->id)->first();
+            if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View Records", $show, "M_API_9.3", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.3", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-    //View All
+    /**
+     * Get Violation List
+     */
     public function getViolation(Request $req)
     {
         try {
-            $getData = $this->_mViolations->retrieve();
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            $getData = $this->_mViolations->recordDetails()->get();
+            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
-    //Activate / Deactivate
+    /**
+     * Delete Violation By Id
+     */
     public function deleteViolation(Request $req)
     {
         $validator = Validator::make($req->all(), [
@@ -145,10 +147,9 @@ class ViolationController extends Controller
             ];
             $delete = $this->_mViolations::findOrFail($req->id);
             $delete->update($metaReqs);
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Deleted Successfully", $req->id, "", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }
