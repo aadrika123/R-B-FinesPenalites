@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InfractionRecordingFormRequest;
 use App\IdGenerator\IdGeneration;
 use App\Models\Fine_Penalty\InfractionRecordingForm;
+use App\Models\Master\Violation;
 use App\Models\PenaltyChallan;
 use App\Models\PenaltyDocument;
 use App\Models\PenaltyFinalRecord;
@@ -45,14 +46,14 @@ class PenaltyRecordController extends Controller
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
+
+            $violationDtl = Violation::find($req->violationId);
+            $req->penaltyAmount = $violationDtl->penalty_amount;
+
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);
 
             $mPenaltyDocument = new PenaltyDocument();
-            $isGroupExists = $this->mPenaltyRecord->checkExisting($req); // Check if record already exists or not
-            // if (collect($isGroupExists)->isNotEmpty())
-            //     throw new Exception("Email Already Existing");
-
             $idGeneration = new IdGeneration(1, 2);
             $applicationNo = $idGeneration->generate();
 
@@ -637,6 +638,8 @@ class PenaltyRecordController extends Controller
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $mPenaltyChallan = new PenaltyChallan();
             $user = authUser($req);
+            $violationDtl = Violation::find($req->violationId);
+            $req->penaltyAmount = $violationDtl->penalty_amount;
 
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);
