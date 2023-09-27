@@ -10,6 +10,14 @@ class Section extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
+
+    /*Add Records*/
+    public function store(array $req)
+    {
+        return Section::create($req);
+    }
+
      /*Read all Records by*/
      public function getList($req)
      {

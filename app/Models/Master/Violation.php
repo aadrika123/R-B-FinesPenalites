@@ -30,8 +30,8 @@ class Violation extends Model
     public function getRecordById($id)
     {
         return Violation::select(
-            DB::raw("violations.id,violations.violation_name,violations.penalty_amount,violations.violation_section_id,
-            violation_sections.violation_section,violation_sections.department,violation_sections.section_definition,
+            DB::raw("violations.id,violations.violation_name,violations.penalty_amount,
+            sections.id, sections.section, departments.id, departments.department_name,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
@@ -40,7 +40,8 @@ class Violation extends Model
         TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->join('violation_sections' , 'violation_sections.id', '=', 'violations.violation_section_id')
+        ->join('sections' , 'sections.id', '=', 'violations.section_id')
+        ->join('departments' , 'departments.id', '=', 'violations.department_id')
             ->where('violations.id', $id)
             ->first();
     }
@@ -49,8 +50,8 @@ class Violation extends Model
     public function retrieve()
     {
         return Violation::select(
-            DB::raw("violations.id,violations.violation_name,violations.penalty_amount,violations.violation_section_id,
-            violation_sections.violation_section,violation_sections.department,violation_sections.section_definition,
+            DB::raw("violations.id,violations.violation_name,violations.penalty_amount, 
+            sections.id, sections.section, departments.id, departments.department_name,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
@@ -59,13 +60,14 @@ class Violation extends Model
         TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->join('violation_sections' , 'violation_sections.id', '=', 'violations.violation_section_id')
+        ->join('sections' , 'sections.id', '=', 'violations.section_id')
+        ->join('departments' , 'departments.id', '=', 'violations.department_id')
             ->where('violations.status', 1)
             ->orderByDesc('violations.id')
             ->get();
     }
 
-    /*Read all Records by*/
+    /*Read all Records by sectionId and DepartmentId*/
     public function getList($req)
     {
         return Violation::select(

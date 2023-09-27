@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
+use App\Models\Master\Department;
+use App\Models\Master\Section;
 use App\Models\Master\Violation;
 use Carbon\Carbon;
 use Exception;
@@ -29,20 +31,37 @@ class ViolationController extends Controller
     public function createViolation(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'violationName'       => 'required|string',
-            'violationSectionId' => 'required|numeric',
-            'penaltyAmount' => 'required|integer',
+            'department'        => 'required|string',
+            'violationName'     => 'required|string',
+            'section'           => 'required|numeric',
+            'penaltyAmount'     => 'required|integer',
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $isGroupExists = $this->_mViolations->checkExisting($req);
-            if (collect($isGroupExists)->isNotEmpty())
-                throw new Exception("Violation Name Already Existing");
+            // $isGroupExists = $this->_mViolations->checkExisting($req);
+            // if (collect($isGroupExists)->isNotEmpty())
+            //     throw new Exception("Violation Name Already Existing");
+
+            $mDepartment = new Department();
+            $departmentData = [
+                'department_name' => $req->department,
+            ];
+            $department = $mDepartment->store($departmentData);
+
+            $mSections = new Section();
+            $sectionReqs = [
+                'section' => $req->section,
+                'department_id' => $department->id,
+            ];
+            $section = $mSections->store($sectionReqs);
+
             $metaReqs = [
                 'violation_name' => $req->violationName,
-                'violation_section_id' => $req->violationSectionId,
+                'section_id' => $section->id,
+                'department_id' => $department->id,
                 'penalty_amount' => $req->penaltyAmount,
+
             ];
             $this->_mViolations->store($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
