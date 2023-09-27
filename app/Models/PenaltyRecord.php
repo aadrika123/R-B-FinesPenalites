@@ -33,9 +33,9 @@ class PenaltyRecord extends Model
             'penalty_applied_records.*',
             'violations.violation_name',
             'violations.section_id',
-            'violation_sections.violation_section',
-            'violation_sections.department',
-            'violation_sections.section_definition',
+            'violations.violation_name as section_definition',
+            'sections.violation_section',
+            'departments.department_name as department',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -48,8 +48,9 @@ class PenaltyRecord extends Model
             )
         )
             ->join('violations', 'violations.id', '=', 'penalty_applied_records.violation_id')
-            ->join('violation_sections', 'violation_sections.id', '=', 'violations.section_id')
-            ->join('penalty_documents', 'penalty_documents.applied_record_id', '=', 'penalty_applied_records.id')
+            ->join('sections', 'sections.id', '=', 'violations.section_id')
+            ->join('departments', 'departments.id', 'violations.department_id')
+            ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', '=', 'penalty_applied_records.id')
             ->orderByDesc('penalty_applied_records.id');
     }
 

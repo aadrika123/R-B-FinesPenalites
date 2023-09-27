@@ -496,7 +496,7 @@ class PenaltyRecordController extends Controller
     public function searchChallan(Request $req)
     {
         try {
-            $todayDate = Carbon::now();
+            $challanExpiredDate = Carbon::now()->addDay(14)->toDateString();
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
             $userId = $user->id;
@@ -514,7 +514,13 @@ class PenaltyRecordController extends Controller
                 'penalty_final_records.application_no',
                 'penalty_final_records.payment_status',
                 'tran_no as transaction_no',
-                'violation_name'
+                'violation_name',
+                DB::raw(
+                    "CASE 
+                            WHEN penalty_challans.challan_date > CURRENT_DATE + INTERVAL '14 days' THEN true
+                            else false
+                    END as has_expired"
+                )
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
@@ -665,6 +671,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | On Spot Challan
+        doc upload missing
      */
     public function onSpotChallan(InfractionRecordingFormRequest $req)
     {
