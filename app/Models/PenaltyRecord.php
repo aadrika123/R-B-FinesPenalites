@@ -6,6 +6,7 @@ use App\IdGenerator\IdGeneration;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 
 class PenaltyRecord extends Model
@@ -27,6 +28,7 @@ class PenaltyRecord extends Model
      */
     public function recordDetail()
     {
+        $docUrl = Config::get('constants.DOC_URL');
         return PenaltyRecord::select(
             'penalty_applied_records.*',
             'violations.violation_name',
@@ -41,11 +43,13 @@ class PenaltyRecord extends Model
                         WHEN penalty_applied_records.status = '2' THEN 'Approved'  
                     END as status,
                     TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
-                    TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time"
+                    TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time,
+                    concat('$docUrl/',document_path) as geo_tagged_image",
             )
         )
             ->join('violations', 'violations.id', '=', 'penalty_applied_records.violation_id')
             ->join('violation_sections', 'violation_sections.id', '=', 'violations.section_id')
+            ->join('penalty_documents', 'penalty_documents.applied_record_id', '=', 'penalty_applied_records.id')
             ->orderByDesc('penalty_applied_records.id');
     }
 
