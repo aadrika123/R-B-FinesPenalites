@@ -22,7 +22,7 @@ class Section extends Model
      public function getList($req)
      {
          return Section::select(
-             DB::raw("id,section,department_id,
+             DB::raw("id,violation_section,department_id,
          CASE 
              WHEN status = '0' THEN 'Deactivated'  
              WHEN status = '1' THEN 'Active'

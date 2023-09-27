@@ -33,7 +33,7 @@ class ViolationController extends Controller
         $validator = Validator::make($req->all(), [
             'department'        => 'required|string',
             'violationName'     => 'required|string',
-            'section'           => 'required|numeric',
+            'violationSection'           => 'required|numeric',
             'penaltyAmount'     => 'required|integer',
         ]);
         if ($validator->fails())
@@ -51,7 +51,7 @@ class ViolationController extends Controller
 
             $mSections = new Section();
             $sectionReqs = [
-                'section' => $req->section,
+                'violation_section' => $req->violationSection,
                 'department_id' => $department->id,
             ];
             $section = $mSections->store($sectionReqs);

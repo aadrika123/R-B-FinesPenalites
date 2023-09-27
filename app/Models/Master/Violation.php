@@ -31,7 +31,7 @@ class Violation extends Model
     {
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount,
-            sections.id, sections.section, departments.id, departments.department_name,
+            sections.id, sections.violation_section, departments.id, departments.department_name,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
@@ -42,8 +42,8 @@ class Violation extends Model
         )
         ->join('sections' , 'sections.id', '=', 'violations.section_id')
         ->join('departments' , 'departments.id', '=', 'violations.department_id')
-            ->where('violations.id', $id)
-            ->first();
+        ->where('violations.id', $id)
+        ->first();
     }
 
     /*Read all Records by*/
@@ -51,7 +51,7 @@ class Violation extends Model
     {
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount, 
-            sections.id, sections.section, departments.id, departments.department_name,
+            sections.id, sections.violation_section, departments.id, departments.department_name,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
@@ -62,9 +62,9 @@ class Violation extends Model
         )
         ->join('sections' , 'sections.id', '=', 'violations.section_id')
         ->join('departments' , 'departments.id', '=', 'violations.department_id')
-            ->where('violations.status', 1)
-            ->orderByDesc('violations.id')
-            ->get();
+        ->where('violations.status', 1)
+        ->orderByDesc('violations.id')
+        ->get();
     }
 
     /*Read all Records by sectionId and DepartmentId*/
