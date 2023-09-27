@@ -369,7 +369,6 @@ class PenaltyRecordController extends Controller
                 'email'                       => $req->email,
                 'holding_no'                  => $req->holdingNo,
                 'street_address'              => $req->streetAddress,
-                'street_address_2'            => $req->streetAddress2,
                 'city'                        => $req->city,
                 'region'                      => $req->region,
                 'postal_code'                 => $req->postalCode,
