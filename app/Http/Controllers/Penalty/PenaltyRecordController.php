@@ -392,13 +392,13 @@ class PenaltyRecordController extends Controller
                 'current_role'                => $penaltyRecord->current_role,
                 'workflow_id'                 => $penaltyRecord->workflow_id,
                 'ulb_id'                      => $penaltyRecord->ulb_id,
+                'challan_type'                => $penaltyRecord->challan_type,
+                'category_type_id'            => $penaltyRecord->category_type_id,
                 'approved_by'                 => $userId,
                 'guardian_name'               => $req->guardianName,
                 'violation_place'             => $req->violationPlace,
                 'remarks'                     => $req->remarks,
                 'vehicle_no'                  => $req->vehicleNo,
-                'challan_type'                => $penaltyRecord->challanType,
-                'category_type_id'            => $penaltyRecord->categoryTypeId,
             ];
             $challanIdParam = Config::get('constants.ID_GENERATION_PARAMS.CHALLAN');
             $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $req->violationId, 0);
@@ -563,7 +563,7 @@ class PenaltyRecordController extends Controller
                 DB::raw("'http://192.168.0.158:8000/FinePenalty/Documents/A03232400000125/cam.jpg' as geo_tagged_image"),
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->join('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
+                ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
                 // ->join('penalty_applied_records as ar', 'ar.id', 'penalty_documents.applied_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
