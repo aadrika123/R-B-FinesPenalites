@@ -364,6 +364,9 @@ class PenaltyRecordController extends Controller
             if (!$penaltyRecord)
                 throw new Exception("Record Not Found");
 
+            $violationDtl = Violation::find($req->violationId);
+            $penaltyAmount = $violationDtl->penalty_amount;
+
             $finalRecordReqs = [
                 'full_name'                   => $req->fullName,
                 'mobile'                      => $req->mobile,
@@ -374,7 +377,7 @@ class PenaltyRecordController extends Controller
                 'region'                      => $req->region,
                 'postal_code'                 => $req->postalCode,
                 'violation_id'                => $req->violationId,
-                'amount'                      => $req->penaltyAmount,
+                'amount'                      => $penaltyAmount,
                 'previous_violation_offence'  => $req->previousViolationOffence,
                 'witness'                     => $req->witness,
                 'witness_name'                => $req->witnessName,
@@ -530,10 +533,17 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            $challanDtl = PenaltyChallan::select('penalty_final_records.*', 'penalty_final_records.id as application_id', 'penalty_challans.*', 'penalty_challans.id', 'violations.violation_name', 'violation_sections.violation_section')
+            $challanDtl = PenaltyChallan::select(
+                'penalty_final_records.*',
+                'penalty_final_records.id as application_id',
+                'penalty_challans.*',
+                'penalty_challans.id',
+                'violations.violation_name',
+                'violation_sections.violation_section'
+            )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
-                ->join('violation_sections', 'violation_sections.id', 'violations.violation_section_id')
+                ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
                 ->where('penalty_challans.id', $req->challanId)
                 ->orderbyDesc('penalty_challans.id')
                 ->first();
@@ -721,7 +731,7 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
-            $data = PenaltyFinalRecord::select('full_name', 'mobile', 'violation_place', 'challan_no', 'violation_name', 'penalty_challans.total_amount')
+            $data = PenaltyFinalRecord::select('full_name', 'mobile', 'violation_place', 'challan_no', 'violation_name', 'penalty_challans.total_amount', 'penalty_challans.id as challan_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 // ->join('violations as v', 'v.section_id', 'violation_sections.section_id')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
@@ -764,9 +774,10 @@ class PenaltyRecordController extends Controller
                 'violation_place',
                 'challan_no',
                 'violation_name',
+                'penalty_challans.id as challan_id',
                 'penalty_challans.total_amount',
                 'penalty_final_records.challan_type',
-                'users.user_name',
+                'users.name as user_name',
                 'category_type as challan_category',
             )
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
