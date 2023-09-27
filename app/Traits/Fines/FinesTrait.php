@@ -81,7 +81,7 @@ trait FinesTrait
             ['displayString' => 'Name', 'key' => 'name', 'value' => $data->full_name,],
             ['displayString' => 'Mobile', 'key' => 'mobile', 'value' => $data->mobile,],
             ['displayString' => 'Violation Name', 'key' => 'violation_name', 'value' => $data->violation_name],
-            ['displayString' => 'Penalty Amount', 'key' => 'penalty_amount', 'value' => $data->penalty_amount]
+            ['displayString' => 'Penalty Amount', 'key' => 'penalty_amount', 'value' => $data->amount]
         ]);
 
         $cardElement = [
