@@ -33,7 +33,7 @@ class ViolationController extends Controller
         $validator = Validator::make($req->all(), [
             'department'        => 'required|string',
             'violationName'     => 'required|string',
-            'violationSection'           => 'required|numeric',
+            'violationSection'  => 'required|string',
             'penaltyAmount'     => 'required|integer',
         ]);
         if ($validator->fails())
