@@ -42,8 +42,8 @@ class InfractionRecordingFormRequest extends FormRequest
             // 'photo' => 'required|file',
             // 'latitude' => 'required',
             // 'longitude' => 'required',
-            'audioVideo' => 'nullable|mimetypes:video/mp4',
-            'pdf' => 'nullable|file'
+            'audioVideo' => 'nullable',
+            'pdf' => 'nullable'
         ];
     }
 

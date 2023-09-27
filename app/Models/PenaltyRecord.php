@@ -22,14 +22,6 @@ class PenaltyRecord extends Model
         return $data;
     }
 
-    // Check Email is Already exist or not
-    public function checkExisting($req)
-    {
-        return PenaltyRecord::where('email', $req->email)
-            ->first();
-    }
-
-
     /**
      * | Read Record Details
      */
@@ -54,7 +46,7 @@ class PenaltyRecord extends Model
         )
             ->join('violations', 'violations.id', '=', 'penalty_applied_records.violation_id')
             ->join('violation_sections', 'violation_sections.id', '=', 'violations.section_id')
-            ->orderBy('penalty_applied_records.id');
+            ->orderByDesc('penalty_applied_records.id');
     }
 
     /**
