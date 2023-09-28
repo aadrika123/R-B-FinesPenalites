@@ -11,4 +11,10 @@ return [
         4 => "25000",
     ],
 
+    "ID_GENERATION_PARAMS" => [
+        "APPLICATION" => 1,
+        "CHALLAN" => 2,
+        "RECEIPT" => 3,
+    ],
+
 ];

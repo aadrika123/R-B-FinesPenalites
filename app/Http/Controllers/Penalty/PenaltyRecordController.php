@@ -46,15 +46,20 @@ class PenaltyRecordController extends Controller
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
+            $user = authUser();
+            $ulbId = $user->ulb_id;
 
             $violationDtl = Violation::find($req->violationId);
+            if (!$violationDtl)
+                throw new Exception("Provide Valid Violation Id");
             $req->penaltyAmount = $violationDtl->penalty_amount;
 
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);
 
+            $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
             $mPenaltyDocument = new PenaltyDocument();
-            $idGeneration = new IdGeneration(1, 2);
+            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $req->violationId, 0);
             $applicationNo = $idGeneration->generate();
 
             $metaReqs = $this->generateRequest($req, $applicationNo);
@@ -387,16 +392,16 @@ class PenaltyRecordController extends Controller
                 'current_role'                => $penaltyRecord->current_role,
                 'workflow_id'                 => $penaltyRecord->workflow_id,
                 'ulb_id'                      => $penaltyRecord->ulb_id,
+                'challan_type'                => $penaltyRecord->challan_type,
+                'category_type_id'            => $penaltyRecord->category_type_id,
                 'approved_by'                 => $userId,
                 'guardian_name'               => $req->guardianName,
                 'violation_place'             => $req->violationPlace,
                 'remarks'                     => $req->remarks,
                 'vehicle_no'                  => $req->vehicleNo,
-                'challan_type'                => $penaltyRecord->challanType,
-                'category_type_id'            => $penaltyRecord->categoryTypeId,
             ];
-
-            $idGeneration = new IdGeneration(2, $penaltyRecord->ulb_id);
+            $challanIdParam = Config::get('constants.ID_GENERATION_PARAMS.CHALLAN');
+            $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $req->violationId, 0);
             $challanNo = $idGeneration->generate();
 
             DB::beginTransaction();
@@ -491,7 +496,7 @@ class PenaltyRecordController extends Controller
     public function searchChallan(Request $req)
     {
         try {
-            $todayDate = Carbon::now();
+            $challanExpiredDate = Carbon::now()->addDay(14)->toDateString();
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
             $userId = $user->id;
@@ -509,7 +514,13 @@ class PenaltyRecordController extends Controller
                 'penalty_final_records.application_no',
                 'penalty_final_records.payment_status',
                 'tran_no as transaction_no',
-                'violation_name'
+                'violation_name',
+                DB::raw(
+                    "CASE 
+                            WHEN penalty_challans.challan_date > CURRENT_DATE + INTERVAL '14 days' THEN true
+                            else false
+                    END as has_expired"
+                )
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
@@ -554,10 +565,11 @@ class PenaltyRecordController extends Controller
                 'penalty_challans.*',
                 'penalty_challans.id',
                 'violations.violation_name',
-                'violation_sections.violation_section'
+                'violation_sections.violation_section',
+                DB::raw("'http://192.168.0.158:8000/FinePenalty/Documents/A03232400000125/cam.jpg' as geo_tagged_image"),
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->join('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
+                ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
                 // ->join('penalty_applied_records as ar', 'ar.id', 'penalty_documents.applied_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
@@ -601,7 +613,8 @@ class PenaltyRecordController extends Controller
             if (!$challanDetails)
                 throw new Exception("Challan Not Found");
 
-            $idGeneration = new IdGeneration(3, $penaltyDetails->ulb_id);
+            $receiptIdParam = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
+            $idGeneration = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $penaltyDetails->violation_id, 0);
             $transactionNo = $idGeneration->generate();
 
             $reqs = [
@@ -658,20 +671,24 @@ class PenaltyRecordController extends Controller
 
     /**
      * | On Spot Challan
+        doc upload missing
      */
     public function onSpotChallan(InfractionRecordingFormRequest $req)
     {
         try {
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $mPenaltyChallan = new PenaltyChallan();
-            $user = authUser($req);
+            $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
+            $challanIdParam = Config::get('constants.ID_GENERATION_PARAMS.CHALLAN');
+            $user = authUser();
+            $ulbId = $user->ulb_id;
             $violationDtl = Violation::find($req->violationId);
             $req->penaltyAmount = $violationDtl->penalty_amount;
 
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);
 
-            $idGeneration = new IdGeneration(1, 2);
+            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $req->violationId, 0);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['approved_by'] = $user->id;
@@ -679,7 +696,7 @@ class PenaltyRecordController extends Controller
 
             DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
-            $idGeneration = new IdGeneration(2, $finalRecord->ulb_id);
+            $idGeneration = new IdGeneration($challanIdParam, $finalRecord->ulb_id, $req->violationId, 0);
             $challanNo = $idGeneration->generate();
 
             $challanReqs = [

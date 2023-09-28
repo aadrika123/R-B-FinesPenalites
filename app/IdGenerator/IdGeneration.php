@@ -12,11 +12,15 @@ class IdGeneration
     protected $paramId;
     protected $ulbId;
     protected $incrementStatus;
+    protected $violationId;
+    protected $flag;
 
-    public function __construct(int $paramId, int $ulbId)
+    public function __construct(int $paramId, int $ulbId, int $violationId, int $flag)
     {
         $this->paramId = $paramId;
         $this->ulbId = $ulbId;
+        $this->violationId = $violationId;
+        $this->flag = $flag;
         $this->incrementStatus = true;
     }
 
@@ -27,6 +31,8 @@ class IdGeneration
     {
         $todayDate = Carbon::now();
         $paramId = $this->paramId;
+        $flag = $this->flag;
+        $violationId =  str_pad($this->violationId, 2, "0", STR_PAD_LEFT);
         $mIdGenerationParams = new IdGenerationParam();
         $mUlbMaster = new UlbMaster();
         $ulbDtls = $mUlbMaster::findOrFail($this->ulbId);
@@ -41,18 +47,17 @@ class IdGeneration
 
         $ulbDistrictCode = $ulbDtls->district_code;
         $ulbCategory = $ulbDtls->category;
-        $code = $ulbDtls->code;
+        $code = '0' . $ulbDtls->code;
 
         $params = $mIdGenerationParams->getParams($paramId);
         $prefixString = $params->string_val;
-        $stringVal =  $code .  $y . "00";  #_Type of Penalty Chalan Missing
+        $stringVal =  $code .  $y . $violationId;  #_Type of Penalty Chalan Missing
 
         $stringSplit = collect(str_split($stringVal));
-        $flag = ($stringSplit->sum()) % 9;
         $intVal = $params->int_val;
         // Case for the Increamental
         if ($this->incrementStatus == true) {
-            $id = $stringVal . str_pad($intVal, 5, "0", STR_PAD_LEFT);
+            $id = $stringVal . str_pad($intVal, 4, "0", STR_PAD_LEFT);
             $intVal += 1;
             $params->int_val = $intVal;
             $params->save();
@@ -60,7 +65,7 @@ class IdGeneration
 
         // Case for not Increamental
         if ($this->incrementStatus == false) {
-            $id = $stringVal  . str_pad($intVal, 5, "0", STR_PAD_LEFT);
+            $id = $stringVal  . str_pad($intVal, 4, "0", STR_PAD_LEFT);
         }
 
         return $prefixString . $id . $flag;

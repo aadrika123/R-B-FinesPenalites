@@ -17,8 +17,8 @@ class PenaltyDocument extends Model
     public function storeDocument($req, $id, $applicationNo)
     {
         if ($req->file('photo')) {
-            $docPath = $req->file('photo')->move(public_path('FinePenalty/Documents/' . $applicationNo), $req->photo->getClientOriginalName());
-            $file_name = 'FinePenalty/Documents/' . $applicationNo . '/' . $req->photo->getClientOriginalName();
+            $docPath = $req->file('photo')->move(public_path('FinePenalty/'), $req->photo->getClientOriginalName());
+            $file_name = 'FinePenalty/' . $req->photo->getClientOriginalName();
             $docType = $req->photo->getClientOriginalExtension();
             // Create a new PhotoMetadata record
             $docMetadata = new PenaltyDocument([
@@ -36,8 +36,8 @@ class PenaltyDocument extends Model
         }
 
         if ($req->file('audioVideo')) {
-            $docPath = $req->file('audioVideo')->move(public_path('FinePenalty/Documents/' . $applicationNo), $req->audioVideo->getClientOriginalName());
-            $file_name = 'FinePenalty/Documents/' . $applicationNo . '/' . $req->audioVideo->getClientOriginalName();
+            $docPath = $req->file('audioVideo')->move(public_path('FinePenalty/'), $req->audioVideo->getClientOriginalName());
+            $file_name = 'FinePenalty/' . $req->audioVideo->getClientOriginalName();
             $docType = $req->audioVideo->getClientOriginalExtension();
             // Create a new PhotoMetadata record
             $docMetadata = new PenaltyDocument([
@@ -54,8 +54,8 @@ class PenaltyDocument extends Model
             $data['video_details'] = $docMetadata;
         }
         if ($req->file('pdf')) {
-            $docPath = $req->file('pdf')->move(public_path('FinePenalty/Documents/' . $applicationNo), $req->pdf->getClientOriginalName());
-            $file_name = 'FinePenalty/Documents/' . $applicationNo . '/' . $req->pdf->getClientOriginalName();
+            $docPath = $req->file('pdf')->move(public_path('FinePenalty/'), $req->pdf->getClientOriginalName());
+            $file_name = 'FinePenalty/' . $req->pdf->getClientOriginalName();
             $docType = $req->pdf->getClientOriginalExtension();
             // Create a new PhotoMetadata record
             $docMetadata = new PenaltyDocument([
