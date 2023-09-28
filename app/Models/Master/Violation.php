@@ -23,7 +23,9 @@ class Violation extends Model
      */
     public function checkExisting($req)
     {
-        return Violation::where(DB::raw('upper(violation_name)'), strtoupper($req->violationName))
+        return Violation::where('violation_name', $req->violationName)
+            ->where('department_id', $req->departmentId)
+            ->where('section_id', $req->sectionId)
             ->where('status', 1)
             ->get();
     }

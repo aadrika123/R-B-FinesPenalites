@@ -12,14 +12,14 @@ class IdGeneration
     protected $paramId;
     protected $ulbId;
     protected $incrementStatus;
-    protected $violationId;
+    protected $section;
     protected $flag;
 
-    public function __construct(int $paramId, int $ulbId, int $violationId, int $flag)
+    public function __construct(int $paramId, int $ulbId, int $section, int $flag)
     {
         $this->paramId = $paramId;
         $this->ulbId = $ulbId;
-        $this->violationId = $violationId;
+        $this->section = $section;
         $this->flag = $flag;
         $this->incrementStatus = true;
     }
@@ -32,7 +32,7 @@ class IdGeneration
         $todayDate = Carbon::now();
         $paramId = $this->paramId;
         $flag = $this->flag;
-        $violationId =  str_pad($this->violationId, 2, "0", STR_PAD_LEFT);
+        $violationSection =  str_pad($this->section, 3, "0", STR_PAD_LEFT);
         $mIdGenerationParams = new IdGenerationParam();
         $mUlbMaster = new UlbMaster();
         $ulbDtls = $mUlbMaster::findOrFail($this->ulbId);
@@ -51,7 +51,7 @@ class IdGeneration
 
         $params = $mIdGenerationParams->getParams($paramId);
         $prefixString = $params->string_val;
-        $stringVal =  $code .  $y . $violationId;  #_Type of Penalty Chalan Missing
+        $stringVal =  $code .  $y . $violationSection;  #_Type of Penalty Chalan Missing
 
         $stringSplit = collect(str_split($stringVal));
         $intVal = $params->int_val;

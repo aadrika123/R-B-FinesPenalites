@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\API\Master\CountryController;
+use App\Http\Controllers\API\Master\DepartmentController;
+use App\Http\Controllers\API\Master\SectionController;
 use App\Http\Controllers\API\Master\UserTypeController;
 use App\Http\Controllers\API\Master\ViolationController;
 use App\Http\Controllers\API\Master\ViolationSectionController;
@@ -128,5 +130,29 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('challan-category/list', 'getCategoryList');                                              // Get By Id --------------- 1.3
 
 
+    });
+
+    /**
+     * | API Department CRUD operation
+         Controller No : 5
+     */
+    Route::controller(DepartmentController::class)->group(function () {
+        Route::post('department/crud/save', 'createDepartment');                                 // Save -------------------- 1.1
+        Route::post('department/crud/edit', 'updateDepartment');                                 // Edit  ------------------- 1.2
+        Route::post('department/crud/get', 'getDepartmentById');                                    // Get By Id --------------- 1.3
+        Route::post('department/crud/list', 'getDepartmentList');                                    // Get All ----------------- 1.4
+        Route::post('department/crud/delete', 'deleteDepartment');                               // Delete ------------------ 1.5
+    });
+
+    /**
+     * | API Section CRUD operation
+         Controller No : 6
+     */
+    Route::controller(SectionController::class)->group(function () {
+        Route::post('section/crud/save', 'createSection');                                 // Save -------------------- 1.1
+        Route::post('section/crud/edit', 'updateSection');                                 // Edit  ------------------- 1.2
+        Route::post('section/crud/get', 'getSectionById');                                    // Get By Id --------------- 1.3
+        Route::post('section/crud/list', 'getSectionList');                                    // Get All ----------------- 1.4
+        Route::post('section/crud/delete', 'deleteSection');                               // Delete ------------------ 1.5
     });
 });

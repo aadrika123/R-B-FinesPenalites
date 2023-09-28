@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InfractionRecordingFormRequest;
 use App\IdGenerator\IdGeneration;
 use App\Models\Fine_Penalty\InfractionRecordingForm;
+use App\Models\Master\Section;
 use App\Models\Master\Violation;
 use App\Models\PenaltyChallan;
 use App\Models\PenaltyDocument;
@@ -59,9 +60,12 @@ class PenaltyRecordController extends Controller
 
             $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
             $mPenaltyDocument = new PenaltyDocument();
-            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $req->violationId, 0);
-            $applicationNo = $idGeneration->generate();
 
+            $getSectionId = Violation::where('id', $req->violationId)->pluck('section_id')->first();
+            $section = Section::where('id', $getSectionId)->pluck('violation_section')->first();
+
+            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
+            $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['challan_type'] = "Via Verification";
 
@@ -577,6 +581,9 @@ class PenaltyRecordController extends Controller
                 ->orderbyDesc('penalty_challans.id')
                 ->first();
 
+            if (!$challanDtl)
+            throw new Exception("No Data Found againt this challan.");
+
             $totalAmountInWord = getHindiIndianCurrency($challanDtl->total_amount);
             $challanDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
@@ -605,18 +612,18 @@ class PenaltyRecordController extends Controller
             $todayDate = Carbon::now();
             $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
-
+                        
             if (!$penaltyDetails)
                 throw new Exception("Application Not Found");
             if ($penaltyDetails->payment_status == 1)
                 throw new Exception("Payment Already Done");
             if (!$challanDetails)
                 throw new Exception("Challan Not Found");
-
             $receiptIdParam = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
-            $idGeneration = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $penaltyDetails->violation_id, 0);
+            $getSectionId = Violation::where('id', $penaltyDetails->violation_id)->pluck('section_id')->first();
+            $section = Section::where('id', $getSectionId)->pluck('violation_section')->first();
+            $idGeneration = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
             $transactionNo = $idGeneration->generate();
-
             $reqs = [
                 "application_id" => $req->applicationId,
                 "challan_id"     => $req->challanId,
@@ -684,11 +691,11 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $violationDtl = Violation::find($req->violationId);
             $req->penaltyAmount = $violationDtl->penalty_amount;
-
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);
-
-            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $req->violationId, 0);
+            $getSectionId = $violationDtl->section_id;
+            $section = Section::where('id', $getSectionId)->pluck('violation_section')->first();
+            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['approved_by'] = $user->id;
@@ -696,7 +703,7 @@ class PenaltyRecordController extends Controller
 
             DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
-            $idGeneration = new IdGeneration($challanIdParam, $finalRecord->ulb_id, $req->violationId, 0);
+            $idGeneration = new IdGeneration($challanIdParam, $finalRecord->ulb_id, $section, 0);
             $challanNo = $idGeneration->generate();
 
             $challanReqs = [

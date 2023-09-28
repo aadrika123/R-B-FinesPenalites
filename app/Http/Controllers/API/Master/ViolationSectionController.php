@@ -3,27 +3,36 @@
 namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\InfractionRecordingFormRequest;
+use App\IdGenerator\IdGeneration;
 use App\Models\ChallanCategory;
+use App\Models\IdGenerationParam;
 use App\Models\Master\Department;
 use App\Models\Master\Section;
+use App\Models\Master\UlbMaster;
 use App\Models\Master\Violation;
 use App\Models\Master\ViolationSection;
 use App\Models\PenaltyChallan;
+use App\Models\PenaltyDocument;
+use App\Models\PenaltyRecord;
 use App\Models\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ViolationSectionController extends Controller
 {
     private $_mViolationSections;
+    private $mPenaltyRecord;
 
     public function __construct()
     {
         DB::enableQueryLog();
         $this->_mViolationSections = new ViolationSection();
+        $this->mPenaltyRecord = new PenaltyRecord();
     }
 
     /**
@@ -193,33 +202,6 @@ class ViolationSectionController extends Controller
         }
     }
 
-
-    /**
-     * | Get Applied Challans Data
-     */
-    public function applyChallansData(Request $req)
-    {
-        $validator = Validator::make($req->all(), [
-            'fromDate' => 'required',
-            'uptoDate' => 'required',
-        ]);
-        if ($validator->fails())
-            return validationError($validator);
-        try {
-            $perPage = $req->perPage ?? 10;
-            $todayDate = $req->date ?? now()->toDateString();
-            $user = authUser($req);
-            $userId = $user->id;
-            $ulbId = $user->ulb_id;
-            $fromDate = $req->fromDate;
-            $toDate = $req->uptoDate ?? Carbon::now();
-            $dataInRange = PenaltyChallan::whereBetween('created_at', [$fromDate, $toDate])
-            ->paginate($perPage);
-            return responseMsgs(true, "", $dataInRange, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
 
 
     /**

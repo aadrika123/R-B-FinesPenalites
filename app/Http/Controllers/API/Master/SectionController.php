@@ -3,52 +3,42 @@
 namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Master\Department;
 use App\Models\Master\Section;
-use App\Models\Master\Violation;
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Http\req;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
-class ViolationController extends Controller
+class SectionController extends Controller
 {
-    private $_mViolations;
+    private $_mSections;
 
     public function __construct()
     {
-        DB::enableQueryLog();
-        $this->_mViolations = new Violation();
+        $this->_mSections = new Section();
     }
 
     /**
      * |  Create Violation 
      */
-    public function createViolation(Request $req)
+    public function createSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'departmentId'      => 'required|integer',
-            'sectionId'         => 'required|integer',
-            'violationName'     => 'required|string',
-            'penaltyAmount'     => 'required|integer',
+            "departmentId"          => 'required|numeric',
+            'violationSection'      => 'required|string'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $isGroupExists = $this->_mViolations->checkExisting($req);
+            $isGroupExists = $this->_mSections->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
-                throw new Exception("Violation Name Already Existing");
+                throw new Exception("Section Already Existing");
 
             $metaReqs = [
-                'violation_name'  => $req->violationName,
-                'section_id'      => $req->sectionId,
-                'department_id'   => $req->departmentId,
-                'penalty_amount'  => $req->penaltyAmount,
+                'department_id' => $req->departmentId,
+                'violation_section'   => strtoupper($req->violationSection)
             ];
-            $this->_mViolations->store($metaReqs); // Store in Violations table
+            $this->_mSections->store($metaReqs); // Store in Violations table
             return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -56,28 +46,23 @@ class ViolationController extends Controller
     }
 
     // Edit records
-    public function updateViolation(Request $req)
+    public function updateSection(Request $req)
     { 
         $validator = Validator::make($req->all(), [
-            'violationId'       => 'required|numeric',
-            'departmentId'      => 'required|integer',
-            'sectionId'         => 'required|integer',
-            'violationName'     => 'required|string',
-            'penaltyAmount'     => 'required|integer',
+            'sectionId'             => 'required|numeric',
+            'departmentId'          => 'required|numeric',
+            'violationSection'        => 'required|string'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->_mViolations::findOrFail($req->violationId);
-            $isExists = $this->_mViolations->checkExisting($req);
-            if ($isExists && $isExists->where('id', '!=', $req->violationId)->isNotEmpty())
-                throw new Exception("Violation Name Already Existing");
+            $getData = $this->_mSections::findOrFail($req->sectionId);
+            $isExists = $this->_mSections->checkExisting($req);
+            if ($isExists && $isExists->where('id', '!=', $req->sectionId)->isNotEmpty())  // pending
+                throw new Exception("Section Already Existing");
             $metaReqs = [
-                'violation_name'   => $req->violationName,
-                'section_id'       => $req->sectionId ?? $getData->id,
-                'department_id'    => $req->departmentId ?? $getData->id,
-                'penalty_amount'   => $req->penaltyAmount,
-                'updated_at'       => Carbon::now()
+                'department_id' => $req->departmentId,
+                'violation_section'   => strtoupper($req->violationSection)
             ];
             $getData->update($metaReqs); // Store in Violations table
             return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -89,15 +74,15 @@ class ViolationController extends Controller
     /**
      * Get Violation BY Id
      */
-    public function ViolationById(Request $req)
+    public function getSectionById(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'id' => 'required|numeric'
+            'sectionId' => 'required|numeric'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->_mViolations->recordDetails()->where('violations.id', $req->id)->first();
+            $getData = $this->_mSections->recordDetails()->where('sections.id', $req->sectionId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
             return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -108,10 +93,10 @@ class ViolationController extends Controller
     /**
      * Get Violation List
      */
-    public function getViolation(Request $req)
+    public function getSectionList(Request $req)
     {
         try {
-            $getData = $this->_mViolations->recordDetails()->get();
+            $getData = $this->_mSections->recordDetails()->get();
             return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -121,10 +106,10 @@ class ViolationController extends Controller
     /**
      * Delete Violation By Id
      */
-    public function deleteViolation(Request $req)
+    public function deleteSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'id' => 'required'
+            'sectionId' => 'required'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
@@ -132,13 +117,11 @@ class ViolationController extends Controller
             $metaReqs =  [
                 'status' => 0
             ];
-            $delete = $this->_mViolations::findOrFail($req->id);
+            $delete = $this->_mSections::findOrFail($req->sectionId);
             $delete->update($metaReqs);
             return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
-    
 }
