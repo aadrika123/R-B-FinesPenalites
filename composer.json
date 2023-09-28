@@ -32,7 +32,8 @@
             "Tests\\": "tests/"
         },
         "files":[
-            "app/Helper.php"
+            "app/Helper.php",
+            "app/WhatsaapHelper.php"
         ]
     },
     "scripts": {
