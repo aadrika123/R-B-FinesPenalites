@@ -1,7 +1,5 @@
 <?php
 
-// Helper made by Sandeep Bara
-
 // function for Static Message
 
 use Illuminate\Support\Carbon;

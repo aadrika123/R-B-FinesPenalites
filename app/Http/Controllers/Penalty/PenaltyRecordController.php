@@ -49,6 +49,7 @@ class PenaltyRecordController extends Controller
             $user = authUser();
             $ulbId = $user->ulb_id;
 
+
             $violationDtl = Violation::find($req->violationId);
             if (!$violationDtl)
                 throw new Exception("Provide Valid Violation Id");
@@ -424,6 +425,22 @@ class PenaltyRecordController extends Controller
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
 
+
+            // $whatsapp2 = (Whatsapp_Send(
+            //     $req->mobile,
+            //     "rmc_fp_1",
+            //     [
+            //         "content_type" => "text",
+            //         [
+            //             $req->fullName,
+            //             $challanRecord->challan_no,
+            //             // section,
+            //             $challanRecord->total_amount,
+            //             $challanRecord->challan_date->add(14)
+            //         ]
+            //     ]
+            // ));
+
             return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
@@ -711,6 +728,22 @@ class PenaltyRecordController extends Controller
             $challanRecord = $mPenaltyChallan->store($challanReqs);
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
+
+
+            // $whatsapp2 = (Whatsapp_Send(
+            //     $req->mobile,
+            //     "rmc_fp_1",
+            //     [
+            //         "content_type" => "text",
+            //         [
+            //             $req->fullName,
+            //             $challanRecord->challan_no,
+            //             // section,
+            //             $challanRecord->total_amount,
+            //             $challanRecord->challan_date->add(14)
+            //         ]
+            //     ]
+            // ));
 
             DB::commit();
             return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
