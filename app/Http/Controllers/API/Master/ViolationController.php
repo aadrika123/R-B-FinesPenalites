@@ -43,24 +43,33 @@ class ViolationController extends Controller
             //     throw new Exception("Violation Name Already Existing");
 
             $mDepartment = new Department();  
-            $departmentData = [
-                'department_name' => $req->department,
-            ];
-            $department = $mDepartment->store($departmentData);  // Store in departments table
+            $getDepartment = $mDepartment::where(DB::raw('upper(department_name)'), strtoupper($req->department))->first(); 
+
+            if(!$getDepartment){
+                $departmentData = [
+                    'department_name' => $req->department,
+                ];
+                $department = $mDepartment->store($departmentData);
+                $departmentId = $department->id;
+            }
 
             $mSections = new Section();
-            $sectionReqs = [
-                'violation_section' => $req->violationSection,
-                'department_id' => $department->id,
-            ];
-            $section = $mSections->store($sectionReqs);  // Store in sections table
+            $getSection = $mSections::where(DB::raw('upper(violation_section)'), strtoupper($req->violationSection))->first(); 
+            if(!$getSection){
+                $sectionReqs = [
+                    'violation_section' => $req->violationSection,
+                    'department_id' => $departmentId ?? $getDepartment->id,
+                ];
+                return $sectionReqs; die; 
+                $section = $mSections->store($sectionReqs);  
+                $sectionId = $section->id;
+            }
 
             $metaReqs = [
-                'violation_name' => $req->violationName,
-                'section_id' => $section->id,
-                'department_id' => $department->id,
-                'penalty_amount' => $req->penaltyAmount,
-
+                'violation_name'  => $req->violationName,
+                'section_id'      => $sectionId ?? $getSection->id,
+                'department_id'   => $departmentId ?? $getDepartment->id,
+                'penalty_amount'  => $req->penaltyAmount,
             ];
             $this->_mViolations->store($metaReqs); // Store in Violations table
             return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -73,7 +82,7 @@ class ViolationController extends Controller
     public function updateViolation(Request $req)
     { 
         $validator = Validator::make($req->all(), [
-            'id'               => 'required|numeric',
+            'id'                => 'required|numeric',
             'department'        => 'required|string',
             'violationName'     => 'required|string',
             'violationSection'  => 'required|string',
@@ -83,16 +92,41 @@ class ViolationController extends Controller
             return responseMsgs(false, $validator->errors(), []);
         try {
             $isExists = $this->_mViolations->checkExisting($req);
-            if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
-                throw new Exception("Violation Name Already Existing");
+            // if ($isExists && $isExists->where('id', '!=', $req->id)->isNotEmpty())
+            //     throw new Exception("Violation Name Already Existing");
+
             $getData = $this->_mViolations::findOrFail($req->id);
+
+            $mDepartment = new Department();  
+            $getDepartment = $mDepartment::where('id', $getData->department_id)->first();
+            if(strtoupper($getDepartment->department_name) !== strtoupper($req->department)){
+                $departmentData = [
+                    'department_name' => $req->department,
+                ];
+                // return $departmentData; die; 
+                $department = $mDepartment->store($departmentData);
+                $departmentId = $department->id;
+            }
+
+            $mSections = new Section();
+            $getSection = $mSections::where('id', $getData->section_id)->first();
+            if(strtoupper($getSection->violation_section) !== strtoupper($req->violationSection)){
+                $sectionReqs = [
+                    'violation_section' => $req->violationSection,
+                    'department_id' => $departmentId ?? $getDepartment->id,
+                ];
+                $section = $mSections->store($sectionReqs);  
+                $sectionId = $section->id;
+            }
             $metaReqs = [
-                'violation_name' => $req->violationName ?? $getData->violation_name,
-                'violation_section_id' => $req->violationSectionId,
+                'violation_name' => $req->violationName,
+                'section_id' => $sectionId ?? $getSection->id,
+                'department_id' => $departmentId ?? $getDepartment->id,
                 'penalty_amount' => $req->penaltyAmount,
                 'updated_at' => Carbon::now()
             ];
-            $getData->update($metaReqs);
+            $getData->update(['status' => '0']);
+            $this->_mViolations->store($metaReqs); // Store in Violations table
             return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
