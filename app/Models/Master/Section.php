@@ -47,20 +47,21 @@ class Section extends Model
      }
 
      /*Read all Records by*/
-    public function recordDetails()
+    public function recordDetails($req)
     {
         return Section::select(
-            DB::raw("id,violation_section,department_id,
+            DB::raw("sections.id,sections.violation_section,sections.department_id, departments.department_name,
         CASE 
-            WHEN status = '0' THEN 'Deactivated'  
-            WHEN status = '1' THEN 'Active'
+            WHEN sections.status = '0' THEN 'Deactivated'  
+            WHEN sections.status = '1' THEN 'Active'
         END as status,
-        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        TO_CHAR(sections.created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(sections.created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('status', 1)
-        ->orderByDesc('id');
+        ->join('departments','departments.id',  '=', 'sections.department_id')
+        ->where('sections.status', 1)
+        ->orderByDesc('sections.id');
         // ->get();
     }
 }

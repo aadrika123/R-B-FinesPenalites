@@ -82,7 +82,7 @@ class SectionController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->_mSections->recordDetails()->where('sections.id', $req->sectionId)->first();
+            $getData = $this->_mSections->recordDetails($req)->where('sections.id', $req->sectionId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
             return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -96,7 +96,7 @@ class SectionController extends Controller
     public function getSectionList(Request $req)
     {
         try {
-            $getData = $this->_mSections->recordDetails()->get();
+            $getData = $this->_mSections->recordDetails($req)->get();
             return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
