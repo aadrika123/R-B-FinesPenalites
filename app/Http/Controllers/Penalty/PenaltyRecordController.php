@@ -374,6 +374,8 @@ class PenaltyRecordController extends Controller
                 throw new Exception("Record Not Found");
 
             $violationDtl = Violation::find($req->violationId);
+            if (!$violationDtl)
+                throw new Exception("Provide Valid Violation Id");
             $penaltyAmount = $violationDtl->penalty_amount;
 
             $finalRecordReqs = [
@@ -599,7 +601,7 @@ class PenaltyRecordController extends Controller
                 ->first();
 
             if (!$challanDtl)
-            throw new Exception("No Data Found againt this challan.");
+                throw new Exception("No Data Found againt this challan.");
 
             $totalAmountInWord = getHindiIndianCurrency($challanDtl->total_amount);
             $challanDtl->amount_in_words = $totalAmountInWord . ' मात्र';
@@ -629,7 +631,7 @@ class PenaltyRecordController extends Controller
             $todayDate = Carbon::now();
             $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
-                        
+
             if (!$penaltyDetails)
                 throw new Exception("Application Not Found");
             if ($penaltyDetails->payment_status == 1)
@@ -707,6 +709,8 @@ class PenaltyRecordController extends Controller
             $user = authUser();
             $ulbId = $user->ulb_id;
             $violationDtl = Violation::find($req->violationId);
+            if (!$violationDtl)
+                throw new Exception("Provide Valid Violation Id");
             $req->penaltyAmount = $violationDtl->penalty_amount;
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);

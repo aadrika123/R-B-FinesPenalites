@@ -34,7 +34,6 @@ class InfractionRecordingFormRequest extends FormRequest
             'postalCode' => 'nullable|string',
             'country' => 'nullable|string',
             'violationId' => 'required|integer',
-            'penaltyAmount' => 'required|integer',
             'previousViolationOffence' => 'nullable|boolean',
             'isWitness' => 'nullable|integer',
             'witnessName' => 'nullable|string',
