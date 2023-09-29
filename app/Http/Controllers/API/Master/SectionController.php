@@ -39,9 +39,9 @@ class SectionController extends Controller
                 'violation_section'   => strtoupper($req->violationSection)
             ];
             $this->_mSections->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $metaReqs, "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -65,9 +65,9 @@ class SectionController extends Controller
                 'violation_section'   => strtoupper($req->violationSection)
             ];
             $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $metaReqs, "0302", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0302", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -85,9 +85,9 @@ class SectionController extends Controller
             $getData = $this->_mSections->recordDetails($req)->where('sections.id', $req->sectionId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $getData, "0303", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0303", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
@@ -97,9 +97,9 @@ class SectionController extends Controller
     {
         try {
             $getData = $this->_mSections->recordDetails($req)->get();
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $getData, "0304", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0304", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -119,9 +119,24 @@ class SectionController extends Controller
             ];
             $delete = $this->_mSections::findOrFail($req->sectionId);
             $delete->update($metaReqs);
-            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $metaReqs, "0305", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0305", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+    /**
+     * | Get Section List By Department Id
+     */
+    public function getSectionListById(Request $req)
+    {
+        try {
+            $mChallanCategories = new Section();
+            $getData = $mChallanCategories->getList($req);
+            return responseMsgs(true, "", $getData, "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
 }

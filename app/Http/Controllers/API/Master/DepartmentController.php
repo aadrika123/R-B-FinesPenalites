@@ -37,9 +37,9 @@ class DepartmentController extends Controller
                 'department_name'   => strtoupper($req->departmentName)
             ];
             $this->_mDepartments->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $metaReqs, "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -62,9 +62,9 @@ class DepartmentController extends Controller
                 'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $metaReqs, "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -82,9 +82,9 @@ class DepartmentController extends Controller
             $getData = $this->_mDepartments->recordDetails()->where('departments.id', $req->departmentId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $getData, "0203", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0203", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
@@ -94,9 +94,9 @@ class DepartmentController extends Controller
     {
         try {
             $getData = $this->_mDepartments->recordDetails()->get();
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $getData, "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -116,9 +116,9 @@ class DepartmentController extends Controller
             ];
             $delete = $this->_mDepartments::findOrFail($req->departmentId);
             $delete->update($metaReqs);
-            return responseMsgs(true, "", $metaReqs, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $metaReqs, "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 

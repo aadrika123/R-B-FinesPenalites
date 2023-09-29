@@ -59,9 +59,9 @@ class ViolationSectionController extends Controller
             ];
             $this->_mViolationSections->store($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Added Successfully", $metaReqs, "M_API_9.1", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Records Added Successfully", $metaReqs, "0501", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.1", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0501", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
 
@@ -89,9 +89,9 @@ class ViolationSectionController extends Controller
             ];
             $getData->update($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Records Updated Successfully", $metaReqs, "M_API_9.2", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Records Updated Successfully", $metaReqs, "0502", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.2", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0502", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
 
@@ -108,9 +108,9 @@ class ViolationSectionController extends Controller
             if (collect($show)->isEmpty())
                 throw new Exception("Data Not Found");
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View Records", $show, "M_API_9.3", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "View Records", $show, "0503", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.3", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0503", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
     //View All
@@ -119,9 +119,9 @@ class ViolationSectionController extends Controller
         try {
             $getData = $this->_mViolationSections->retrieve();
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View All Records", $getData, "M_API_9.4", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "View All Records", $getData, "0504", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_9.4", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0504", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
 
@@ -140,69 +140,16 @@ class ViolationSectionController extends Controller
             $delete = $this->_mViolationSections::findOrFail($req->id);
             $delete->update($metaReqs);
             $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Deleted Successfully", $req->id, "", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgsT(true, "Deleted Successfully", $req->id, "0505", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "0505", "", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
+    
 
     /**
-     * | Get Category List
+     * ========================================= GETTING LIST =======================================================
      */
-    public function getCategoryList(Request $req)
-    {
-        try {
-            $mChallanCategories = new ChallanCategory();
-            $getData = $mChallanCategories->getList();
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
-
-    /**
-     * | Get Department List
-     */
-    public function getDepartmentList(Request $req)
-    {
-        try {
-            $mChallanCategories = new Department();
-            $getData = $mChallanCategories->getList();
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
-
-    /**
-     * | Get Section List By Department Id
-     */
-    public function getSectionListById(Request $req)
-    {
-        try {
-            $mChallanCategories = new Section();
-            $getData = $mChallanCategories->getList($req);
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
-
-    /**
-     * | Get Violation List By Department Id & Section Id
-     */
-    public function getViolationListBySectionId(Request $req)
-    {
-        try {
-            $mChallanCategories = new Violation();
-            $getData = $mChallanCategories->getList($req);
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
-
-
 
     /**
      * | Get User List
@@ -212,9 +159,23 @@ class ViolationSectionController extends Controller
         try {
             $mUser = new User();
             $getData = $mUser->getList();
-            return responseMsgs(true, "", $getData, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $getData, "0506", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0506", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+    
+    /**
+     * | Get Category List
+     */
+    public function getCategoryList(Request $req)
+    {
+        try {
+            $mChallanCategories = new ChallanCategory();
+            $getData = $mChallanCategories->getList();
+            return responseMsgs(true, "", $getData, "0507", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "0507", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

@@ -32,9 +32,9 @@ class UserController extends Controller
     {
         try {
             $data = $this->_mUser->insertData($req);
-            return responseMsgs(true, "User Registration Done Successfully", $data, "API_1.01", "", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "User Registration Done Successfully", $data, "0102", "", responseTime(), "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "API_1.01", "", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "0102", "", responseTime(), "POST", $req->deviceId ?? "");
         }
     }
     /**
@@ -72,7 +72,7 @@ class UserController extends Controller
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
                 // $data['userDetails']['role'] = $role;
-                return responseMsgs(true, "You have Logged In Successfully", $data, 010101, "1.0", responseTime(), "POST", $req->deviceId);
+                return responseMsgs(true, "You have Logged In Successfully", $data, 0101, "1.0", responseTime(), "POST", $req->deviceId);
             }
             throw new Exception("Password Not Matched");
         } catch (Exception $e) {
@@ -87,16 +87,15 @@ class UserController extends Controller
     {
         try {
             $req->user()->currentAccessToken()->delete();                               // Delete the Current Accessable Token
-            return responseMsgs(true, "You have Logged Out", [], "", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(true, "You have Logged Out", [], "", "0103", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             return response()->json($e, 400);
         }
     }
 
     /**
-     * |
+     * | Changing Password
      */
-    // Changing Password
     public function changePass(ChangePassRequest $request)
     {
         try {
@@ -125,9 +124,9 @@ class UserController extends Controller
             $user = User::find($id);
             $user->password = Hash::make($request->password);
             $user->save();
-            return responseMsgs(true, 'Successfully Changed the Password', "", "", "02", ".ms", "POST", $request->deviceId);
+            return responseMsgs(true, 'Successfully Changed the Password', "", "", "0104", ".ms", "POST", $request->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", $request->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "", "0104", ".ms", "POST", $request->deviceId);
         }
     }
 
@@ -154,9 +153,9 @@ class UserController extends Controller
                 // 'ulb_name'  => $details->ulb_name,
             ];
 
-            return responseMsgs(true, "Data Fetched", $usersDetails, 010101, "01", responseTime(), $req->getMethod(), "");
+            return responseMsgs(true, "Data Fetched", $usersDetails, 010101, "0105", responseTime(), $req->getMethod(), "");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "01", ".ms", "POST", "");
+            return responseMsgs(false, $e->getMessage(), "", "", "0105", ".ms", "POST", "");
         }
     }
 }
