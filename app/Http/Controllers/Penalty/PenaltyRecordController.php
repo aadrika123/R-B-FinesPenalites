@@ -587,6 +587,7 @@ class PenaltyRecordController extends Controller
                 'penalty_final_records.id as application_id',
                 'penalty_challans.*',
                 'penalty_challans.id',
+                'penalty_transactions.tran_no',
                 'violations.violation_name',
                 'violation_sections.violation_section',
                 DB::raw("'http://192.168.0.158:8000/FinePenalty/Documents/A03232400000125/cam.jpg' as geo_tagged_image"),
@@ -596,6 +597,7 @@ class PenaltyRecordController extends Controller
                 // ->join('penalty_applied_records as ar', 'ar.id', 'penalty_documents.applied_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
+                ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
                 ->where('penalty_challans.id', $req->challanId)
                 ->orderbyDesc('penalty_challans.id')
                 ->first();
