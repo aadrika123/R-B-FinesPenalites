@@ -14,7 +14,45 @@ class PenaltyDocument extends Model
 
     protected $guarded = [];
 
+
     public function storeDocument($req, $id, $applicationNo)
+    {
+        $data = [];
+
+        $documentTypes = [
+            'photo' => 'Violation Image',
+            'audioVideo' => 'Violation Video',
+            'pdf' => 'Violation Document',
+        ];
+
+        foreach ($documentTypes as $inputName => $documentName) {
+            if ($req->file($inputName)) {
+                $file = $req->file($inputName);
+                $docPath = $file->move(public_path('FinePenalty/'), $file->getClientOriginalName());
+                $file_name = 'FinePenalty/' . $file->getClientOriginalName();
+                $docType = $file->getClientOriginalExtension();
+
+                $docMetadata = new PenaltyDocument([
+                    'applied_record_id' => $id,
+                    'document_type' => $docType,
+                    'document_path' => $file_name,
+                    'document_name' => $documentName,
+                    'latitude' => $req->latitude ?? null,
+                    'longitude' => $req->longitude ?? null,
+                    'document_verified_by' => authUser()->id,
+                    'document_verified_at' => Carbon::now(),
+                ]);
+
+                $docMetadata->save();
+                $data["{$inputName}_details"] = $docMetadata;
+            }
+        }
+
+        return $data;
+    }
+
+
+    public function storeDocument1($req, $id, $applicationNo)
     {
         if ($req->file('photo')) {
             $docPath = $req->file('photo')->move(public_path('FinePenalty/'), $req->photo->getClientOriginalName());
