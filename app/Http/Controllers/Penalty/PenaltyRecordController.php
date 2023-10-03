@@ -26,6 +26,7 @@ use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use Exception;
+use PhpParser\Node\Stmt\Return_;
 
 /**
  * =======================================================================================================
@@ -98,6 +99,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Get Record By Id
+     * | API Id : 0602
      */
     public function show(Request $req)
     {
@@ -122,7 +124,8 @@ class PenaltyRecordController extends Controller
     }
 
     /**
-     * |  Retrieve Only Active Records
+     * | Retrieve Only Active Records
+     * | API Id : 0603
      */
     public function activeAll(Request $req)
     {
@@ -147,6 +150,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Delete Record(Deactivate)
+     * | API Id : 0604
      */
     public function delete(Request $req)
     {
@@ -170,6 +174,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Search by Application No
+     * | API Id : 0605
      */
     public function searchByApplicationNo(Request $req)
     {
@@ -208,6 +213,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Get Uploaded Document
+     * | API Id : 0606
      */
     public function getUploadedDocuments(Request $req)
     {
@@ -234,6 +240,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Inbox List
+     * | API Id : 0607
      */
     public function inbox(Request $req)
     {
@@ -274,6 +281,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Penalty Details by Id
+     * | API Id : 0608
      */
     public function penaltyDetails(Request $req)
     {
@@ -357,6 +365,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Approve Penalty
+     * | API Id : 0609
      */
     public function approvePenalty(Request $req)
     {
@@ -466,6 +475,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Recent Applications
+     * | API Id : 0610
      */
     public function recentApplications(Request $req)
     {
@@ -957,7 +967,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Comparison Report
-     * | Api Id : 0620
+     * | API Id : 0620
      */
     public function comparisonReport(Request $req)
     {
@@ -974,22 +984,25 @@ class PenaltyRecordController extends Controller
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->where('penalty_final_records.id', $req->applicationId)
                 ->first();
+            if (!$finalRecord)
+                throw new Exception("Applied Record Not Found");
+
             $appliedRecord = $mPenaltyRecord->recordDetail()
                 ->selectRaw('total_amount')
-                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
+                ->join('penalty_final_records', 'penalty_final_records.applied_record_id', 'penalty_applied_records.id')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->where('penalty_applied_records.id', $finalRecord->applied_record_id)
                 ->first();
+            if (!$appliedRecord)
+                throw new Exception("Applied Record Not Found");
 
             $data = $this->comparison($finalRecord, $appliedRecord);
-
 
             return responseMsgs(true, "Comparison Report", $data, 0620, 01, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", 0620, 01, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
-
 
     /**
      * | Generate Request for table penalty_applied_records
