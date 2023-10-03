@@ -981,7 +981,9 @@ class PenaltyRecordController extends Controller
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $finalRecord = $mPenaltyFinalRecord->recordDetail($req->applicationId)
                 ->selectRaw('total_amount')
+                ->selectRaw('users.name as user_name')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->join('users', 'users.id', 'penalty_final_records.approved_by')
                 ->where('penalty_final_records.id', $req->applicationId)
                 ->first();
             if (!$finalRecord)
@@ -989,8 +991,10 @@ class PenaltyRecordController extends Controller
 
             $appliedRecord = $mPenaltyRecord->recordDetail()
                 ->selectRaw('total_amount')
+                ->selectRaw('users.name as user_name')
                 ->join('penalty_final_records', 'penalty_final_records.applied_record_id', 'penalty_applied_records.id')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->join('users', 'users.id', 'penalty_applied_records.user_id')
                 ->where('penalty_applied_records.id', $finalRecord->applied_record_id)
                 ->first();
             if (!$appliedRecord)
