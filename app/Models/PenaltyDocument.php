@@ -14,7 +14,6 @@ class PenaltyDocument extends Model
 
     protected $guarded = [];
 
-
     public function storeDocument($req, $id, $applicationNo)
     {
         $data = [];
@@ -42,7 +41,6 @@ class PenaltyDocument extends Model
                     'document_verified_by' => authUser()->id,
                     'document_verified_at' => Carbon::now(),
                 ]);
-
                 $docMetadata->save();
                 $data["{$inputName}_details"] = $docMetadata;
             }

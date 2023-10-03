@@ -25,6 +25,7 @@ class PenaltyRecord extends Model
 
     /**
      * | Read Record Details
+        remove left join from document
      */
     public function recordDetail()
     {
@@ -57,7 +58,7 @@ class PenaltyRecord extends Model
     /**
      * | Get Records by Application No
      */
-    public function searchByName($req)
+    public function searchByAppNo($req)
     {
         return DB::table('penalty_applied_records as a')
 

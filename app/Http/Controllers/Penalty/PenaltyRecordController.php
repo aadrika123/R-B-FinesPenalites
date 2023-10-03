@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Penalty;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InfractionRecordingFormRequest;
 use App\IdGenerator\IdGeneration;
-use App\Models\Fine_Penalty\InfractionRecordingForm;
 use App\Models\Master\Section;
 use App\Models\Master\Violation;
 use App\Models\PenaltyChallan;
@@ -19,15 +18,25 @@ use App\Pipelines\FinePenalty\SearchByApplicationNo;
 use App\Pipelines\FinePenalty\SearchByChallan;
 use App\Pipelines\FinePenalty\SearchByMobile;
 use App\Traits\Fines\FinesTrait;
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Facades\Config;
+use Carbon\Carbon;
+use Exception;
+
+/**
+ * =======================================================================================================
+ * ===================         Created By : Umesh Kumar         ==========================================
+ * ===================         Created On : 20-09-2023          ==========================================
+ * =======================================================================================================
+ * ===================         Modified By : Mrinal Kumar       ==========================================
+ * ===================         Modified On : 22-09-2023         ==========================================
+ * =======================================================================================================
+ * | Status : Closed
+ */
 
 class PenaltyRecordController extends Controller
 {
@@ -37,39 +46,40 @@ class PenaltyRecordController extends Controller
 
     public function __construct()
     {
-        DB::enableQueryLog();
         $this->mPenaltyRecord = new PenaltyRecord();
     }
 
     /**
-     * |  Add Infraction Recording Form Data
+     * | Penalty Application Apply
+     * | API Id : 0601
+     * | Query Run Time: ~305ms
      */
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
+            $mSection = new Section();
+            $mViolation = new Violation();
+            $mPenaltyDocument = new PenaltyDocument();
+            $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
             $user = authUser();
             $ulbId = $user->ulb_id;
 
-
-            $violationDtl = Violation::find($req->violationId);
+            $violationDtl = $mViolation->violationById($req->violationId);
             if (!$violationDtl)
                 throw new Exception("Provide Valid Violation Id");
+
             $req->penaltyAmount = $violationDtl->penalty_amount;
 
             if ($req->categoryTypeId == 1)
-                $req->penaltyAmount = $this->checkRickshawCondition($req);
+                $req->penaltyAmount = $this->checkRickshawCondition($req);              #_Check condition for E-Rickshaw
 
-            $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
-            $mPenaltyDocument = new PenaltyDocument();
-
-            $getSectionId = Violation::where('id', $req->violationId)->pluck('section_id')->first();
-            $section = Section::where('id', $getSectionId)->pluck('violation_section')->first();
+            $sectionId = $violationDtl->section_id;
+            $section = $mSection->sectionById($sectionId)->violation_section;
 
             $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['challan_type'] = "Via Verification";
-
 
             DB::beginTransaction();
 
@@ -79,15 +89,15 @@ class PenaltyRecordController extends Controller
             }
 
             DB::commit();
-            return responseMsgs(true, "Records Added Successfully", $data, "3.1",  responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "Records Added Successfully", $data, "0601",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), [], "", "3.1", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0601", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * |  Get Record By Id
+     * | Get Record By Id
      */
     public function show(Request $req)
     {
@@ -98,16 +108,15 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
-            // $mPenaltyFinalRecord = new PenaltyFinalRecord();
-            $show = $this->mPenaltyRecord->recordDetail()
+            $penaltyDetails = $this->mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.id', $req->id)
                 ->first();
 
-            if (!$show)
+            if (!$penaltyDetails)
                 throw new Exception("Data Not Found");
-            return responseMsgsT(true, "View Records", $show, "3.3",  responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "View Records", $penaltyDetails, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.3", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0602", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -118,24 +127,25 @@ class PenaltyRecordController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
-            $getData = $this->mPenaltyRecord->recordDetail()
+            $recordData = $this->mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.status', 1);
-            $userList = app(Pipeline::class)
-                ->send($getData)
+
+            $penaltyDetails = app(Pipeline::class)
+                ->send($recordData)
                 ->through([
                     SearchByApplicationNo::class,
                     SearchByMobile::class
                 ])->thenReturn()
                 ->paginate($perPage);
 
-            return responseMsgsT(true, "View All Active Records", $userList, "3.5", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "View All Active Records", $penaltyDetails, "0603", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.5", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0603", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * |  Delete Records(Activate / Deactivate)
+     * | Delete Record(Deactivate)
      */
     public function delete(Request $req)
     {
@@ -150,14 +160,16 @@ class PenaltyRecordController extends Controller
             ];
             $delete = $this->mPenaltyRecord::findOrFail($req->id);
             $delete->update($metaReqs);
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "Deleted Successfully", $req->id, "3.6", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+
+            return responseMsgs(true, "Deleted Successfully", $req->id, "0604",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.6", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0604", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
-    //view by name
+    /**
+     * | Search by Application No
+     */
     public function searchByApplicationNo(Request $req)
     {
         $validator = Validator::make($req->all(), [
@@ -166,7 +178,7 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->mPenaltyRecord->searchByName($req);
+            $getData = $this->mPenaltyRecord->searchByAppNo($req);
             $perPage = $req->perPage ? $req->perPage : 10;
             $paginater = $getData->paginate($perPage);
             // if ($paginater == "")
@@ -178,18 +190,18 @@ class PenaltyRecordController extends Controller
                 "data" => $paginater->items(),
                 "total" => $paginater->total()
             ];
-            $queryTime = collect(DB::getQueryLog())->sum("time");
-            return responseMsgsT(true, "View Searched Records", $list, "M_API_36.7", $queryTime, responseTime(), "POST", $req->deviceId ?? "");
+
+            return responseMsgs(true, "View Searched Records", $list, "0605", responseTime(), responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "M_API_36.7", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0605", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
 
     /**
      * ========================================================================================================
-     * ===================         Created By : Mrinal Kumar       ============================================
-     * ===================         Created On : 22-09-2023         ============================================
+     * ===================         Modified By : Mrinal Kumar       ===========================================
+     * ===================         Modified On : 22-09-2023         ===========================================
      * ========================================================================================================
      */
 
@@ -213,12 +225,11 @@ class PenaltyRecordController extends Controller
             if (collect($show)->isEmpty())
                 throw new Exception("Data Not Found");
 
-            return responseMsgsT(true, "View Records", $show, "3.3", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "View Records", $show, "0606", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "3.3", responseTime(), "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), [], "", "0606", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
 
     /**
      * | Inbox List
@@ -254,9 +265,9 @@ class PenaltyRecordController extends Controller
                 ->thenReturn()
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", remove_null($inbox), "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", remove_null($inbox), "0607", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0607", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -337,9 +348,9 @@ class PenaltyRecordController extends Controller
             // $custom = $mCustomDetails->getCustomDetails($req);
             // $fullDetailsData['departmentalPost'] = collect($custom)['original']['data'];
 
-            return responseMsgs(true, "Penalty Details", $fullDetailsData, "100108", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Penalty Details", $fullDetailsData, "0608", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100108", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0608", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -358,11 +369,11 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
+            $mViolation = new Violation();
             $mPenaltyRecord = new PenaltyRecord();
-            $mWfWorkflowRoleMaps = new WfWorkflowrolemap();
-            $mWfRoleusermap = new WfRoleusermap();
-            $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $mPenaltyChallan = new PenaltyChallan();
+            $mPenaltyFinalRecord = new PenaltyFinalRecord();
+            $challanIdParam = Config::get('constants.ID_GENERATION_PARAMS.CHALLAN');
 
             $penaltyRecord = $mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.status', 1)
@@ -372,7 +383,7 @@ class PenaltyRecordController extends Controller
             if (!$penaltyRecord)
                 throw new Exception("Record Not Found");
 
-            $violationDtl = Violation::find($req->violationId);
+            $violationDtl = $mViolation->violationById($req->violationId);
             if (!$violationDtl)
                 throw new Exception("Provide Valid Violation Id");
             $penaltyAmount = $violationDtl->penalty_amount;
@@ -406,7 +417,6 @@ class PenaltyRecordController extends Controller
                 'remarks'                     => $req->remarks,
                 'vehicle_no'                  => $req->vehicleNo,
             ];
-            $challanIdParam = Config::get('constants.ID_GENERATION_PARAMS.CHALLAN');
             $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $req->violationId, 0);
             $challanNo = $idGeneration->generate();
 
@@ -446,10 +456,10 @@ class PenaltyRecordController extends Controller
             //     ]
             // ));
 
-            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -463,27 +473,18 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $challanDtl = PenaltyRecord::select(
-                'penalty_applied_records.*',
-                // 'penalty_challans.id as challan_id',
-                DB::raw(
-                    "CASE 
-                        WHEN penalty_applied_records.status = '1' THEN 'Active'
-                        WHEN penalty_applied_records.status = '2' THEN 'Approved'  
-                    END as status,
-                    TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date"
-                )
-            )
-                // ->leftjoin('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
+            $mPenaltyRecord = new PenaltyRecord();
+
+            $challanDtl =   $mPenaltyRecord->recordDetail()
                 ->whereDate('penalty_applied_records.created_at', $todayDate)
                 ->orderbyDesc('penalty_applied_records.id')
                 ->take(10)
                 ->get();
 
-            return responseMsgs(true, "Recent Applications", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Recent Applications", $challanDtl, "0610", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0610", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -494,23 +495,21 @@ class PenaltyRecordController extends Controller
     {
         try {
             $todayDate = Carbon::now();
+            $mPenaltyChallan = new PenaltyChallan();
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $challanDtl = PenaltyChallan::select('penalty_challans.*', 'full_name')
-                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+            $challanDtl = $mPenaltyChallan->recentChallanDetails()
                 ->where('challan_date', $todayDate)
-                ->orderbyDesc('penalty_challans.id')
                 ->take(10)
                 ->get();
 
-            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Recent Challans", $challanDtl, "0611", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0611", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
 
     /**
      * | Search Challans
@@ -520,34 +519,11 @@ class PenaltyRecordController extends Controller
         try {
             $challanExpiredDate = Carbon::now()->addDay(14)->toDateString();
             $perPage = $req->perPage ?? 10;
+            $mPenaltyChallan = new PenaltyChallan();
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $challanDtl = PenaltyChallan::select(
-                // '*',
-                'penalty_challans.id',
-                'penalty_challans.challan_date',
-                'penalty_challans.challan_no',
-                'penalty_challans.amount',
-                'penalty_challans.penalty_amount',
-                'penalty_challans.total_amount',
-                'penalty_final_records.full_name',
-                'penalty_final_records.mobile',
-                'penalty_final_records.application_no',
-                'penalty_final_records.payment_status',
-                'tran_no as transaction_no',
-                'violation_name',
-                DB::raw(
-                    "CASE 
-                            WHEN penalty_challans.challan_date > CURRENT_DATE + INTERVAL '14 days' THEN true
-                            else false
-                    END as has_expired"
-                )
-            )
-                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
-                ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
-                ->orderbyDesc('penalty_challans.id');
+            $challanDtl = $mPenaltyChallan->details();
 
             $challanList = app(Pipeline::class)
                 ->send($challanDtl)
@@ -558,16 +534,17 @@ class PenaltyRecordController extends Controller
                 ])->thenReturn()
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $challanList, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $challanList, "0612", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0612", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * | challanDetails
+     * | Get Challan Details
         document missing
+        review again
      */
     public function challanDetails(Request $req)
     {
@@ -577,30 +554,47 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $docUrl = Config::get('constants.DOC_URL');
             $todayDate = Carbon::now();
+            $mPenaltyChallan = new PenaltyChallan();
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            $challanDtl = PenaltyChallan::select(
+            $finalRecord = PenaltyChallan::select('*', 'penalty_challans.id as challan_id')
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->where('penalty_challans.id', $req->challanId)
+                ->first();
+
+            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
+
+            $challanDtl = PenaltyFinalRecord::select(
                 'penalty_final_records.*',
                 'penalty_final_records.id as application_id',
                 'penalty_challans.*',
                 'penalty_challans.id',
-                'penalty_transactions.tran_no',
-                'violations.violation_name',
-                'sections.violation_section',
-                DB::raw("'http://192.168.0.158:8000/FinePenalty/Documents/A03232400000125/cam.jpg' as geo_tagged_image"),
+                DB::raw("concat('$docUrl/',document_path) as geo_tagged_image"),
             )
-                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
-                // ->join('penalty_applied_records as ar', 'ar.id', 'penalty_documents.applied_record_id')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_final_records.id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
-                // ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
-                ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
-                ->where('penalty_challans.id', $req->challanId)
-                ->orderbyDesc('penalty_challans.id')
+                ->where('penalty_documents.applied_record_id', $appliedRecordId)
                 ->first();
+
+            // $challanDtl = PenaltyChallan::select(
+            //     'penalty_final_records.*',
+            //     'penalty_final_records.id as application_id',
+            //     'penalty_challans.*',
+            //     'penalty_challans.id',
+            //     'penalty_transactions.tran_no',
+            //     'violations.violation_name',
+            //     'sections.violation_section',
+            //     DB::raw("'http://192.168.0.158:8000/FinePenalty/Documents/A03232400000125/cam.jpg' as geo_tagged_image"),
+            // )
+            //     ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+            //     ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+            //     ->join('sections', 'sections.id', 'violations.section_id')
+            //     ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
 
             if (!$challanDtl)
                 throw new Exception("No Data Found againt this challan.");
@@ -608,17 +602,17 @@ class PenaltyRecordController extends Controller
             $totalAmountInWord = getHindiIndianCurrency($challanDtl->total_amount);
             $challanDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $challanDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $challanDtl, "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * | Challan Payment
+     * | Offline Challan Payment
      */
-    public function challanPayment(Request $req)
+    public function offlinechallanPayment(Request $req)
     {
         $validator = Validator::make($req->all(), [
             'applicationId' => 'required|numeric',
@@ -628,11 +622,14 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $mSection = new Section();
+            $mViolation = new Violation();
             $mPenaltyTransaction = new PenaltyTransaction();
-            $user = authUser($req);
-            $todayDate = Carbon::now();
+            $receiptIdParam = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
             $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
+            $todayDate = Carbon::now();
+            $user = authUser($req);
 
             if (!$penaltyDetails)
                 throw new Exception("Application Not Found");
@@ -640,10 +637,11 @@ class PenaltyRecordController extends Controller
                 throw new Exception("Payment Already Done");
             if (!$challanDetails)
                 throw new Exception("Challan Not Found");
-            $receiptIdParam = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
-            $getSectionId = Violation::where('id', $penaltyDetails->violation_id)->pluck('section_id')->first();
-            $section = Section::where('id', $getSectionId)->pluck('violation_section')->first();
-            $idGeneration = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
+
+            $violationDtl  = $mViolation->violationById($penaltyDetails->violation_id);
+            $sectionId     = $violationDtl->section_id;
+            $section       = $mSection->sectionById($sectionId)->violation_section;
+            $idGeneration  = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
             $transactionNo = $idGeneration->generate();
             $reqs = [
                 "application_id" => $req->applicationId,
@@ -664,10 +662,10 @@ class PenaltyRecordController extends Controller
             $challanDetails->payment_date = $todayDate;
             $challanDetails->save();
             DB::commit();
-            return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $tranDtl, "0614", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0614", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -691,37 +689,39 @@ class PenaltyRecordController extends Controller
             $totalAmountInWord = getHindiIndianCurrency($tranDtl->total_amount);
             $tranDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $tranDtl, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $tranDtl, "0615", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0615", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
      * | On Spot Challan
-        doc upload missing
      */
     public function onSpotChallan(InfractionRecordingFormRequest $req)
     {
         try {
-            $mPenaltyFinalRecord = new PenaltyFinalRecord();
+            $mSection = new Section();
+            $mViolation = new Violation();
             $mPenaltyChallan = new PenaltyChallan();
             $mPenaltyDocument = new PenaltyDocument();
-            $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
+            $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $challanIdParam = Config::get('constants.ID_GENERATION_PARAMS.CHALLAN');
+            $applicationIdParam = Config::get('constants.ID_GENERATION_PARAMS.APPLICATION');
             $user = authUser();
             $ulbId = $user->ulb_id;
-            $violationDtl = Violation::find($req->violationId);
+            $violationDtl = $mViolation->violationById($req->violationId);
             if (!$violationDtl)
                 throw new Exception("Provide Valid Violation Id");
             $req->penaltyAmount = $violationDtl->penalty_amount;
             if ($req->categoryTypeId == 1)
                 $req->penaltyAmount = $this->checkRickshawCondition($req);
-            $getSectionId = $violationDtl->section_id;
-            $section = Section::where('id', $getSectionId)->pluck('violation_section')->first();
-            $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
+
+            $sectionId     = $violationDtl->section_id;
+            $section       = $mSection->sectionById($sectionId)->violation_section;
+            $idGeneration  = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
             $applicationNo = $idGeneration->generate();
-            $metaReqs = $this->generateRequest($req, $applicationNo);
+            $metaReqs      = $this->generateRequest($req, $applicationNo);
             $metaReqs['approved_by'] = $user->id;
             $metaReqs['challan_type'] = "On Spot";
 
@@ -748,7 +748,6 @@ class PenaltyRecordController extends Controller
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
 
-
             // $whatsapp2 = (Whatsapp_Send(
             //     $req->mobile,
             //     "rmc_fp_1",
@@ -765,46 +764,16 @@ class PenaltyRecordController extends Controller
             // ));
 
             DB::commit();
-            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * | Generate Request for table penalty_applied_records 
-     */
-    public function generateRequest($req, $applicationNo)
-    {
-        return [
-            'full_name'                  => $req->fullName,
-            'mobile'                     => $req->mobile,
-            'email'                      => $req->email,
-            'holding_no'                 => $req->holdingNo,
-            'street_address'             => $req->streetAddress1,
-            'city'                       => $req->city,
-            'region'                     => $req->region,
-            'postal_code'                => $req->postalCode,
-            'violation_id'               => $req->violationId,
-            'amount'                     => $req->penaltyAmount,
-            'previous_violation_offence' => $req->previousViolationOffence ?? 0,
-            'witness'                    => $req->isWitness ?? 0,
-            'witness_name'               => $req->witnessName,
-            'witness_mobile'             => $req->witnessMobile,
-            'application_no'             => $applicationNo,
-            'current_role'               => 2,
-            'workflow_id'                => 1,
-            'ulb_id'                     => 2,
-            'guardian_name'              => $req->guardianName,
-            'violation_place'            => $req->violationPlace,
-            'challan_type'               => $req->challanType,
-            'category_type_id'           => $req->categoryTypeId,
-        ];
-    }
-
-    /**
-     * |
+     * | Violation Wise Report
+      shift query to model
      */
     public function violationData(Request $req)
     {
@@ -832,14 +801,15 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0617", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0617", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * |
+     * | Generated Challan Report
+       shift query to model
      */
     public function challanData(Request $req)
     {
@@ -889,14 +859,15 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0618", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0618", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * |
+     * | Collection Wise Report
+     shift query to model
      */
     public function collectionData(Request $req)
     {
@@ -938,14 +909,46 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data, "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0619", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "100107", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0619", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * |
+     * | Generate Request for table penalty_applied_records
+        static workflow_id,ulb_id,current_role
+     */
+    public function generateRequest($req, $applicationNo)
+    {
+        return [
+            'full_name'                  => $req->fullName,
+            'mobile'                     => $req->mobile,
+            'email'                      => $req->email,
+            'holding_no'                 => $req->holdingNo,
+            'street_address'             => $req->streetAddress1,
+            'city'                       => $req->city,
+            'region'                     => $req->region,
+            'postal_code'                => $req->postalCode,
+            'violation_id'               => $req->violationId,
+            'amount'                     => $req->penaltyAmount,
+            'previous_violation_offence' => $req->previousViolationOffence ?? 0,
+            'witness'                    => $req->isWitness ?? 0,
+            'witness_name'               => $req->witnessName,
+            'witness_mobile'             => $req->witnessMobile,
+            'application_no'             => $applicationNo,
+            'current_role'               => 2,
+            'workflow_id'                => 1,
+            'ulb_id'                     => 2,
+            'guardian_name'              => $req->guardianName,
+            'violation_place'            => $req->violationPlace,
+            'challan_type'               => $req->challanType,
+            'category_type_id'           => $req->categoryTypeId,
+        ];
+    }
+
+    /**
+     * | Check Condition for E-Rickshaw
      */
     public function checkRickshawCondition($req)
     {

@@ -12,10 +12,20 @@ class Violation extends Model
 
     protected $guarded = [];
 
-    /*Add Records*/
+    /**
+     * | Add Records
+     */
     public function store(array $req)
     {
         return Violation::create($req);
+    }
+
+    /**
+     * | Find
+     */
+    public function violationById($id)
+    {
+        return Violation::find($id);
     }
 
     /**
@@ -46,10 +56,10 @@ class Violation extends Model
         TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->join('sections' , 'sections.id', '=', 'violations.section_id')
-        ->join('departments' , 'departments.id', '=', 'violations.department_id')
-        ->where('violations.status', 1)
-        ->orderByDesc('violations.id');
+            ->join('sections', 'sections.id', '=', 'violations.section_id')
+            ->join('departments', 'departments.id', '=', 'violations.department_id')
+            ->where('violations.status', 1)
+            ->orderByDesc('violations.id');
         // ->get();
     }
 
@@ -68,10 +78,10 @@ class Violation extends Model
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('section_id',$req->sectionId)
-        ->where('department_id',$req->departmentId)
-        ->where('status', 1)
-        ->orderByDesc('id')
-        ->get();
+            ->where('section_id', $req->sectionId)
+            ->where('department_id', $req->departmentId)
+            ->where('status', 1)
+            ->orderByDesc('id')
+            ->get();
     }
 }

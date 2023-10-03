@@ -31,10 +31,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-    /**
-     * | User Login 
+/**
+ * | User Login 
          Controller No : 1
-     */
+ */
 Route::controller(UserController::class)->group(function () {
     Route::post('login', 'loginAuth');                                                    // Login -------------------- 0101
     Route::post('register', 'register');                                                  // Register ----------------- 0102
@@ -97,7 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
-        /**
+    /**
      * | API Violation Section CRUD operation
          Controller No : 5
      */
@@ -107,7 +107,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation-section/crud/get', 'getSectionById');                         // Get By Id --------------- 0503
         Route::post('violation-section/crud/list', 'getSectionList');                        // Get All ----------------- 0504
         Route::post('violation-section/crud/delete', 'deleteSection');                       // Delete ------------------ 0505
-     
+
         Route::post('user-list', 'getUserList');                                             // Get All ----------------- 0506
         Route::post('challan-category/list', 'getCategoryList');                             // Get All ----------------- 0507
 
@@ -135,11 +135,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/recent-challans', 'recentChallans');                   // get recent challans ------------- 0611
         Route::post('penalty-record/challan-search', 'searchChallan');                     // get search challans ------------- 0612
         Route::post('penalty-record/get-challan', 'challanDetails');                       // get challans details ------------ 0613
-        Route::post('penalty-record/offline-challan-payment', 'challanPayment');           // get payment details ------------- 0614
+        Route::post('penalty-record/offline-challan-payment', 'offlinechallanPayment');    // challan payment  ---------------- 0614
         Route::post('penalty-record/payment-receipt', 'paymentReceipt');                   // get payment receipt details ----- 0615
-        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                    // get on-spot challans details ---- 0616
-        Route::post('report/violation-wise', 'violationData');                             // get violations data ------------- 0617
-        Route::post('report/challan-wise', 'challanData');                                 // get challenges data ------------- 0618
-        Route::post('report/collection-wise', 'collectionData');                           // get collection data ------------- 0619
+        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                    // get on-spot challans ------------ 0616
+        Route::post('report/violation-wise', 'violationData');                             // violations wise report ---------- 0617
+        Route::post('report/challan-wise', 'challanData');                                 // challan wise report ------------- 0618
+        Route::post('report/collection-wise', 'collectionData');                           // collection wise report ---------- 0619
     });
 });
