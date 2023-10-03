@@ -575,7 +575,8 @@ class PenaltyRecordController extends Controller
                 DB::raw("concat('$docUrl/',document_path) as geo_tagged_image"),
             )
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
-                ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_final_records.id')
+                ->join('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
+                ->join('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
                 ->where('penalty_documents.applied_record_id', $appliedRecordId)
