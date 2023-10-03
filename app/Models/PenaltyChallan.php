@@ -66,7 +66,14 @@ class PenaltyChallan extends Model
      */
     public function recentChallanDetails()
     {
-        return PenaltyChallan::select('penalty_challans.*', 'full_name')
+        return PenaltyChallan::select(
+            'penalty_challans.*',
+            'full_name',
+            DB::raw(
+                "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
+                TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
+            )
+        )
             ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
             ->orderbyDesc('penalty_challans.id');
     }

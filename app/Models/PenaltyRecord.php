@@ -24,6 +24,14 @@ class PenaltyRecord extends Model
     }
 
     /**
+     * |
+     */
+    public function view($id)
+    {
+        return PenaltyRecord::find($id);
+    }
+
+    /**
      * | Read Record Details
         remove left join from document
      */

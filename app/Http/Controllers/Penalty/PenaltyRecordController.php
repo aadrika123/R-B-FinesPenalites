@@ -109,6 +109,7 @@ class PenaltyRecordController extends Controller
             return validationError($validator);
         try {
             $penaltyDetails = $this->mPenaltyRecord->recordDetail()
+                //query for chalan no
                 ->where('penalty_applied_records.id', $req->id)
                 ->first();
 
@@ -525,6 +526,9 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $challanDtl = $mPenaltyChallan->details();
 
+            if ($req->challanType)
+                $challanDtl = $challanDtl->where('penalty_final_records.challan_type', $req->challanType);
+
             $challanList = app(Pipeline::class)
                 ->send($challanDtl)
                 ->through([
@@ -543,7 +547,6 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Get Challan Details
-        document missing
         review again
      */
     public function challanDetails(Request $req)
@@ -560,27 +563,53 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            $finalRecord = PenaltyChallan::select('*', 'penalty_challans.id as challan_id')
-                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->where('penalty_challans.id', $req->challanId)
-                ->first();
-
-            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
-
-            $challanDtl = PenaltyFinalRecord::select(
+            $challanDtl = PenaltyChallan::select(
                 'penalty_final_records.*',
                 'penalty_final_records.id as application_id',
                 'penalty_challans.*',
                 'penalty_challans.id',
-                DB::raw("concat('$docUrl/',document_path) as geo_tagged_image"),
+                'penalty_transactions.tran_no',
+                'violations.violation_name',
+                'sections.violation_section',
+                // DB::raw("concat('$docUrl/',FinePenalty/cam.jpg) as geo_tagged_image"),
+                DB::raw("'$docUrl/FinePenalty/cam.jpg' as geo_tagged_image"),
             )
-                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
-                ->join('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
-                ->join('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
+                // ->join('penalty_applied_records as ar', 'ar.id', 'penalty_documents.applied_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+                // ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
-                ->where('penalty_documents.applied_record_id', $appliedRecordId)
+                ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
+                ->where('penalty_challans.id', $req->challanId)
+                ->orderbyDesc('penalty_challans.id')
                 ->first();
+
+            // $finalRecord = PenaltyChallan::select('*', 'penalty_challans.id as challan_id')
+            //     ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+            //     ->where('penalty_challans.id', $req->challanId)
+            //     ->first();
+
+            // $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
+
+            // $challanDtl = PenaltyFinalRecord::select(
+            //     'penalty_final_records.*',
+            //     'penalty_final_records.id as application_id',
+            //     'penalty_challans.*',
+            //     'penalty_challans.id',
+            //     DB::raw("concat('$docUrl/',document_path) as geo_tagged_image"),
+            //     DB::raw(
+            //         "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
+            //         TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
+            //     )
+            // )
+            //     ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+            //     ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
+            //     ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
+            //     ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+            //     ->join('sections', 'sections.id', 'violations.section_id')
+            //     ->where('penalty_documents.applied_record_id', $appliedRecordId)
+            //     ->first();
 
             // $challanDtl = PenaltyChallan::select(
             //     'penalty_final_records.*',
@@ -789,7 +818,17 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
-            $data = PenaltyFinalRecord::select('full_name', 'mobile', 'violation_place', 'challan_no', 'violation_name', 'sections.violation_section', 'penalty_challans.total_amount', 'penalty_challans.id as challan_id')
+            $data = PenaltyFinalRecord::select(
+                'full_name',
+                'mobile',
+                'violation_id',
+                'violation_place',
+                'challan_no',
+                'violation_name',
+                'sections.violation_section',
+                'penalty_challans.total_amount',
+                'penalty_challans.id as challan_id'
+            )
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', '=', 'violations.section_id')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
@@ -817,9 +856,9 @@ class PenaltyRecordController extends Controller
         $validator = Validator::make($req->all(), [
             'fromDate'        => 'required|date',
             'uptoDate'        => 'required|date',
-            'challanType'     => 'nullable|int',
             'userId'          => 'nullable|int',
             'challanCategory' => 'nullable|int',
+            'challanType'     => 'nullable',
         ]);
         if ($validator->fails())
             return validationError($validator);
@@ -915,6 +954,42 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "0619", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+    /**
+     * | Comparison Report
+     * | Api Id : 0620
+     */
+    public function comparisonReport(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'applicationId'        => 'required',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $mPenaltyRecord = new PenaltyRecord();
+            $mPenaltyFinalRecord = new PenaltyFinalRecord();
+            $finalRecord = $mPenaltyFinalRecord->recordDetail($req->applicationId)
+                ->selectRaw('total_amount')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+                ->where('penalty_final_records.id', $req->applicationId)
+                ->first();
+            $appliedRecord = $mPenaltyRecord->recordDetail()
+                ->selectRaw('total_amount')
+                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_applied_records.id')
+                ->where('penalty_applied_records.id', $finalRecord->applied_record_id)
+                ->first();
+
+            $data = $this->comparison($finalRecord, $appliedRecord);
+
+
+            return responseMsgs(true, "Comparison Report", $data, 0620, 01, responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", 0620, 01, responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+
 
     /**
      * | Generate Request for table penalty_applied_records
