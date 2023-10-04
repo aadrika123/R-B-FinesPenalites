@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use Exception;
 use PhpParser\Node\Stmt\Return_;
+use Psy\CodeCleaner\ReturnTypePass;
 
 /**
  * =======================================================================================================
@@ -81,6 +82,7 @@ class PenaltyRecordController extends Controller
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['challan_type'] = "Via Verification";
+            $metaReqs['user_id'] = $user->id;
 
             DB::beginTransaction();
 
@@ -186,16 +188,7 @@ class PenaltyRecordController extends Controller
         try {
             $getData = $this->mPenaltyRecord->searchByAppNo($req);
             $perPage = $req->perPage ? $req->perPage : 10;
-            $paginater = $getData->paginate($perPage);
-            // if ($paginater == "")
-            //     throw new Exception("Data Not Found"); 
-            $list = [
-                "current_page" => $paginater->currentPage(),
-                "perPage" => $perPage,
-                "last_page" => $paginater->lastPage(),
-                "data" => $paginater->items(),
-                "total" => $paginater->total()
-            ];
+            $list    = $getData->paginate($perPage);
 
             return responseMsgs(true, "View Searched Records", $list, "0605", responseTime(), responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -999,10 +992,10 @@ class PenaltyRecordController extends Controller
                 ->where('penalty_final_records.id', $req->applicationId)
                 ->first();
             if (!$finalRecord)
-                throw new Exception("Applied Record Not Found");
+                throw new Exception("Final Record Not Found");
 
             $appliedRecord = $mPenaltyRecord->recordDetail()
-                ->selectRaw('total_amount')
+                ->selectRaw('penalty_applied_records.amount')
                 ->selectRaw('users.name as user_name')
                 ->join('penalty_final_records', 'penalty_final_records.applied_record_id', 'penalty_applied_records.id')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
