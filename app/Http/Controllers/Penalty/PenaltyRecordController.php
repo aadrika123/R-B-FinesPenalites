@@ -1041,7 +1041,7 @@ class PenaltyRecordController extends Controller
             'guardian_name'              => $req->guardianName,
             'violation_place'            => $req->violationPlace,
             'challan_type'               => $req->challanType,
-            'category_type_id'           => $req->categoryTypeId,
+            'category_type_id'           => $req->categoryTypeId ?? 2,
         ];
     }
 
