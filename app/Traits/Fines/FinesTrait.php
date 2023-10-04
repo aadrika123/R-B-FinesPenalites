@@ -147,18 +147,18 @@ trait FinesTrait
     public function comparison($final, $applied)
     {
         return new Collection([
-            ['displayString' => 'Name of Violator',  'final' => $final->full_name,      'applied' => $applied->full_name,],
-            ['displayString' => 'Mobile No',         'final' => $final->mobile,         'applied' => $applied->mobile,],
-            ['displayString' => 'Email',             'final' => $final->email,          'applied' => $applied->email,],
-            ['displayString' => 'Guardian Name',     'final' => $final->guardian_name,  'applied' => $applied->guardian_name,],
-            ['displayString' => 'Address',           'final' => $final->street_address, 'applied' => $applied->street_address,],
-            ['displayString' => 'Violation Made',    'final' => $final->violation_name,   'applied' => $applied->violation_name,],
-            ['displayString' => 'Violation Section', 'final' => $final->violation_section, 'applied' => $applied->violation_section,],
-            ['displayString' => 'Violation Place',   'final' => $final->violation_place,   'applied' => $applied->violation_place,],
+            ['displayString' => 'Name of Violator',  'final' => $final->full_name,       'applied' => $applied->full_name,],
+            ['displayString' => 'Mobile No',         'final' => $final->mobile,          'applied' => $applied->mobile,],
+            ['displayString' => 'Email',             'final' => $final->email,           'applied' => $applied->email,],
+            ['displayString' => 'Guardian Name',     'final' => $final->guardian_name,   'applied' => $applied->guardian_name,],
+            ['displayString' => 'Address',           'final' => $final->street_address,  'applied' => $applied->street_address,],
+            ['displayString' => 'Violation Made',    'final' => $final->violation_name,  'applied' => $applied->violation_name,],
+            ['displayString' => 'Violation Section', 'final' => $final->violation_section,  'applied' => $applied->violation_section,],
+            ['displayString' => 'Violation Place',   'final' => $final->violation_place,    'applied' => $applied->violation_place,],
             ['displayString' => 'Penalty Amount',    'final' => '₹' . $final->total_amount, 'applied' => '₹' . $applied->total_amount,],
-            ['displayString' => 'Witness Name',      'final' => $final->witness_name, 'applied' => $applied->witness_name,],
-            ['displayString' => 'Witness Mobile',    'final' => $final->witness_mobile, 'applied' => $applied->witness_mobile,],
-            ['displayString' => 'Applier/Approver', 'final' => $final->user_name, 'applied' => $applied->user_name,],
+            ['displayString' => 'Witness Name',      'final' => $final->witness_name,       'applied' => $applied->witness_name,],
+            ['displayString' => 'Witness Mobile',    'final' => $final->witness_mobile,     'applied' => $applied->witness_mobile,],
+            ['displayString' => 'Applier/Approver',  'final' => $final->user_name,          'applied' => $applied->user_name,],
             // ['displayString' => 'Name of Violator', 'final' => $final->full_name, 'applied' => $applied->full_name,],
             // ['displayString' => 'Mobile No', $final->mobile, $applied->mobile]
         ]);
