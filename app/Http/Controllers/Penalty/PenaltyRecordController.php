@@ -501,6 +501,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Recent Challans
+     * | API Id : 0611
      */
     public function recentChallans(Request $req)
     {
@@ -524,6 +525,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Search Challans
+     * | API Id : 0612
      */
     public function searchChallan(Request $req)
     {
@@ -557,7 +559,8 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Get Challan Details
-        review again
+     * | API Id : 0613
+            review again
      */
     public function challanDetails(Request $req)
     {
@@ -651,6 +654,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Offline Challan Payment
+     * | API Id : 0614
      */
     public function offlinechallanPayment(Request $req)
     {
@@ -711,6 +715,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Payment Receipt
+     * | API Id : 0615
      */
     public function paymentReceipt(Request $req)
     {
@@ -726,6 +731,9 @@ class PenaltyRecordController extends Controller
             $tranDtl = $mPenaltyTransaction->tranDtl()
                 ->where('tran_no', $req->transactionNo)
                 ->first();
+            if (collect($tranDtl)->isEmpty())
+                throw new Exception("No Transaction Found");
+
             $totalAmountInWord = getHindiIndianCurrency($tranDtl->total_amount);
             $tranDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
@@ -737,6 +745,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | On Spot Challan
+     * | API Id : 0616
      */
     public function onSpotChallan(InfractionRecordingFormRequest $req)
     {
@@ -813,6 +822,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Violation Wise Report
+     * | API Id : 0617
       shift query to model
      */
     public function violationData(Request $req)
@@ -859,6 +869,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Generated Challan Report
+     * | API Id : 0618
        shift query to model
      */
     public function challanData(Request $req)
@@ -917,6 +928,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Collection Wise Report
+     * | API Id : 0619
      shift query to model
      */
     public function collectionData(Request $req)
@@ -979,7 +991,7 @@ class PenaltyRecordController extends Controller
         try {
             $mPenaltyRecord = new PenaltyRecord();
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
-            $finalRecord = $mPenaltyFinalRecord->recordDetail($req->applicationId)
+            $finalRecord = $mPenaltyFinalRecord->recordDetail()
                 ->selectRaw('total_amount')
                 ->selectRaw('users.name as user_name')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
