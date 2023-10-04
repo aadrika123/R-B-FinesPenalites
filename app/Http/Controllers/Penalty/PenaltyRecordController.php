@@ -577,8 +577,8 @@ class PenaltyRecordController extends Controller
                 'penalty_transactions.tran_no',
                 'violations.violation_name',
                 'sections.violation_section',
-                // DB::raw("concat('$docUrl/',FinePenalty/cam.jpg) as geo_tagged_image"),
-                DB::raw("'$docUrl/FinePenalty/cam.jpg' as geo_tagged_image"),
+                DB::raw("concat('$docUrl/',FinePenalty/cam.jpg) as geo_tagged_image"),
+                // DB::raw("'$docUrl/FinePenalty/cam.jpg' as geo_tagged_image"),
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
@@ -1015,7 +1015,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Generate Request for table penalty_applied_records
-        static workflow_id,ulb_id,current_role
+        static workflow_id,ulb_id,current_role, category_type
      */
     public function generateRequest($req, $applicationNo)
     {
