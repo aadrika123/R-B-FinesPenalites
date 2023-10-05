@@ -88,6 +88,7 @@ class PenaltyRecordController extends Controller
 
             $data = $this->mPenaltyRecord->store($metaReqs);
             if ($req->file('photo')) {
+                $req->challanType = "Via Verification";
                 $metaReqs['documents'] = $mPenaltyDocument->storeDocument($req, $data->id, $data->application_no);
             }
 
@@ -768,6 +769,7 @@ class PenaltyRecordController extends Controller
             $challanNo = $idGeneration->generate();
 
             if ($req->file('photo')) {
+                $req->challanType = "On Spot";
                 $metaReqs['documents'] = $mPenaltyDocument->storeDocument($req, $finalRecord->id, $finalRecord->application_no);
             }
 

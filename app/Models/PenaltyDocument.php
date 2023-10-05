@@ -19,9 +19,9 @@ class PenaltyDocument extends Model
         $data = [];
 
         $documentTypes = [
-            'photo' => 'Violation Image',
+            'photo'      => 'Violation Image',
             'audioVideo' => 'Violation Video',
-            'pdf' => 'Violation Document',
+            'pdf'        => 'Violation Document',
         ];
 
         foreach ($documentTypes as $inputName => $documentName) {
@@ -36,8 +36,9 @@ class PenaltyDocument extends Model
                     'document_type' => $docType,
                     'document_path' => $file_name,
                     'document_name' => $documentName,
-                    'latitude' => $req->latitude ?? null,
-                    'longitude' => $req->longitude ?? null,
+                    'latitude'      => $req->latitude ?? null,
+                    'longitude'     => $req->longitude ?? null,
+                    'challan_type'  => $req->challanType,
                     'document_verified_by' => authUser()->id,
                     'document_verified_at' => Carbon::now(),
                 ]);
