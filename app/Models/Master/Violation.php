@@ -46,7 +46,7 @@ class Violation extends Model
     public function recordDetails()
     {   
         return Violation::select(
-            DB::raw("violations.id,violations.violation_name,violations.penalty_amount, 
+            DB::raw("violations.id,violations.violation_name,violations.penalty_amount, violations.on_spot,
             sections.violation_section, departments.department_name,users.user_name as created_by,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
