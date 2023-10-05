@@ -570,30 +570,6 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $user = authUser($req);
 
-            // $challanDtl = PenaltyChallan::select(
-            //     'penalty_final_records.*',
-            //     'penalty_final_records.id as application_id',
-            //     'penalty_challans.*',
-            //     'penalty_challans.id',
-            //     'penalty_transactions.tran_no',
-            //     'violations.violation_name',
-            //     'sections.violation_section',
-            //     // DB::raw("concat('$docUrl/',document_path) as geo_tagged_image"),
-            //     DB::raw("'$docUrl/FinePenalty/cam.jpg' as geo_tagged_image"),
-            // )
-            //     ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-            //     ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
-            //     // ->join('penalty_applied_records as ar', 'ar.id', 'penalty_documents.applied_record_id')
-            //     ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
-            //     // ->join('violation_sections', 'violation_sections.id', 'violations.section_id')
-            //     ->join('sections', 'sections.id', 'violations.section_id')
-            //     ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
-            //     ->where('penalty_challans.id', $req->challanId)
-            //     ->orderbyDesc('penalty_challans.id')
-            //     ->first();
-
-
-
             $finalRecord = PenaltyChallan::select(
                 'penalty_final_records.*',
                 'penalty_final_records.id as application_id',
@@ -622,28 +598,6 @@ class PenaltyRecordController extends Controller
                 ->first();
 
             $data = collect($finalRecord)->merge($document);
-
-            // $challanDtl = PenaltyFinalRecord::select(
-            //     'penalty_final_records.*',
-            //     'penalty_final_records.id as application_id',
-            //     'penalty_challans.*',
-            //     'penalty_challans.id',
-            //     'violations.violation_name',
-            //     'sections.violation_section',
-            //     DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image"),
-            //     DB::raw(
-            //         "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
-            //         TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
-            //     )
-            // )
-            //     ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
-            //     ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
-            //     ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_final_records.id')
-            //     ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
-            //     ->join('sections', 'sections.id', 'violations.section_id')
-            //     ->where('penalty_documents.applied_record_id', $appliedRecordId)
-            //     ->where('penalty_documents.challan_type', $finalRecord->challan_type)
-            //     ->first();
 
             if ($data->isEmpty())
                 throw new Exception("No Data Found againt this challan.");
@@ -801,23 +755,26 @@ class PenaltyRecordController extends Controller
             ];
 
             $challanRecord = $mPenaltyChallan->store($challanReqs);
+            $futureDate = $challanRecord->challan_date->format('Y-m-d');
+            $futureDate = $futureDate;
+
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
 
-            // $whatsapp2 = (Whatsapp_Send(
-            //     $req->mobile,
-            //     "rmc_fp_1",
-            //     [
-            //         "content_type" => "text",
-            //         [
-            //             $req->fullName,
-            //             $challanRecord->challan_no,
-            //             // section,
-            //             $challanRecord->total_amount,
-            //             $challanRecord->challan_date->add(14)
-            //         ]
-            //     ]
-            // ));
+            $whatsapp2 = (Whatsapp_Send(
+                $req->mobile,
+                "rmc_fp_1",
+                [
+                    "content_type" => "text",
+                    [
+                        $req->fullName,
+                        $challanRecord->challan_no,
+                        $section,
+                        $challanRecord->total_amount,
+                        $challanRecord->challan_date
+                    ]
+                ]
+            ));
 
             DB::commit();
             return responseMsgs(true, "", $data, "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
