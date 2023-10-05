@@ -38,7 +38,6 @@ trait FinesTrait
     {
         return new Collection([
             ['displayString' => 'Address', 'key' => 'street_address', 'value' => $data->street_address,],
-            ['displayString' => 'Locality', 'key' => 'street_address2', 'value' => $data->street_address_2,],
             ['displayString' => 'City', 'key' => 'city', 'value' => $data->city,],
             ['displayString' => 'Region', 'key' => 'region', 'value' => $data->region,],
             ['displayString' => 'Postal Code', 'key' => 'postal_code', 'value' => $data->postal_code,],
