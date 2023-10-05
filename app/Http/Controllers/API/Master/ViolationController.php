@@ -156,27 +156,22 @@ class ViolationController extends Controller
         }
     }
 
-    public function onSpotViolation(Request $req){
-
+    public function onSpotViolation(Request $req)
+    {
         $validator = Validator::make($req->all(), [
-            
+            'violationId' => 'required|array', 
+            'violationId.*' => 'required|numeric', 
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $isGroupExists = $this->_mViolations->checkExisting($req);
-            if (collect($isGroupExists)->isNotEmpty())
-                throw new Exception("Violation Name Already Existing");
-            $user = authUser($req);
-            $metaReqs = [
-                'violation_name'  => $req->violationName,
-                'section_id'      => $req->sectionId,
-                'department_id'   => $req->departmentId,
-                'penalty_amount'  => $req->penaltyAmount,
-                'user_id'         => $user->id,
-            ];
-            $this->_mViolations->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            $idsToUpdate = $req->violationId; 
+            $status = true; 
+            DB::transaction(function () use ($idsToUpdate, $status) {
+                Violation::whereIn('id', $idsToUpdate)->update(['on_spot' => $status]);
+            }, 5); 
+
+            return responseMsgs(true, "", $status, "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }

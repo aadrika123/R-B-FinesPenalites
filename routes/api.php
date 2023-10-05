@@ -94,6 +94,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation/crud/list', 'getViolation');                                  // Get All ----------------- 0404
         Route::post('violation/crud/delete', 'deleteViolation');                             // Delete ------------------ 0405
         Route::post('violation/list', 'getViolationListBySectionId');                        // Get All ----------------- 0406
+        Route::post('violation/onspot', 'onSpotViolation');                        // Get All ----------------- 0407
+
 
     });
 
