@@ -165,13 +165,14 @@ class ViolationController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
+            Violation::where('on_spot', true)->update(['on_spot' => false]); 
             $idsToUpdate = $req->violationId; 
             $status = true; 
             DB::transaction(function () use ($idsToUpdate, $status) {
                 Violation::whereIn('id', $idsToUpdate)->update(['on_spot' => $status]);
-            }, 5); 
+            }); 
 
-            return responseMsgs(true, "", $status, "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Updated Successfully", $status, "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
