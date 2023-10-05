@@ -222,7 +222,7 @@ class PenaltyRecordController extends Controller
             if (!$applicationDtls)
                 throw new Exception("Application Not Found for this application Id");
 
-            $show = $mPenaltyDocument->getDocument($req->applicationId);  // get record by id
+            $show = $mPenaltyDocument->getDocument($applicationDtls);  // get record by id
             if (collect($show)->isEmpty())
                 throw new Exception("Data Not Found");
 

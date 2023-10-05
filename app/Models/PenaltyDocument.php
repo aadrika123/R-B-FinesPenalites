@@ -114,7 +114,7 @@ class PenaltyDocument extends Model
     /**
      * | Get Uploaded Document
      */
-    public function getDocument($id)
+    public function getDocument($applicationDtls)
     {
         $docUrl = Config::get('constants.DOC_URL');
         $data = PenaltyDocument::select(
@@ -124,7 +124,8 @@ class PenaltyDocument extends Model
             'document_name',
             DB::raw("concat('$docUrl/',document_path) as doc_path"),
         )
-            ->where('applied_record_id', $id)
+            ->where('applied_record_id', $applicationDtls->id)
+            ->where('challan_type', $applicationDtls->challan_type)
             ->where('status', 1)
             ->get();
 
