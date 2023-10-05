@@ -612,7 +612,6 @@ class PenaltyRecordController extends Controller
                 'violations.violation_name',
                 'sections.violation_section',
                 DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image"),
-                DB::raw("concat('$docUrl/',pd.document_path) as geo_tagged_image2"),
                 DB::raw(
                     "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
                     TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
@@ -621,11 +620,10 @@ class PenaltyRecordController extends Controller
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
                 ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_final_records.id')
-                ->leftjoin('penalty_documents as pd', 'pd.applied_record_id', 'penalty_applied_records.id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
-                ->orwhere('penalty_documents.applied_record_id', $appliedRecordId)
-                ->orwhere('pd.applied_record_id', $appliedRecordId)
+                ->where('penalty_documents.applied_record_id', $appliedRecordId)
+                ->where('penalty_documents.challan_type', $finalRecord->challan_type)
                 ->first();
 
             if (!$challanDtl)
