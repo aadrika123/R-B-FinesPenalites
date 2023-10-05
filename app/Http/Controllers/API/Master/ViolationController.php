@@ -171,9 +171,9 @@ class ViolationController extends Controller
                 Violation::whereIn('id', $idsToUpdate)->update(['on_spot' => $status]);
             }, 5); 
 
-            return responseMsgs(true, "", $status, "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $status, "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
 
     }
