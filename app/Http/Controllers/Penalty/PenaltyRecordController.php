@@ -608,6 +608,8 @@ class PenaltyRecordController extends Controller
                 'penalty_final_records.id as application_id',
                 'penalty_challans.*',
                 'penalty_challans.id',
+                'violations.violation_name',
+                'sections.violation_section',
                 DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image"),
                 DB::raw("concat('$docUrl/',pd.document_path) as geo_tagged_image2"),
                 DB::raw(
