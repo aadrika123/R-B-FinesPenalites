@@ -44,10 +44,10 @@ class Violation extends Model
      * Get All Records
      */
     public function recordDetails()
-    {
+    {   
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount, 
-            sections.violation_section, departments.department_name,
+            sections.violation_section, departments.department_name,users.user_name as created_by,
         CASE 
             WHEN violations.status = '0' THEN 'Deactivated'  
             WHEN violations.status = '1' THEN 'Active'
@@ -58,6 +58,7 @@ class Violation extends Model
         )
             ->join('sections', 'sections.id', '=', 'violations.section_id')
             ->join('departments', 'departments.id', '=', 'violations.department_id')
+            ->join('users', 'users.id', '=', 'violations.user_id')
             ->where('violations.status', 1)
             ->orderByDesc('violations.id');
         // ->get();
