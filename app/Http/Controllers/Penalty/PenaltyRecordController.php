@@ -594,47 +594,64 @@ class PenaltyRecordController extends Controller
 
 
 
-            $finalRecord = PenaltyChallan::select('*', 'penalty_challans.id as challan_id')
-                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
-                ->where('penalty_challans.id', $req->challanId)
-                ->first();
-
-            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
-
-            // PenaltyDocument::where('penalty_documents.applied_record_id', $appliedRecordId)
-            //     ->first();
-
-            $challanDtl = PenaltyFinalRecord::select(
+            $finalRecord = PenaltyChallan::select(
                 'penalty_final_records.*',
                 'penalty_final_records.id as application_id',
                 'penalty_challans.*',
                 'penalty_challans.id',
                 'violations.violation_name',
                 'sections.violation_section',
-                DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image"),
-                DB::raw("concat('$docUrl/',pd.document_path) as geo_tagged_image2"),
                 DB::raw(
                     "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
                     TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
                 )
             )
-                ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
-                ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
-                ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_final_records.id')
-                ->leftjoin('penalty_documents as pd', 'pd.applied_record_id', 'penalty_applied_records.id')
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
-                ->orwhere('penalty_documents.applied_record_id', $appliedRecordId)
-                ->orwhere('pd.applied_record_id', $appliedRecordId)
+                ->where('penalty_challans.id', $req->challanId)
                 ->first();
 
-            if (!$challanDtl)
+            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
+
+            $document = PenaltyDocument::select(
+                DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
+            )
+                ->where('penalty_documents.applied_record_id', $appliedRecordId)
+                ->where('penalty_documents.challan_type', $finalRecord->challan_type)
+                ->first();
+
+            $data = collect($finalRecord)->merge($document);
+
+            // $challanDtl = PenaltyFinalRecord::select(
+            //     'penalty_final_records.*',
+            //     'penalty_final_records.id as application_id',
+            //     'penalty_challans.*',
+            //     'penalty_challans.id',
+            //     'violations.violation_name',
+            //     'sections.violation_section',
+            //     DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image"),
+            //     DB::raw(
+            //         "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
+            //         TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
+            //     )
+            // )
+            //     ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
+            //     ->leftjoin('penalty_applied_records', 'penalty_applied_records.id', 'penalty_final_records.applied_record_id')
+            //     ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_final_records.id')
+            //     ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+            //     ->join('sections', 'sections.id', 'violations.section_id')
+            //     ->where('penalty_documents.applied_record_id', $appliedRecordId)
+            //     ->where('penalty_documents.challan_type', $finalRecord->challan_type)
+            //     ->first();
+
+            if ($data->isEmpty())
                 throw new Exception("No Data Found againt this challan.");
 
-            $totalAmountInWord = getHindiIndianCurrency($challanDtl->total_amount);
-            $challanDtl->amount_in_words = $totalAmountInWord . ' मात्र';
+            $totalAmountInWord = getHindiIndianCurrency($data['total_amount']);
+            $data['amount_in_words'] = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $challanDtl, "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
             return responseMsgs(false, $e->getMessage(), "", "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);

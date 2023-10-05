@@ -56,10 +56,10 @@ class PenaltyRecord extends Model
                     concat('$docUrl/',document_path) as geo_tagged_image",
             )
         )
-            ->join('violations', 'violations.id', '=', 'penalty_applied_records.violation_id')
-            ->join('sections', 'sections.id', '=', 'violations.section_id')
+            ->join('violations', 'violations.id', 'penalty_applied_records.violation_id')
+            ->join('sections', 'sections.id',  'violations.section_id')
             ->join('departments', 'departments.id', 'violations.department_id')
-            ->leftjoin('penalty_documents', 'penalty_documents.applied_record_id', '=', 'penalty_applied_records.id')
+            ->join('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
             ->orderByDesc('penalty_applied_records.id');
     }
 
