@@ -373,6 +373,7 @@ class PenaltyRecordController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
+            $mSection = new Section();
             $mViolation = new Violation();
             $mPenaltyRecord = new PenaltyRecord();
             $mPenaltyChallan = new PenaltyChallan();
@@ -390,6 +391,8 @@ class PenaltyRecordController extends Controller
             $violationDtl = $mViolation->violationById($req->violationId);
             if (!$violationDtl)
                 throw new Exception("Provide Valid Violation Id");
+
+            $section       = $mSection->sectionById($violationDtl->section_id)->violation_section;
             $penaltyAmount = $violationDtl->penalty_amount;
 
             $finalRecordReqs = [
@@ -421,7 +424,7 @@ class PenaltyRecordController extends Controller
                 'remarks'                     => $req->remarks,
                 'vehicle_no'                  => $req->vehicleNo,
             ];
-            $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $req->violationId, 0);
+            $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $section, 0);
             $challanNo = $idGeneration->generate();
 
             DB::beginTransaction();
@@ -439,27 +442,28 @@ class PenaltyRecordController extends Controller
             $challanRecord = $mPenaltyChallan->store($challanReqs);
             $penaltyRecord->status = 2;
             $penaltyRecord->save();
-            DB::commit();
 
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
+            DB::commit();
 
+            if (strlen($finalRecord->mobile) == 10) {
 
-            // $whatsapp2 = (Whatsapp_Send(
-            //     $req->mobile,
-            //     "rmc_fp_1",
-            //     [
-            //         "content_type" => "text",
-            //         [
-            //             $req->fullName,
-            //             $challanRecord->challan_no,
-            //             // section,
-            //             $challanRecord->total_amount,
-            //             $challanRecord->challan_date->add(14)
-            //         ]
-            //     ]
-            // ));
-
+                $whatsapp2 = (Whatsapp_Send(
+                    $req->mobile,
+                    "rmc_fp_1",
+                    [
+                        "content_type" => "text",
+                        [
+                            $req->fullName,
+                            $challanRecord->challan_no,
+                            $section,
+                            $challanRecord->total_amount,
+                            Carbon::parse($challanRecord->challan_date)->addDay(14)
+                        ]
+                    ]
+                ));
+            }
             return responseMsgs(true, "", $data, "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
@@ -761,20 +765,23 @@ class PenaltyRecordController extends Controller
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
 
-            $whatsapp2 = (Whatsapp_Send(
-                $req->mobile,
-                "rmc_fp_1",
-                [
-                    "content_type" => "text",
+            //condition 
+            if (strlen($finalRecord->mobile) == 10) {
+                $whatsapp2 = (Whatsapp_Send(
+                    $req->mobile,
+                    "rmc_fp_1",
                     [
-                        $req->fullName,
-                        $challanRecord->challan_no,
-                        $section,
-                        $challanRecord->total_amount,
-                        $challanRecord->challan_date
+                        "content_type" => "text",
+                        [
+                            $req->fullName,
+                            $challanRecord->challan_no,
+                            $section,
+                            $challanRecord->total_amount,
+                            Carbon::parse($challanRecord->challan_date)->addDay(14)
+                        ]
                     ]
-                ]
-            ));
+                ));
+            }
 
             DB::commit();
             return responseMsgs(true, "", $data, "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
