@@ -59,7 +59,7 @@ class UserMasterController extends Controller
                 'first_name'     => $req->firstName,
                 'middle_name'    => $req->middleName,
                 'last_name'      => $req->lastName,
-                'user_name'      => $req->firstName .' ' . $req->middleName. ' ' . $req->lastName,
+                'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
                 'mobile'         => $req->mobile,
                 'email'          => $req->email,
                 'ulb_id'         => $user->id,
@@ -67,8 +67,8 @@ class UserMasterController extends Controller
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
             ]);
-            return $metaReqs; die; 
-            $this->_mUsers->store($metaReqs); 
+            // return $metaReqs; die; 
+            $this->_mUsers->store($metaReqs);
             return responseMsgs(true, "Records Added Successfully", $metaReqs, "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -77,7 +77,7 @@ class UserMasterController extends Controller
 
     // Edit records
     public function updateSection(Request $req)
-    { 
+    {
         $validator = Validator::make($req->all(), [
             'sectionId'             => 'required|numeric',
             'departmentId'          => 'required|numeric',
@@ -169,5 +169,4 @@ class UserMasterController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
 }
