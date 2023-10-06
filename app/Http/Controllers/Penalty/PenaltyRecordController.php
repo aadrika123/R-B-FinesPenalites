@@ -447,23 +447,25 @@ class PenaltyRecordController extends Controller
             $data['challanNo'] = $challanRecord->challan_no;
             DB::commit();
 
-            if (strlen($finalRecord->mobile) == 10) {
+            #_Whatsaap Message
+            // if (strlen($finalRecord->mobile) == 10) {
 
-                $whatsapp2 = (Whatsapp_Send(
-                    $req->mobile,
-                    "rmc_fp_1",
-                    [
-                        "content_type" => "text",
-                        [
-                            $req->fullName,
-                            $challanRecord->challan_no,
-                            $section,
-                            $challanRecord->total_amount,
-                            (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
-                        ]
-                    ]
-                ));
-            }
+            //     $whatsapp2 = (Whatsapp_Send(
+            //         $finalRecord->mobile,
+            //         "rmc_fp_1",
+            //         [
+            //             "content_type" => "text",
+            //             [
+            //                 $finalRecord->full_name ?? "Violator",
+            //                 $challanRecord->challan_no,
+            //                 $section,
+            //                 $challanRecord->total_amount,
+            //                 (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
+            //             ]
+            //         ]
+            //     ));
+            // }
+
             return responseMsgs(true, "", $data, "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
@@ -766,26 +768,26 @@ class PenaltyRecordController extends Controller
 
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
-
-            //condition 
-            if (strlen($finalRecord->mobile) == 10) {
-                $whatsapp2 = (Whatsapp_Send(
-                    $req->mobile,
-                    "rmc_fp_1",
-                    [
-                        "content_type" => "text",
-                        [
-                            $req->fullName,
-                            $challanRecord->challan_no,
-                            $section,
-                            $challanRecord->total_amount,
-                            (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
-                        ]
-                    ]
-                ));
-            }
-
             DB::commit();
+
+            #_Whatsaap Message
+            // if (strlen($finalRecord->mobile) == 10) {
+            //     $whatsapp2 = (Whatsapp_Send(
+            //         $finalRecord->mobile,
+            //         "rmc_fp_1",
+            //         [
+            //             "content_type" => "text",
+            //             [
+            //                 $finalRecord->full_name ?? "Violator",
+            //                 $challanRecord->challan_no,
+            //                 $section,
+            //                 $challanRecord->total_amount,
+            //                 (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
+            //             ]
+            //         ]
+            //     ));
+            // }
+
             return responseMsgs(true, "", $data, "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
