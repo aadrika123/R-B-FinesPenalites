@@ -459,7 +459,7 @@ class PenaltyRecordController extends Controller
                             $challanRecord->challan_no,
                             $section,
                             $challanRecord->total_amount,
-                            Carbon::parse($challanRecord->challan_date)->addDay(14)
+                            (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
                         ]
                     ]
                 ));
@@ -777,7 +777,7 @@ class PenaltyRecordController extends Controller
                             $challanRecord->challan_no,
                             $section,
                             $challanRecord->total_amount,
-                            Carbon::parse($challanRecord->challan_date)->addDay(14)
+                            (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
                         ]
                     ]
                 ));
