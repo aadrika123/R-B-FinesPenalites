@@ -450,12 +450,12 @@ class PenaltyRecordController extends Controller
             if (strlen($finalRecord->mobile) == 10) {
 
                 $whatsapp2 = (Whatsapp_Send(
-                    $req->mobile,
+                    $finalRecord->mobile,
                     "rmc_fp_1",
                     [
                         "content_type" => "text",
                         [
-                            $req->fullName,
+                            $finalRecord->full_name ?? "Violator",
                             $challanRecord->challan_no,
                             $section,
                             $challanRecord->total_amount,
@@ -464,6 +464,7 @@ class PenaltyRecordController extends Controller
                     ]
                 ));
             }
+
             return responseMsgs(true, "", $data, "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
@@ -766,16 +767,17 @@ class PenaltyRecordController extends Controller
 
             $data['id'] = $challanRecord->id;
             $data['challanNo'] = $challanRecord->challan_no;
+            DB::commit();
 
             //condition 
             if (strlen($finalRecord->mobile) == 10) {
                 $whatsapp2 = (Whatsapp_Send(
-                    $req->mobile,
+                    $finalRecord->mobile,
                     "rmc_fp_1",
                     [
                         "content_type" => "text",
                         [
-                            $req->fullName,
+                            $finalRecord->full_name ?? "Violator",
                             $challanRecord->challan_no,
                             $section,
                             $challanRecord->total_amount,
@@ -785,7 +787,6 @@ class PenaltyRecordController extends Controller
                 ));
             }
 
-            DB::commit();
             return responseMsgs(true, "", $data, "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
