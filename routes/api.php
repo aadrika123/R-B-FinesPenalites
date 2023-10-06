@@ -148,8 +148,17 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     /**
+     * | Api List for Online Payment
+        Controller No : 7
+     */
+    Route::controller(PaymentController::class)->group(function () {
+        Route::post('fines/ccavenue/initiate-payment', 'initiatePayment');
+        Route::post('fines/ccavenue/save-response', 'savePinelabResponse');
+    });
+
+    /**
      * | API Wf Role CRUD operation
-         Controller No : 7
+         Controller No : 8
      */
     Route::controller(WfRoleMasterController::class)->group(function () {
         Route::post('wfrole/crud/save', 'createRole');                              // Save -------------------- 0201
