@@ -6,6 +6,7 @@ use App\Http\Controllers\API\Master\SectionController;
 use App\Http\Controllers\API\Master\UserTypeController;
 use App\Http\Controllers\API\Master\ViolationController;
 use App\Http\Controllers\API\Master\ViolationSectionController;
+use App\Http\Controllers\API\Master\WfRoleMasterController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Penalty\PenaltyRecordController;
 use Illuminate\Support\Facades\Route;
@@ -144,5 +145,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('report/challan-wise', 'challanData');                                                    #_challan wise report ------------- 0618
         Route::post('report/collection-wise', 'collectionData');                                              #_collection wise report ---------- 0619
         Route::post('report/comparison', 'comparisonReport');                                                 #_comparison report --------------- 0620
+    });
+
+    /**
+     * | API Wf Role CRUD operation
+         Controller No : 7
+     */
+    Route::controller(WfRoleMasterController::class)->group(function () {
+        Route::post('wfrole/crud/save', 'createRole');                              // Save -------------------- 0201
+        Route::post('wfrole/crud/edit', 'updateRole');                              // Edit  ------------------- 0202
+        Route::post('wfrole/crud/get', 'getRoleById');                              // Get By Id --------------- 0203
+        Route::post('wfrole/crud/list', 'getRoleList');                             // Get All ----------------- 0204
+        Route::post('wfrole/crud/delete', 'deleteRole');                            // Delete ------------------ 0205
     });
 });
