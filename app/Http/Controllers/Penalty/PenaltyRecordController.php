@@ -581,7 +581,7 @@ class PenaltyRecordController extends Controller
                 'penalty_challans.id',
                 'violations.violation_name',
                 'sections.violation_section',
-                'tran_no as transactionNo',
+                'tran_no',
                 DB::raw(
                     "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
                     TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
