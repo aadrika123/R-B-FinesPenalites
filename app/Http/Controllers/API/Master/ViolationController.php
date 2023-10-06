@@ -50,7 +50,7 @@ class ViolationController extends Controller
                 'user_id'         => $user->id,
             ];
             $this->_mViolations->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0401", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -81,7 +81,7 @@ class ViolationController extends Controller
                 'updated_at'       => Carbon::now()
             ];
             $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "", $metaReqs, "0402", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Updated Successfully", $metaReqs, "0402", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0402", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -101,7 +101,7 @@ class ViolationController extends Controller
             $getData = $this->_mViolations->recordDetails()->where('violations.id', $req->id)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "", $getData, "0403", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $getData, "0403", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0403", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -113,7 +113,7 @@ class ViolationController extends Controller
     {
         try {
             $getData = $this->_mViolations->recordDetails()->get();
-            return responseMsgs(true, "", $getData, "0404", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All Records", $getData, "0404", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0404", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -135,7 +135,7 @@ class ViolationController extends Controller
             ];
             $delete = $this->_mViolations::findOrFail($req->id);
             $delete->update($metaReqs);
-            return responseMsgs(true, "", $metaReqs, "0405", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Deleted Successfully", $metaReqs, "0405", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0405", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -150,7 +150,7 @@ class ViolationController extends Controller
         try {
             $mChallanCategories = new Violation();
             $getData = $mChallanCategories->getList($req);
-            return responseMsgs(true, "", $getData, "0406", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Violation List", $getData, "0406", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0406", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
