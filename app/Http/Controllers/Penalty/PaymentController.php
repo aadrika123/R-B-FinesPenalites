@@ -3,12 +3,20 @@
 namespace App\Http\Controllers\Penalty;
 
 use App\Http\Controllers\Controller;
+use App\IdGenerator\IdGeneration;
 use App\Models\IdGenerationParam;
+use App\Models\Master\Section;
+use App\Models\Master\Violation;
 use App\Models\Payment\CcAvenueReq;
 use App\Models\Payment\CcAvenueResponse;
+use App\Models\PenaltyChallan;
+use App\Models\PenaltyFinalRecord;
+use App\Models\PenaltyTransaction;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -40,23 +48,32 @@ class PaymentController extends Controller
 
         try {
             $mCcAvenueReq =  new CcAvenueReq();
+            $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
+            $challanDetails = PenaltyChallan::find($req->challanId);
+            if (!$penaltyDetails)
+                throw new Exception("Application Not Found");
+            if ($penaltyDetails->payment_status == 1)
+                throw new Exception("Payment Already Done");
+            if (!$challanDetails)
+                throw new Exception("Challan Not Found");
 
-            $user = authUser();
+            $user  = authUser();
             $mReqs = [
-                "ref_no"          => $this->getOrderId(),
-                "user_id"         => $user->id,
-                "workflow_id"     => $req->workflowId ?? 0,
-                "amount"          => $req->amount,
-                "ulb_id"          => $user->ulb_id ?? $req->ulbId,
-                "application_id"  => $req->applicationId,
-                "payment_type"    => $req->paymentType
-
+                "order_id"       => $this->getOrderId(),
+                "merchant_id"    => $req->merchantId,
+                "challan_id"     => $req->challanId,
+                "application_id" => $req->applicationId,
+                "user_id"        => $user->id,
+                "workflow_id"    => $penaltyDetails->workflow_id ?? 0,
+                "amount"         => $challanDetails->total_amount,
+                "ulb_id"         => $user->ulb_id ?? $penaltyDetails->ulb_id,
+                "ip_address"     => getClientIpAddress()
             ];
             $data = $mCcAvenueReq->store($mReqs);
 
-            return responseMsgs(true, "Bill id is", ['billRefNo' => $data->ref_no], 0701, 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Order id is", ['order_id' => $data->order_id], "0701", 01, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", 0701, 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0701", 01, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -67,27 +84,43 @@ class PaymentController extends Controller
     {
         $idGeneration = new IdGenerationParam();
         try {
-            Storage::disk('public')->put($req->billRefNo . '.json', json_encode($req->all()));
-            $mCcAvenueReq      =  new CcAvenueReq();
-            $mCcAvenueResponse = new CcAvenueResponse();
-            $responseCode            = Config::get('payment-constants.PINELAB_RESPONSE_CODE');
-            $user                    = authUser();
-            $pinelabData             = $req->pinelabResponseBody;
-            $detail                  = (object)($req->pinelabResponseBody['Detail'] ?? []);
+            Storage::disk('public')->put($req->order_id . '.json', json_encode($req->all()));
+            $mSection            = new Section();
+            $mViolation          = new Violation();
+            $mCcAvenueReq        = new CcAvenueReq();
+            $mCcAvenueResponse   = new CcAvenueResponse();
+            $mPenaltyTransaction = new PenaltyTransaction();
+            $todayDate           = Carbon::now();
+            $penaltyDetails    = PenaltyFinalRecord::find($req->applicationId);
+            $receiptIdParam    = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
+            $responseCode      = Config::get('payment-constants.PINELAB_RESPONSE_CODE');
+            $user              = authUser();
+            $pinelabData       = $req->pinelabResponseBody;
+            $detail            = (object)($req->pinelabResponseBody['Detail'] ?? []);
 
-            $actualTransactionNo = $idGeneration->generateTransactionNo($user->ulb_id);
+
+            $violationDtl  = $mViolation->violationById($penaltyDetails->violation_id);
+            $sectionId     = $violationDtl->section_id;
+            $section       = $mSection->sectionById($sectionId)->violation_section;
+            $idGeneration  = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
+            $transactionNo = $idGeneration->generate();
+
             $paymentData = $mCcAvenueReq->getPaymentRecord($req);
 
             if (collect($paymentData)->isEmpty())
                 throw new Exception("Payment Data not available");
             if ($paymentData) {
                 $mReqs = [
-                    "payment_req_id"       => $paymentData->id,
-                    "req_ref_no"           => $req->billRefNo,
-                    "res_ref_no"           => $actualTransactionNo,                         // flag
-                    "response_msg"         => $pinelabData['Response']['ResponseMsg'],
-                    "response_code"        => $pinelabData['Response']['ResponseCode'],
-                    "description"          => $req->description,
+                    "request_id"      => $paymentData->id,
+                    "order_id"        => $req->orderId,
+                    "merchant_id"     => $req->merchantId,
+                    "payment_id"      => $req->paymentId,
+                    "challan_id"      => $req->challanId,
+                    "application_id"  => $req->applicationId,
+                    "res_ref_no"      => $transactionNo,                         // flag
+                    "response_msg"    => $pinelabData['Response']['ResponseMsg'],
+                    "response_code"   => $pinelabData['Response']['ResponseCode'],
+                    "description"     => $req->description,
                 ];
 
                 $data = $mCcAvenueResponse->store($mReqs);
@@ -96,13 +129,13 @@ class PaymentController extends Controller
             # data transfer to the respective module's database 
             $moduleData = [
                 'id'                => $req->applicationId,
-                'billRefNo'         => $req->billRefNo,
+                'order_id'          => $req->order_id,
                 'amount'            => $req->amount,
                 'workflowId'        => $req->workflowId,
                 'userId'            => $user->id,
                 'ulbId'             => $user->ulb_id,
-                'gatewayType'       => "Pinelab",         #_Pinelab Id
-                'transactionNo'     => $actualTransactionNo,
+                'gatewayType'       => "CC AVENUE",         #_CcAvenue Id
+                'transactionNo'     => $transactionNo,
                 'TransactionDate'   => $detail->TransactionDate ?? null,
                 'HostResponse'      => $detail->HostResponse ?? null,
                 'CardEntryMode'     => $detail->CardEntryMode ?? null,
@@ -139,19 +172,26 @@ class PaymentController extends Controller
                 $paymentData->save();
 
                 # calling function for the modules
-                switch ($paymentData->module_id) {
-                    case ('1'):
-                        $workflowId = $paymentData->workflow_id;
-                        if ($workflowId == 0) {
-                            $objHoldingTaxController = new HoldingTaxController($this->_safRepo);
-                            $moduleData = new Request($moduleData);
-                            $objHoldingTaxController->paymentHolding($moduleData);
-                        } else {                                            //<------------------ (SAF PAYMENT)
-                            $obj = new ActiveSafController($this->_safRepo);
-                            $moduleData = new ReqPayment($moduleData);
-                            $obj->paymentSaf($moduleData);
-                        }
-                        break;
+                if ($paymentData->module_id) {
+                    $reqs = [
+                        "application_id" => $req->applicationId,
+                        "challan_id"     => $req->challanId,
+                        "tran_no"        => $transactionNo,
+                        "tran_date"      => $todayDate,
+                        "tran_by"        => $user->id,
+                        "payment_mode"   => strtoupper('ONLINE'),
+                        "amount"         => $challanDetails->amount,
+                        "penalty_amount" => $challanDetails->penalty_amount,
+                        "total_amount"   => $challanDetails->total_amount,
+                    ];
+                    DB::beginTransaction();
+                    $tranDtl = $mPenaltyTransaction->store($reqs);
+                    $penaltyDetails->payment_status = 1;
+                    $penaltyDetails->save();
+
+                    $challanDetails->payment_date = $todayDate;
+                    $challanDetails->save();
+                    DB::commit();
                 }
             } else
                 throw new Exception("Payment Cancelled");
@@ -173,7 +213,7 @@ class PaymentController extends Controller
             $randomString .= $characters[$index];
         }
         $orderId = (("Order_" . date('dmyhism') . $randomString));
-        $orderId = explode("=", chunk_split($orderId, 30, "="))[0];
+        $orderId = explode("=", chunk_split($orderId, 26, "="))[0];
         return $orderId;
     }
 }
