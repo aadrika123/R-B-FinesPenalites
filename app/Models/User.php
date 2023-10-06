@@ -102,4 +102,36 @@ class User extends Authenticatable
         ->orderBy('id')
         ->get();
     }
+
+
+
+    // ======================================== User Master =================================
+
+    /**
+     * Check for Existing User
+     */
+    public function checkExisting($req)
+    {
+        return User::where(DB::raw('upper(user_name)'), strtoupper($req->fullName))
+            ->where('email', $req->email)
+            ->where('suspended', false)
+            ->first();
+    }
+
+    /**
+     * Get All Users List
+     */
+    public function recordDetails()
+    {
+        return User::select(
+            DB::raw("id,name,user_name,mobile, email, user_type,address,
+        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        ")
+        )
+        ->where('suspended', false)
+        ->orderByDesc('id');
+        // ->get();
+    }
+    
 }

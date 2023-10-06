@@ -48,16 +48,12 @@ class WfRole extends Model
     public function recordDetails()
     {
         return WfRole::select(
-            DB::raw("id,role_name,
-        CASE 
-            WHEN status = '0' THEN 'Deactivated'  
-            WHEN status = '1' THEN 'Active'
-        END as status,
+            DB::raw("id,role_name,user_type,
         TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('status', 1)
+        ->where('is_suspended', false)
         ->orderByDesc('id');
         // ->get();
     }

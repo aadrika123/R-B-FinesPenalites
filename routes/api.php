@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\Master\CountryController;
 use App\Http\Controllers\API\Master\DepartmentController;
 use App\Http\Controllers\API\Master\SectionController;
+use App\Http\Controllers\API\Master\UserMasterController;
 use App\Http\Controllers\API\Master\UserTypeController;
 use App\Http\Controllers\API\Master\ViolationController;
 use App\Http\Controllers\API\Master\ViolationSectionController;
@@ -161,10 +162,22 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 8
      */
     Route::controller(WfRoleMasterController::class)->group(function () {
-        Route::post('wfrole/crud/save', 'createRole');                              // Save -------------------- 0201
-        Route::post('wfrole/crud/edit', 'updateRole');                              // Edit  ------------------- 0202
-        Route::post('wfrole/crud/get', 'getRoleById');                              // Get By Id --------------- 0203
-        Route::post('wfrole/crud/list', 'getRoleList');                             // Get All ----------------- 0204
-        Route::post('wfrole/crud/delete', 'deleteRole');                            // Delete ------------------ 0205
+        Route::post('wfrole/crud/save', 'createRole');                              // Save -------------------- 0801
+        Route::post('wfrole/crud/edit', 'updateRole');                              // Edit  ------------------- 0802
+        Route::post('wfrole/crud/get', 'getRoleById');                              // Get By Id --------------- 0803
+        Route::post('wfrole/crud/list', 'getRoleList');                             // Get All ----------------- 0804
+        Route::post('wfrole/crud/delete', 'deleteRole');                            // Delete ------------------ 0805
+    });
+
+    /**
+     * | API User_Master CRUD operation
+         Controller No : 9
+     */
+    Route::controller(UserMasterController::class)->group(function () {
+        Route::post('user/crud/create', 'createUser');                              // Save -------------------- 0901
+        Route::post('user/crud/edit', 'updateUser');                              // Edit  ------------------- 0902
+        Route::post('user/crud/get', 'getUserById');                              // Get By Id --------------- 0903
+        Route::post('user/crud/list', 'getUserList');                             // Get All ----------------- 0904
+        Route::post('user/crud/delete', 'deleteUser');                            // Delete ------------------ 0905
     });
 });

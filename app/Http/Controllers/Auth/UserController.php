@@ -45,9 +45,9 @@ class UserController extends Controller
         $validated = Validator::make(
             $req->all(),
             [
-                'email' => 'required|email',
-                'password' => 'required',
-                'type' => "nullable|in:mobile"
+                'email'     => 'required|email',
+                'password'  => 'required',
+                'type'      => "nullable|in:mobile"
             ]
         );
         if ($validated->fails())

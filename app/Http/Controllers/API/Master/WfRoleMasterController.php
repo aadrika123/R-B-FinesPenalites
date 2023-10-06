@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str; 
 
 class WfRoleMasterController extends Controller
 {
@@ -29,68 +30,85 @@ class WfRoleMasterController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
+            $user = authUser($req);
+            $words = explode(' ', $req->roleName); 
+            $acronym = '';
+            foreach ($words as $word) {
+                $acronym .= strtoupper(substr($word, 0, 1)); 
+            }
             $isGroupExists = $this->_mWfRoles->checkExisting($req);
-            return $isGroupExists; die; 
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("WfRole Already Existing");
             $metaReqs = [
-                'role_name'   => strtoupper($req->roleName)
+                'role_name'   => $req->roleName,
+                'user_type'   => $acronym,
+                'created_by' => $user->id,
             ];
+            // return $metaReqs; 
             $this->_mWfRoles->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Role Added Successfully", $metaReqs, "0801", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0801", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     // Edit records
-    public function updateDepartment(Request $req)
+    public function updateRole(Request $req)
     { 
         $validator = Validator::make($req->all(), [
-            'departmentId'                => 'required|numeric',
-            'departmentName'        => 'required|string'
+            'roleId'           => 'required|numeric',
+            'roleName'         => 'required|string'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->_mWfRoles::findOrFail($req->departmentId);
+            $user = authUser($req);
+            $words = explode(' ', $req->roleName); 
+            $acronym = '';
+            foreach ($words as $word) {
+                $acronym .= strtoupper(substr($word, 0, 1)); 
+            }
+            $getData = $this->_mWfRoles::findOrFail($req->roleId);
             $isExists = $this->_mWfRoles->checkExisting($req);
-            if ($isExists && $isExists->where('id', '!=', $req->departmentId)->isNotEmpty())
+            if ($isExists && $isExists->where('id', '!=', $req->roleId))
                 throw new Exception("WfRole Already Existing");
             $metaReqs = [
-                'department_name' => strtoupper($req->departmentName),
+                'role_name'   => $req->roleName,
+                'user_type'   => $acronym,
+                'created_by' => $user->id,
                 'updated_at' => Carbon::now()
             ];
-            $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Updated Successfully", $metaReqs, "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            $getData->update($metaReqs); 
+            return responseMsgs(true, "Role Updated Successfully", $metaReqs, "0802", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0802", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
      * Get Violation BY Id
      */
-    public function getDepartmentById(Request $req)
+    public function getRoleById(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'departmentId' => 'required|numeric'
+            'roleId' => 'required|numeric'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $getData = $this->_mWfRoles->recordDetails()->where('departments.id', $req->departmentId)->first();
+            $getData = $this->_mWfRoles->recordDetails()->where('id', $req->roleId)->first();
+            return $getData;
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "View Records", $getData, "0203", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $getData, "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0203", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
      * Get Violation List
      */
-    public function getDepartmentList(Request $req)
+    public function getRoleList(Request $req)
     {
         try {
             $getData = $this->_mWfRoles->recordDetails()->get();
@@ -103,20 +121,20 @@ class WfRoleMasterController extends Controller
     /**
      * Delete Violation By Id
      */
-    public function deleteDepartment(Request $req)
+    public function deleteRole(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'departmentId' => 'required'
+            'roleId' => 'required'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
             $metaReqs =  [
-                'status' => 0
+                'is_suspended' => true,
             ];
-            $delete = $this->_mWfRoles::findOrFail($req->departmentId);
+            $delete = $this->_mWfRoles::findOrFail($req->roleId);
             $delete->update($metaReqs);
-            return responseMsgs(true, "Deleted Successfully", $metaReqs, "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Role Deleted", $metaReqs, "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
