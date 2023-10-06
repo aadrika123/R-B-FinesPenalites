@@ -146,6 +146,7 @@ trait FinesTrait
     public function comparison($final, $applied)
     {
         return new Collection([
+            ['displayString' => 'Date', 'final' => ($final->created_at)->format('d-m-Y'), 'applied' => ($applied->created_at)->format('d-m-Y'),],
             ['displayString' => 'Name of Violator',  'final' => $final->full_name,       'applied' => $applied->full_name,],
             ['displayString' => 'Mobile No',         'final' => $final->mobile,          'applied' => $applied->mobile,],
             ['displayString' => 'Email',             'final' => $final->email,           'applied' => $applied->email,],
