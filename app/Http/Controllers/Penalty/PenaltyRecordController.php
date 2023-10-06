@@ -581,12 +581,14 @@ class PenaltyRecordController extends Controller
                 'penalty_challans.id',
                 'violations.violation_name',
                 'sections.violation_section',
+                'tran_no as transactionNo',
                 DB::raw(
                     "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
                     TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
                 )
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
                 ->where('penalty_challans.id', $req->challanId)

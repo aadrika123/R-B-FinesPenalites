@@ -29,10 +29,10 @@ class PaymentController extends Controller
     public function initiatePayment(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            "workflowId"    => "nullable|int",
             "amount"        => "required|numeric",
-            "challanId"     => "nullable|int",
+            "challanId"     => "required|int",
             "applicationId" => "required|int",
+            "workflowId"    => "nullable|int",
         ]);
 
         if ($validator->fails())
