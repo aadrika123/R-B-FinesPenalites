@@ -884,7 +884,7 @@ class PenaltyRecordController extends Controller
                 ->orderbyDesc('penalty_challans.id');
 
             if ($req->challanType)
-                $data = $data->where("challan_type", $req->challanType);
+                $data = $data->where("penalty_challans.challan_type", $req->challanType);
 
             if ($req->challanCategory)
                 $data = $data->where("category_type_id", $req->challanCategory);

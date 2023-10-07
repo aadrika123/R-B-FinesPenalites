@@ -78,7 +78,7 @@ class WfRoleMasterController extends Controller
             }
             $getData = $this->_mWfRoles::findOrFail($req->roleId);
             $isExists = $this->_mWfRoles->checkExisting($req);
-            if ($isExists && $isExists->where('id', '!=', $req->roleId))
+            if ($isExists && $isExists->where('id', '!=', $req->roleId)->isNotEmpty())
                 throw new Exception("WfRole Already Existing");
             $metaReqs = [
                 'role_name'   => $req->roleName,

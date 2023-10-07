@@ -40,8 +40,8 @@ class UserMasterController extends Controller
             'middleName'              => 'required|string',
             'lastName'                => 'required|string',
             'designation'             => 'required|string',
-            'mobile'                  => 'required|numeric|digits:10',
-            'address'                 => 'required|string',
+            'mobileNo'                  => 'required|numeric|digits:10',
+            'address'                 => 'nullable|string',
             'employeeCode'            => 'required|string',
             'signature'               => 'nullable|file',
             'email'                   => 'required|email',
@@ -69,7 +69,7 @@ class UserMasterController extends Controller
                 'middle_name'    => $req->middleName,
                 'last_name'      => $req->lastName,
                 'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
-                'mobile'         => $req->mobile,
+                'mobile'         => $req->mobileNo,
                 'email'          => $req->email,
                 'ulb_id'         => $authUser->id,
                 'address'        => $req->address,
@@ -82,7 +82,7 @@ class UserMasterController extends Controller
             // http://203.129.217.246/fines/set-password
             // $url = "http://203.129.217.246/fines";
             $url = "http://192.168.0.159:5000/fines";
-            $resetLink = $url . "/set-password/{$user->id}/{$token}";
+            $resetLink = $url . "/set-password/{$token}/{$user->id}";
 
             $emailContent = "Hello,\n\nYou have requested to set your password. Click the link below to reset it:\n\n{$resetLink}\n\nIf you didn't request this password reset, you can ignore this email.";
 
@@ -110,7 +110,7 @@ class UserMasterController extends Controller
             'middleName'              => 'required|string',
             'lastName'                => 'required|string',
             'designation'             => 'required|string',
-            'mobile'                  => 'required|numeric|digits:10',
+            'mobileNo'                  => 'required|numeric|digits:10',
             'address'                 => 'required|string',
             'employeeCode'            => 'required|string',
             'signature'               => 'nullable|file',
@@ -169,7 +169,7 @@ class UserMasterController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
-            $getData = $this->_mUsers->recordDetails($req)->paginate($perPage);
+            $getData = $this->_mUsers->recordDetails($req)->get();
             return responseMsgs(true, "View All User's Record", $getData, "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
