@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
+use App\Mail\VerifyEmail;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -47,7 +50,7 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $user = authUser($req);
+            $authUser = authUser($req);
             $metaReqs = [];
             $isGroupExists = $this->_mUsers->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
@@ -67,14 +70,29 @@ class UserMasterController extends Controller
                 'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
                 'mobile'         => $req->mobile,
                 'email'          => $req->email,
-                'ulb_id'         => $user->id,
+                'ulb_id'         => $authUser->id,
                 'address'        => $req->address,
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
             ]);
-            // return $metaReqs; die; 
-            $this->_mUsers->store($metaReqs);
-            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
+
+            $user = $this->_mUsers->store($metaReqs);
+            $token = Password::createToken($user);
+            // http://203.129.217.246/fines/set-password
+            // $url = "http://203.129.217.246/fines";
+            $url = "http://192.168.0.159:5000/fines";
+            $resetLink = $url."/set-password/{$user->id}/{$token}";
+
+            $emailContent = "Hello,\n\nYou have requested to set your password. Click the link below to reset it:\n\n{$resetLink}\n\nIf you didn't request this password reset, you can ignore this email.";
+            
+            $htmlEmailContent = "<p>Hello,</p><p>You have requested to set your password. Click the link below to reset it:</p><a href='{$resetLink}'>Reset Password</a><p>If you didn't request this password reset, you can ignore this email.</p>";
+            
+            Mail::raw($emailContent, function ($message) use ($user) {
+                $message->to($user->email);
+                $message->subject('Password Reset');
+            });
+
+            return responseMsgs(true, "Password Set Link Send to your email !", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
