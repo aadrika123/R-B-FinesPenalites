@@ -10,6 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str; 
 
+/**
+ * =======================================================================================================
+ * ===================         Created By : Umesh Kumar        ==========================================
+ * ===================         Created On : 06-10-2023          ==========================================
+ * =======================================================================================================
+ * | Status : Open
+ */
+
 class WfRoleMasterController extends Controller
 {
     private $_mWfRoles;
@@ -52,7 +60,7 @@ class WfRoleMasterController extends Controller
         }
     }
 
-    // Edit records
+    // Edit WfRole By Id
     public function updateRole(Request $req)
     { 
         $validator = Validator::make($req->all(), [
@@ -86,7 +94,7 @@ class WfRoleMasterController extends Controller
     }
 
     /**
-     * Get Violation BY Id
+     * Get WfRole BY Id
      */
     public function getRoleById(Request $req)
     {
@@ -100,26 +108,26 @@ class WfRoleMasterController extends Controller
             return $getData;
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "View Records", $getData, "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Role", $getData, "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
-     * Get Violation List
+     * Get WfRole List
      */
     public function getRoleList(Request $req)
     {
         try {
             $getData = $this->_mWfRoles->recordDetails()->get();
-            return responseMsgs(true, "View All Records", $getData, "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All Role's Records", $getData, "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * Delete Violation By Id
+     * Delete WfRole By Id
      */
     public function deleteRole(Request $req)
     {

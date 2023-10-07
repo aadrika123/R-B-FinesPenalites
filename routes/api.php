@@ -175,9 +175,9 @@ Route::middleware('auth:sanctum')->group(function () {
      */
     Route::controller(UserMasterController::class)->group(function () {
         Route::post('user/crud/create', 'createUser');                              // Save -------------------- 0901
-        Route::post('user/crud/edit', 'updateUser');                              // Edit  ------------------- 0902
-        Route::post('user/crud/get', 'getUserById');                              // Get By Id --------------- 0903
-        Route::post('user/crud/list', 'getUserList');                             // Get All ----------------- 0904
-        Route::post('user/crud/delete', 'deleteUser');                            // Delete ------------------ 0905
+        Route::post('user/crud/edit', 'updateUser');                                // Edit  ------------------- 0902
+        Route::post('user/crud/get', 'getUserById');                                // Get By Id --------------- 0903
+        Route::post('user/crud/list', 'getUserList');                               // Get All ----------------- 0904
+        Route::post('user/crud/delete', 'deleteUser');                              // Delete ------------------ 0905
     });
 });

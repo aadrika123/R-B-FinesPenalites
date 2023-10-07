@@ -10,6 +10,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
+/**
+ * =======================================================================================================
+ * ===================         Created By : Umesh Kumar        ==========================================
+ * ===================         Created On : 06-10-2023          ==========================================
+ * =======================================================================================================
+ * | Status : Open
+ */
 class UserMasterController extends Controller
 {
     private $_mUsers;
@@ -20,13 +27,11 @@ class UserMasterController extends Controller
     }
 
     /**
-     * |  Create Violation 
+     * |  Add User 
      */
     public function createUser(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            // "roleId"                  => 'required|numeric',
-            // 'fullName'                => 'required|string',
             'firstName'               => 'required|string',
             'middleName'              => 'required|string',
             'lastName'                => 'required|string',
@@ -52,7 +57,7 @@ class UserMasterController extends Controller
                 $docPath = $file->move(public_path('FinePenalty/Users'), $file->getClientOriginalName());
                 $file_name = 'FinePenalty/Users/' . $file->getClientOriginalName();
                 $metaReqs = array_merge($metaReqs, [
-                    'signature' => $docPath,
+                    'signature' => $file_name,
                 ]);
             }
             $metaReqs = array_merge($metaReqs, [
@@ -69,40 +74,58 @@ class UserMasterController extends Controller
             ]);
             // return $metaReqs; die; 
             $this->_mUsers->store($metaReqs);
-            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
-
-    // Edit records
-    public function updateSection(Request $req)
-    {
-        $validator = Validator::make($req->all(), [
-            'sectionId'             => 'required|numeric',
-            'departmentId'          => 'required|numeric',
-            'violationSection'        => 'required|string'
-        ]);
-        if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
-        try {
-            $getData = $this->_mUsers::findOrFail($req->sectionId);
-            $isExists = $this->_mUsers->checkExisting($req);
-            if ($isExists && $isExists->where('id', '!=', $req->sectionId)->isNotEmpty())  // pending
-                throw new Exception("Section Already Existing");
-            $metaReqs = [
-                'department_id' => $req->departmentId,
-                'violation_section'   => strtoupper($req->violationSection)
-            ];
-            $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Updated Successfully", $metaReqs, "0302", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0302", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * Get Violation BY Id
+     * Update User
+     */
+    public function updateUser(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'userId'                  => 'required|numeric',
+            'firstName'               => 'required|string',
+            'middleName'              => 'required|string',
+            'lastName'                => 'required|string',
+            'designation'             => 'required|string',
+            'mobile'                  => 'required|numeric|digits:10',
+            'address'                 => 'required|string',
+            'employeeCode'            => 'required|string',
+            'signature'               => 'nullable|file',
+            'email'                   => 'required|email',
+        ]);
+        if ($validator->fails())
+            return responseMsgs(false, $validator->errors(), []);
+        try {
+            $user = authUser($req);
+            $getUser = $this->_mUsers::findOrFail($req->userId);  
+            $isExists = $this->_mUsers->checkExisting($req); 
+            if ($isExists && $isExists->where('id', '!=', $req->userId)->isNotEmpty())
+                throw new Exception("User Already Existing");
+            $metaReqs = [
+                'first_name'     => $req->firstName,
+                'middle_name'    => $req->middleName,
+                'last_name'      => $req->lastName,
+                'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
+                'mobile'         => $req->mobile,
+                'email'          => $req->email,
+                'ulb_id'         => $user->id,
+                'address'        => $req->address,
+                'designation'    => $req->designation,
+                'employee_code'  => $req->employeeCode,
+            ];
+            $getUser->update($metaReqs); // Store in Violations table
+            return responseMsgs(true, "User Updated Successfully", $metaReqs, "0902", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "0902", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * Get User BY Id
      */
     public function getUserById(Request $req)
     {
@@ -115,58 +138,44 @@ class UserMasterController extends Controller
             $getData = $this->_mUsers->recordDetails($req)->where('id', $req->userId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "View Records", $getData, "0303", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View User", $getData, "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0303", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
-     * Get Violation List
+     * Get User's List
      */
     public function getUserList(Request $req)
     {
         try {
             $perPage = $req->perPage ?? 10;
             $getData = $this->_mUsers->recordDetails($req)->paginate($perPage);
-            return responseMsgs(true, "View All User's Record", $getData, "0304", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All User's Record", $getData, "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0304", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
     /**
-     * Delete Violation By Id
+     * Delete User By Id
      */
-    public function deleteSection(Request $req)
+    public function deleteUser(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'sectionId' => 'required'
+            'userId' => 'required'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
             $metaReqs =  [
-                'status' => 0
+                'suspended' => true
             ];
-            $delete = $this->_mUsers::findOrFail($req->sectionId);
+            $delete = $this->_mUsers::findOrFail($req->userId);
             $delete->update($metaReqs);
-            return responseMsgs(true, "Deleted Successfully", $metaReqs, "0305", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "User Deleted", $metaReqs, "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0305", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        }
-    }
-
-    /**
-     * | Get Section List By Department Id
-     */
-    public function getSectionListById(Request $req)
-    {
-        try {
-            $mChallanCategories = new User();
-            $getData = $mChallanCategories->getList($req);
-            return responseMsgs(true, "View Section List", $getData, "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

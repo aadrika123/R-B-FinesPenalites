@@ -19,11 +19,12 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    // protected $fillable = [
+    //     'name',
+    //     'email',
+    //     'password',
+    // ];
+    protected $guarded = [];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -108,14 +109,20 @@ class User extends Authenticatable
     // ======================================== User Master =================================
 
     /**
+     * Add a new User
+     */
+    public function store(array $req)
+    {
+        return User::create($req);
+    }
+    /**
      * Check for Existing User
      */
     public function checkExisting($req)
     {
-        return User::where(DB::raw('upper(user_name)'), strtoupper($req->fullName))
-            ->where('email', $req->email)
+        return User::where('email', $req->email)
             ->where('suspended', false)
-            ->first();
+            ->get();
     }
 
     /**
@@ -123,12 +130,7 @@ class User extends Authenticatable
      */
     public function recordDetails()
     {
-        return User::select(
-            DB::raw("id,name,user_name,mobile, email, user_type,address,
-        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(created_at,'HH12:MI:SS AM') as time
-        ")
-        )
+        return User::select("id", "user_name" ,"mobile", "email", "user_type","address","designation", "employee_code")
         ->where('suspended', false)
         ->orderByDesc('id');
         // ->get();

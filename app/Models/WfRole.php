@@ -23,7 +23,7 @@ class WfRole extends Model
     {
         return WfRole::where(DB::raw('upper(role_name)'), strtoupper($req->roleName))
             ->where('is_suspended', false)
-            ->first();
+            ->get();
     }
 
     /*Read all Records by*/
