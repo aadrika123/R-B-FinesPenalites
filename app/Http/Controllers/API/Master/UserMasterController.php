@@ -37,13 +37,13 @@ class UserMasterController extends Controller
     {
         $validator = Validator::make($req->all(), [
             'firstName'               => 'required|string',
-            'middleName'              => 'required|string',
+            'middleName'              => 'nullable|string',
             'lastName'                => 'required|string',
             'designation'             => 'required|string',
-            'mobileNo'                  => 'required|numeric|digits:10',
+            'mobileNo'                => 'required|numeric|digits:10',
             'address'                 => 'nullable|string',
             'employeeCode'            => 'required|string',
-            'signature'               => 'nullable|file',
+            // 'signature'               => 'nullable|file',
             'email'                   => 'required|email',
             // 'password'                => 'required|string', 
             // 'confirmPassword'         => 'required|same:password',
@@ -79,7 +79,8 @@ class UserMasterController extends Controller
 
             $user = $this->_mUsers->store($metaReqs);
             $token = Password::createToken($user);
-            // http://203.129.217.246/fines/set-password
+            $user->update(["remember_token" => $token]);
+
             // $url = "http://203.129.217.246/fines";
             $url = "http://192.168.0.159:5000/fines";
             $resetLink = $url . "/set-password/{$token}/{$user->id}";
@@ -205,14 +206,19 @@ class UserMasterController extends Controller
     public function setPassword(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'id' => 'required',
+            'userId' => 'required',
             'password' => 'required',
         ]);
         if ($validator->fails())
             return validationError($validator);
         try {
             //check user suspended status
-            $userDetail = User::find($req->id);
+            $userDetail = User::where('id', $req->userId)
+                ->where('suspended', false)
+                ->first();
+            if (!$userDetail)
+                throw new Exception("User Not Found");
+
             $userDetail->password = Hash::make($req->password);
             $userDetail->save();
 
