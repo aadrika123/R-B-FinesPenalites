@@ -179,6 +179,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('user/crud/get', 'getUserById');                                // Get By Id --------------- 0903
         Route::post('user/crud/list', 'getUserList');                               // Get All ----------------- 0904
         Route::post('user/crud/delete', 'deleteUser');                              // Delete ------------------ 0905
-        Route::post('user/set-password', 'setPassword');                              // Delete ------------------ 0906
+        Route::post('user/set-password', 'setPassword')->withoutMiddleware('auth:sanctum');                              // Delete ------------------ 0906
     });
 });

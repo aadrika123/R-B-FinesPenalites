@@ -71,7 +71,7 @@ class UserMasterController extends Controller
                 'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
                 'mobile'         => $req->mobileNo,
                 'email'          => $req->email,
-                'ulb_id'         => $authUser->id,
+                'ulb_id'         => $authUser->ulb_id,
                 'address'        => $req->address,
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
@@ -162,6 +162,7 @@ class UserMasterController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
     /**
      * Get User's List
      */
