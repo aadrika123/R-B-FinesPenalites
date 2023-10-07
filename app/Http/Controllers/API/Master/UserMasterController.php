@@ -8,6 +8,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
@@ -81,12 +82,12 @@ class UserMasterController extends Controller
             // http://203.129.217.246/fines/set-password
             // $url = "http://203.129.217.246/fines";
             $url = "http://192.168.0.159:5000/fines";
-            $resetLink = $url."/set-password/{$user->id}/{$token}";
+            $resetLink = $url . "/set-password/{$user->id}/{$token}";
 
             $emailContent = "Hello,\n\nYou have requested to set your password. Click the link below to reset it:\n\n{$resetLink}\n\nIf you didn't request this password reset, you can ignore this email.";
-            
+
             $htmlEmailContent = "<p>Hello,</p><p>You have requested to set your password. Click the link below to reset it:</p><a href='{$resetLink}'>Reset Password</a><p>If you didn't request this password reset, you can ignore this email.</p>";
-            
+
             Mail::raw($emailContent, function ($message) use ($user) {
                 $message->to($user->email);
                 $message->subject('Password Reset');
@@ -119,8 +120,8 @@ class UserMasterController extends Controller
             return responseMsgs(false, $validator->errors(), []);
         try {
             $user = authUser($req);
-            $getUser = $this->_mUsers::findOrFail($req->userId);  
-            $isExists = $this->_mUsers->checkExisting($req); 
+            $getUser = $this->_mUsers::findOrFail($req->userId);
+            $isExists = $this->_mUsers->checkExisting($req);
             if ($isExists && $isExists->where('id', '!=', $req->userId)->isNotEmpty())
                 throw new Exception("User Already Existing");
             $metaReqs = [
@@ -184,7 +185,7 @@ class UserMasterController extends Controller
             'userId' => 'required'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
             $metaReqs =  [
                 'suspended' => true
@@ -194,6 +195,29 @@ class UserMasterController extends Controller
             return responseMsgs(true, "User Deleted", $metaReqs, "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Set Password
+     */
+    public function setPassword(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required',
+            'password' => 'required',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            //check user suspended status
+            $userDetail = User::find($req->id);
+            $userDetail->password = Hash::make($req->password);
+            $userDetail->save();
+
+            return responseMsgs(true, "Password Reset Succesfully", "", "0906", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "0906", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }
