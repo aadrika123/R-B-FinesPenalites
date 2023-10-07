@@ -206,18 +206,24 @@ class UserMasterController extends Controller
     public function setPassword(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'userId' => 'required',
+            'id' => 'required',
             'password' => 'required',
         ]);
         if ($validator->fails())
             return validationError($validator);
         try {
             //check user suspended status
-            $userDetail = User::where('id', $req->userId)
+            $userDetail = User::where('id', $req->id)
                 ->where('suspended', false)
                 ->first();
             if (!$userDetail)
                 throw new Exception("User Not Found");
+
+            $bearer = $req->header()['authorization'][0];
+            $token = explode(' ', $bearer)[1];
+
+            if ($userDetail->remember_token != $token)
+                throw new Exception("You Are Not Authenticated");
 
             $userDetail->password = Hash::make($req->password);
             $userDetail->save();
