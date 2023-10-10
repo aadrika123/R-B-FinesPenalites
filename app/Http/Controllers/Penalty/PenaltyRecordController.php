@@ -78,13 +78,12 @@ class PenaltyRecordController extends Controller
             $sectionId = $violationDtl->section_id;
             $section = $mSection->sectionById($sectionId)->violation_section;
 
+            DB::beginTransaction();
             $idGeneration = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
             $applicationNo = $idGeneration->generate();
             $metaReqs = $this->generateRequest($req, $applicationNo);
             $metaReqs['challan_type'] = "Via Verification";
             $metaReqs['user_id'] = $user->id;
-
-            DB::beginTransaction();
 
             $data = $this->mPenaltyRecord->store($metaReqs);
             if ($req->file('photo')) {
@@ -424,10 +423,10 @@ class PenaltyRecordController extends Controller
                 'remarks'                     => $req->remarks,
                 'vehicle_no'                  => $req->vehicleNo,
             ];
-            $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $section, 0);
-            $challanNo = $idGeneration->generate();
 
             DB::beginTransaction();
+            $idGeneration = new IdGeneration($challanIdParam, $penaltyRecord->ulb_id, $section, 0);
+            $challanNo = $idGeneration->generate();
             $finalRecord = $mPenaltyFinalRecord->store($finalRecordReqs);
             $challanReqs = [
                 'challan_no'        => $challanNo,
@@ -597,6 +596,9 @@ class PenaltyRecordController extends Controller
                 ->where('penalty_challans.id', $req->challanId)
                 ->first();
 
+            if (!$finalRecord)
+                throw new Exception("Final Record Not Found");
+
             $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
 
             $document = PenaltyDocument::select(
@@ -654,6 +656,8 @@ class PenaltyRecordController extends Controller
             $violationDtl  = $mViolation->violationById($penaltyDetails->violation_id);
             $sectionId     = $violationDtl->section_id;
             $section       = $mSection->sectionById($sectionId)->violation_section;
+
+            DB::beginTransaction();
             $idGeneration  = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
             $transactionNo = $idGeneration->generate();
             $reqs = [
@@ -667,7 +671,6 @@ class PenaltyRecordController extends Controller
                 "penalty_amount" => $challanDetails->penalty_amount,
                 "total_amount"   => $challanDetails->total_amount,
             ];
-            DB::beginTransaction();
             $tranDtl = $mPenaltyTransaction->store($reqs);
             $penaltyDetails->payment_status = 1;
             $penaltyDetails->save();
@@ -737,13 +740,13 @@ class PenaltyRecordController extends Controller
 
             $sectionId     = $violationDtl->section_id;
             $section       = $mSection->sectionById($sectionId)->violation_section;
+
+            DB::beginTransaction();
             $idGeneration  = new IdGeneration($applicationIdParam, $ulbId, $section, 0);
             $applicationNo = $idGeneration->generate();
             $metaReqs      = $this->generateRequest($req, $applicationNo);
             $metaReqs['approved_by'] = $user->id;
             $metaReqs['challan_type'] = "On Spot";
-
-            DB::beginTransaction();
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
             $idGeneration = new IdGeneration($challanIdParam, $finalRecord->ulb_id, $section, 0);
             $challanNo = $idGeneration->generate();
