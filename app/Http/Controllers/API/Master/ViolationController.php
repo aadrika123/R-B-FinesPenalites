@@ -58,7 +58,7 @@ class ViolationController extends Controller
 
     // Edit records
     public function updateViolation(Request $req)
-    { 
+    {
         $validator = Validator::make($req->all(), [
             'violationId'       => 'required|numeric',
             'departmentId'      => 'required|integer',
@@ -147,6 +147,12 @@ class ViolationController extends Controller
      */
     public function getViolationListBySectionId(Request $req)
     {
+        $validator = Validator::make($req->all(), [
+            'sectionId' => 'required',
+            'departmentId' => 'required',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
         try {
             $mChallanCategories = new Violation();
             $getData = $mChallanCategories->getList($req);
@@ -159,24 +165,22 @@ class ViolationController extends Controller
     public function onSpotViolation(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'violationId' => 'required|array', 
-            'violationId.*' => 'required|numeric', 
+            'violationId' => 'required|array',
+            'violationId.*' => 'required|numeric',
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            Violation::where('on_spot', true)->update(['on_spot' => false]); 
-            $idsToUpdate = $req->violationId; 
-            $status = true; 
+            Violation::where('on_spot', true)->update(['on_spot' => false]);
+            $idsToUpdate = $req->violationId;
+            $status = true;
             DB::transaction(function () use ($idsToUpdate, $status) {
                 Violation::whereIn('id', $idsToUpdate)->update(['on_spot' => $status]);
-            }); 
+            });
 
             return responseMsgs(true, "Updated Successfully", $status, "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0407", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
-
     }
-    
 }

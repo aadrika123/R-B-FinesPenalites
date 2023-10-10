@@ -47,7 +47,7 @@ class SectionController extends Controller
 
     // Edit records
     public function updateSection(Request $req)
-    { 
+    {
         $validator = Validator::make($req->all(), [
             'sectionId'             => 'required|numeric',
             'departmentId'          => 'required|numeric',
@@ -130,6 +130,11 @@ class SectionController extends Controller
      */
     public function getSectionListById(Request $req)
     {
+        $validator = Validator::make($req->all(), [
+            'departmentId' => 'required'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
         try {
             $mChallanCategories = new Section();
             $getData = $mChallanCategories->getList($req);
@@ -138,5 +143,4 @@ class SectionController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
 }

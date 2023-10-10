@@ -152,7 +152,7 @@ class PenaltyRecordController extends Controller
     }
 
     /**
-     * | Delete Record(Deactivate)
+     * | Delete Record
      * | API Id : 0604
      */
     public function delete(Request $req)
@@ -1024,6 +1024,7 @@ class PenaltyRecordController extends Controller
             'violation_place'            => $req->violationPlace,
             'challan_type'               => $req->challanType,
             'category_type_id'           => $req->categoryTypeId ?? 2,
+            'ward_id'                    => $req->wardId,
         ];
     }
 

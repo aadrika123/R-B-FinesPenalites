@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Master;
 
 use App\Http\Controllers\Controller;
 use App\Mail\VerifyEmail;
+use App\Models\UlbWardMaster;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -111,7 +112,7 @@ class UserMasterController extends Controller
             'middleName'              => 'required|string',
             'lastName'                => 'required|string',
             'designation'             => 'required|string',
-            'mobileNo'                  => 'required|numeric|digits:10',
+            'mobileNo'                => 'required|numeric|digits:10',
             'address'                 => 'required|string',
             'employeeCode'            => 'required|string',
             'signature'               => 'nullable|file',
@@ -231,6 +232,30 @@ class UserMasterController extends Controller
             return responseMsgs(true, "Password Reset Succesfully", "", "0906", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0906", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Ward List
+     */
+    public function wardList(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'ulbId' => 'nullable',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $ulbId = $req->ulbId ?? authUser()->ulb_id;
+            if (!$ulbId)
+                throw new Exception("Please Provide Ulb");
+
+            $mUlbWardMaster = new UlbWardMaster();
+            $wardList = $mUlbWardMaster->getWardList($ulbId);
+
+            return responseMsgs(true, "Ward List", $wardList, "0907", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "0907", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

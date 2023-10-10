@@ -20,6 +20,8 @@ class PenaltyDocument extends Model
 
         $documentTypes = [
             'photo'      => 'Violation Image',
+            'photo2'     => 'Violation Image',
+            'photo3'     => 'Violation Image',
             'audioVideo' => 'Violation Video',
             'pdf'        => 'Violation Document',
         ];

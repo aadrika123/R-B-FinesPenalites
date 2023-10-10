@@ -82,7 +82,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('section/crud/list', 'getSectionList');                                  // Get All ----------------- 0304
         Route::post('section/crud/delete', 'deleteSection');                                 // Delete ------------------ 0305
         Route::post('section/list', 'getSectionListById');                                   // Get All ----------------- 0306
-
     });
 
     /**
@@ -97,8 +96,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation/crud/delete', 'deleteViolation');                             // Delete ------------------ 0405
         Route::post('violation/list', 'getViolationListBySectionId');                        // Get All ----------------- 0406
         Route::post('violation/onspot', 'onSpotViolation');                        // Get All ----------------- 0407
-
-
     });
 
     /**
@@ -174,11 +171,12 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 9
      */
     Route::controller(UserMasterController::class)->group(function () {
-        Route::post('user/crud/create', 'createUser');                              // Save -------------------- 0901
-        Route::post('user/crud/edit', 'updateUser');                                // Edit  ------------------- 0902
-        Route::post('user/crud/get', 'getUserById');                                // Get By Id --------------- 0903
-        Route::post('user/crud/list', 'getUserList');                               // Get All ----------------- 0904
-        Route::post('user/crud/delete', 'deleteUser');                              // Delete ------------------ 0905
-        Route::post('user/set-password', 'setPassword')->withoutMiddleware('auth:sanctum');                              // Delete ------------------ 0906
+        Route::post('user/crud/create', 'createUser');                                          #_Save -------------------- 0901
+        Route::post('user/crud/edit', 'updateUser');                                            #_Edit  ------------------- 0902
+        Route::post('user/crud/get', 'getUserById');                                            #_Get By Id --------------- 0903
+        Route::post('user/crud/list', 'getUserList');                                           #_Get All ----------------- 0904
+        Route::post('user/crud/delete', 'deleteUser');                                          #_Delete ------------------ 0905
+        Route::post('user/set-password', 'setPassword')->withoutMiddleware('auth:sanctum');     #_Set Password ------------ 0906
+        Route::post('ward-list', 'wardList');                                                   #_Ward List --------------- 0907
     });
 });

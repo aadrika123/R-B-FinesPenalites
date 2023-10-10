@@ -14,16 +14,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    // protected $fillable = [
-    //     'name',
-    //     'email',
-    //     'password',
-    // ];
     protected $guarded = [];
 
     /**
@@ -68,7 +58,7 @@ class User extends Authenticatable
         return $dataArr;
     }
 
-     /**
+    /**
      * | Get User by Email
      */
     public function getUserByEmail($email)
@@ -94,14 +84,14 @@ class User extends Authenticatable
             // ->leftjoin('wf_roleusermaps', 'wf_roleusermaps.user_id', 'users.id')
             // ->leftjoin('wf_roles', 'wf_roles.id', 'wf_roleusermaps.wf_role_id')
             ->where('suspended', false);
-            // ->where('wf_roleusermaps.is_suspended', false);
+        // ->where('wf_roleusermaps.is_suspended', false);
     }
     /*Read all Records by*/
     public function getList()
     {
         return User::select('*')
-        ->orderBy('id')
-        ->get();
+            ->orderBy('id')
+            ->get();
     }
 
 
@@ -130,10 +120,22 @@ class User extends Authenticatable
      */
     public function recordDetails()
     {
-        return User::select("id", "user_name" ,"mobile", "email", "user_type","address","designation", "employee_code")
-        ->where('suspended', false)
-        ->orderByDesc('id');
+        return User::select(
+            "id",
+            "user_name",
+            "mobile",
+            "email",
+            "user_type",
+            "address",
+            "designation",
+            "employee_code",
+            "first_name",
+            "middle_name",
+            "last_name",
+            "created_at as date"
+        )
+            ->where('suspended', false)
+            ->orderByDesc('id');
         // ->get();
     }
-    
 }
