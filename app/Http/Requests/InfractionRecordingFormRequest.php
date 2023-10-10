@@ -39,7 +39,7 @@ class InfractionRecordingFormRequest extends FormRequest
             'witnessName' => 'nullable|string',
             'witnessMobile' => 'nullable|string',
             'wardId' => 'nullable|int',
-            // 'photo' => 'required|file',
+            // 'photo' => 'required',
             // 'latitude' => 'required',
             // 'longitude' => 'required',
             'audioVideo' => 'nullable',

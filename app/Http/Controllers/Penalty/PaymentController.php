@@ -5,20 +5,20 @@ namespace App\Http\Controllers\Penalty;
 use App\Http\Controllers\Controller;
 use App\IdGenerator\IdGeneration;
 use App\Models\IdGenerationParam;
+use App\Models\PenaltyChallan;
+use App\Models\PenaltyFinalRecord;
+use App\Models\PenaltyTransaction;
 use App\Models\Master\Section;
 use App\Models\Master\Violation;
 use App\Models\Payment\CcAvenueReq;
 use App\Models\Payment\CcAvenueResponse;
-use App\Models\PenaltyChallan;
-use App\Models\PenaltyFinalRecord;
-use App\Models\PenaltyTransaction;
-use Carbon\Carbon;
-use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Exception;
 
 /**
  * =======================================================================================================

@@ -38,9 +38,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
          Controller No : 1
  */
 Route::controller(UserController::class)->group(function () {
-    Route::post('login', 'loginAuth');                                                    // Login -------------------- 0101
-    Route::post('register', 'register');                                                  // Register ----------------- 0102
-    Route::post('logout', 'logout')->middleware('auth:sanctum');                          // Logout ------------------- 0103
+    Route::post('login', 'loginAuth');                                                       #_Login -------------------- 0101
+    Route::post('register', 'register');                                                     #_Register ----------------- 0102
+    Route::post('logout', 'logout')->middleware('auth:sanctum');                             #_Logout ------------------- 0103
 });
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -50,11 +50,9 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 1
      */
     Route::controller(UserController::class)->group(function () {
-        Route::post('change-password', 'changePass');                                        // Change Password --------- 0103
-        Route::post('otp/change-password', 'changePasswordByOtp');                           // Forget Password --------- 0104
-
-        // User Profile APIs
-        Route::get('my-profile-details', 'myProfileDetails');                                // Profile ----------------- 0105
+        Route::post('change-password', 'changePass');                                        #_Change Password --------- 0103
+        Route::post('otp/change-password', 'changePasswordByOtp');                           #_Forget Password --------- 0104
+        Route::get('my-profile-details', 'myProfileDetails');                                #_Profile Details --------- 0105
     });
 
     /**
@@ -62,12 +60,12 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 2
      */
     Route::controller(DepartmentController::class)->group(function () {
-        Route::post('department/crud/save', 'createDepartment');                              // Save -------------------- 0201
-        Route::post('department/crud/edit', 'updateDepartment');                              // Edit  ------------------- 0202
-        Route::post('department/crud/get', 'getDepartmentById');                              // Get By Id --------------- 0203
-        Route::post('department/crud/list', 'getDepartmentList');                             // Get All ----------------- 0204
-        Route::post('department/crud/delete', 'deleteDepartment');                            // Delete ------------------ 0205
-        Route::post('department/list', 'getDepartmentList');                                  // Get All ----------------- 0206
+        Route::post('department/crud/save', 'createDepartment');                              #_Save -------------------- 0201
+        Route::post('department/crud/edit', 'updateDepartment');                              #_Edit  ------------------- 0202
+        Route::post('department/crud/get', 'getDepartmentById');                              #_Get By Id --------------- 0203
+        Route::post('department/crud/list', 'getDepartmentList');                             #_Get All ----------------- 0204
+        Route::post('department/crud/delete', 'deleteDepartment');                            #_Delete ------------------ 0205
+        Route::post('department/list', 'getDepartmentList');                                  #_Get All ----------------- 0206
 
     });
 
@@ -76,12 +74,12 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 3
      */
     Route::controller(SectionController::class)->group(function () {
-        Route::post('section/crud/save', 'createSection');                                   // Save -------------------- 0301
-        Route::post('section/crud/edit', 'updateSection');                                   // Edit  ------------------- 0302
-        Route::post('section/crud/get', 'getSectionById');                                   // Get By Id --------------- 0303
-        Route::post('section/crud/list', 'getSectionList');                                  // Get All ----------------- 0304
-        Route::post('section/crud/delete', 'deleteSection');                                 // Delete ------------------ 0305
-        Route::post('section/list', 'getSectionListById');                                   // Get All ----------------- 0306
+        Route::post('section/crud/save', 'createSection');                                   #_Save -------------------- 0301
+        Route::post('section/crud/edit', 'updateSection');                                   #_Edit  ------------------- 0302
+        Route::post('section/crud/get', 'getSectionById');                                   #_Get By Id --------------- 0303
+        Route::post('section/crud/list', 'getSectionList');                                  #_Get All ----------------- 0304
+        Route::post('section/crud/delete', 'deleteSection');                                 #_Delete ------------------ 0305
+        Route::post('section/list', 'getSectionListById');                                   #_Get All ----------------- 0306
     });
 
     /**
@@ -89,13 +87,13 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 4
      */
     Route::controller(ViolationController::class)->group(function () {
-        Route::post('violation/crud/save', 'createViolation');                               // Save -------------------- 0401
-        Route::post('violation/crud/edit', 'updateViolation');                               // Edit  ------------------- 0402
-        Route::post('violation/crud/get', 'ViolationById');                                  // Get By Id --------------- 0403
-        Route::post('violation/crud/list', 'getViolation');                                  // Get All ----------------- 0404
-        Route::post('violation/crud/delete', 'deleteViolation');                             // Delete ------------------ 0405
-        Route::post('violation/list', 'getViolationListBySectionId');                        // Get All ----------------- 0406
-        Route::post('violation/onspot', 'onSpotViolation');                        // Get All ----------------- 0407
+        Route::post('violation/crud/save', 'createViolation');                               #_Save -------------------- 0401
+        Route::post('violation/crud/edit', 'updateViolation');                               #_Edit  ------------------- 0402
+        Route::post('violation/crud/get', 'ViolationById');                                  #_Get By Id --------------- 0403
+        Route::post('violation/crud/list', 'getViolation');                                  #_Get All ----------------- 0404
+        Route::post('violation/crud/delete', 'deleteViolation');                             #_Delete ------------------ 0405
+        Route::post('violation/list', 'getViolationListBySectionId');                        #_Get All ----------------- 0406
+        Route::post('violation/onspot', 'onSpotViolation');                                  #_Get All ----------------- 0407
     });
 
     /**
@@ -103,16 +101,13 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 5
      */
     Route::controller(ViolationSectionController::class)->group(function () {
-        Route::post('violation-section/crud/save', 'createViolationSection');                // Save -------------------- 0501
-        Route::post('violation-section/crud/edit', 'updateViolationSection');                // Edit  ------------------- 0502
-        Route::post('violation-section/crud/get', 'getSectionById');                         // Get By Id --------------- 0503
-        Route::post('violation-section/crud/list', 'getSectionList');                        // Get All ----------------- 0504
-        Route::post('violation-section/crud/delete', 'deleteSection');                       // Delete ------------------ 0505
-
-        Route::post('user-list', 'getUserList');                                             // Get All ----------------- 0506
-        Route::post('challan-category/list', 'getCategoryList');                             // Get All ----------------- 0507
-
-
+        Route::post('violation-section/crud/save', 'createViolationSection');                #_Save -------------------- 0501
+        Route::post('violation-section/crud/edit', 'updateViolationSection');                #_Edit  ------------------- 0502
+        Route::post('violation-section/crud/get', 'getSectionById');                         #_Get By Id --------------- 0503
+        Route::post('violation-section/crud/list', 'getSectionList');                        #_Get All ----------------- 0504
+        Route::post('violation-section/crud/delete', 'deleteSection');                       #_Delete ------------------ 05#_
+        Route::post('user-list', 'getUserList');                                             #_Get All ----------------- 0506
+        Route::post('challan-category/list', 'getCategoryList');                             #_Get All ----------------- 0507
     });
 
 
@@ -122,11 +117,11 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 6
      */
     Route::controller(PenaltyRecordController::class)->group(function () {
-        Route::post('penalty-record/crud/save', 'store');                                      // Save ---------------- 0601
-        Route::post('penalty-record/crud/show', 'show');                                       // Get By Id ----------- 0602
-        Route::post('penalty-record/crud/active-all', 'activeAll');                            // Get Active All ------ 0603
-        Route::post('penalty-record/crud/delete', 'delete');                                   // Delete -------------- 0604
-        Route::post('penalty-record/crud/search', 'searchByApplicationNo');                    // search -------------- 0605
+        Route::post('penalty-record/crud/save', 'store');                                      #_Save ---------------- 0601
+        Route::post('penalty-record/crud/show', 'show');                                       #_Get By Id ----------- 0602
+        Route::post('penalty-record/crud/active-all', 'activeAll');                            #_Get Active All ------ 0603
+        Route::post('penalty-record/crud/delete', 'delete');                                   #_Delete -------------- 0604
+        Route::post('penalty-record/crud/search', 'searchByApplicationNo');                    #_search -------------- 0605
 
         Route::post('penalty-record/get-uploaded-document', 'getUploadedDocuments');                          #_get uploaded documents ---------- 0606
         Route::post('penalty-record/inbox', 'inbox');                                                         #_inbox details ------------------- 0607
@@ -159,11 +154,11 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 8
      */
     Route::controller(WfRoleMasterController::class)->group(function () {
-        Route::post('wfrole/crud/save', 'createRole');                              // Save -------------------- 0801
-        Route::post('wfrole/crud/edit', 'updateRole');                              // Edit  ------------------- 0802
-        Route::post('wfrole/crud/get', 'getRoleById');                              // Get By Id --------------- 0803
-        Route::post('wfrole/crud/list', 'getRoleList');                             // Get All ----------------- 0804
-        Route::post('wfrole/crud/delete', 'deleteRole');                            // Delete ------------------ 0805
+        Route::post('wfrole/crud/save', 'createRole');                              #_Save -------------------- 0801
+        Route::post('wfrole/crud/edit', 'updateRole');                              #_Edit  ------------------- 0802
+        Route::post('wfrole/crud/get', 'getRoleById');                              #_Get By Id --------------- 0803
+        Route::post('wfrole/crud/list', 'getRoleList');                             #_Get All ----------------- 0804
+        Route::post('wfrole/crud/delete', 'deleteRole');                            #_Delete ------------------ 0805
     });
 
     /**

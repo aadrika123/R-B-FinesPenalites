@@ -432,6 +432,7 @@ class PenaltyRecordController extends Controller
             $challanReqs = [
                 'challan_no'        => $challanNo,
                 'challan_date'      => Carbon::now(),
+                'challan_time'      => Carbon::now(),
                 'payment_date'      => $req->paymentDate,
                 'penalty_record_id' => $finalRecord->id,
                 'amount'            => $finalRecord->amount,
@@ -755,6 +756,7 @@ class PenaltyRecordController extends Controller
             $challanReqs = [
                 'challan_no'        => $challanNo,
                 'challan_date'      => Carbon::now(),
+                'challan_time'      => Carbon::now(),
                 'payment_date'      => $req->paymentDate,
                 'penalty_record_id' => $finalRecord->id,
                 'amount'            => $finalRecord->amount,
