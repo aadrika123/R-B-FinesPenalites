@@ -46,21 +46,23 @@ class PenaltyRecord extends Model
             'sections.violation_section',
             'departments.department_name as department',
             'ulb_ward_masters.ward_name',
+            // 'penalty_documents.*',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
                         WHEN penalty_applied_records.status = '0' THEN 'Deactivated'  
-                        WHEN penalty_applied_records.status = '2' THEN 'Approved'  
+            WHEN penalty_applied_records.status = '2' THEN 'Approved'  
                     END as status,
                     TO_CHAR(penalty_applied_records.created_at::date,'dd-mm-yyyy') as date,
-                    TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time",
-                //concat('$docUrl/',document_path) as geo_tagged_image
+                    TO_CHAR(penalty_applied_records.created_at,'HH12:MI:SS AM') as time,
+                concat('$docUrl/',document_path) as geo_tagged_image",
             )
         )
             ->join('violations', 'violations.id', 'penalty_applied_records.violation_id')
             ->join('sections', 'sections.id',  'violations.section_id')
             ->join('departments', 'departments.id', 'violations.department_id')
             ->leftjoin('ulb_ward_masters', 'ulb_ward_masters.id', 'penalty_applied_records.ward_id')
+            ->join('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
             ->orderByDesc('penalty_applied_records.id');
     }
 

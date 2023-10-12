@@ -29,6 +29,11 @@ class PenaltyDocument extends Model
         foreach ($documentTypes as $inputName => $documentName) {
             if ($req->file($inputName)) {
                 $file = $req->file($inputName);
+
+                // $refImageName = rand();
+                // $extention = $file->getClientOriginalExtension();
+                // $imageName = time() . '-' . $refImageName . '.' . $extention;
+
                 $docPath = $file->move(public_path('FinePenalty/'), $file->getClientOriginalName());
                 $file_name = 'FinePenalty/' . $file->getClientOriginalName();
                 $docType = $file->getClientOriginalExtension();

@@ -118,6 +118,14 @@ class PenaltyRecordController extends Controller
             if (!$penaltyDetails)
                 throw new Exception("Data Not Found");
 
+            // $document = PenaltyDocument::select(
+            //     DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
+            // )
+            //     ->where('penalty_documents.applied_record_id', $penaltyDetails->id)
+            //     ->where('penalty_documents.challan_type', 'Via Verification')
+            //     ->first();
+            // $data = collect($finalRecord)->merge($document);
+
 
             return responseMsgs(true, "View Records", $penaltyDetails, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
