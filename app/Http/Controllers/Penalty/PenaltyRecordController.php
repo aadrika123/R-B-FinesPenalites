@@ -127,7 +127,6 @@ class PenaltyRecordController extends Controller
                 ->first();
             $data = collect($penaltyDetails)->merge($document);
 
-
             return responseMsgs(true, "View Records", $data, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "0602", responseTime(), $req->getMethod(), $req->deviceId);
@@ -324,17 +323,17 @@ class PenaltyRecordController extends Controller
                 'data' => $addressDetails
             ];
 
-            $witnessDetails = $this->generateWitnessDetails($details);
-            $witnessElement = [
-                'headerTitle' => "Witness Details",
-                'data' => $witnessDetails
-            ];
+            // $witnessDetails = $this->generateWitnessDetails($details);
+            // $witnessElement = [
+            //     'headerTitle' => "Witness Details",
+            //     'data' => $witnessDetails
+            // ];
 
             $fullDetailsData['application_no'] = $details->application_no;
             $fullDetailsData['payment_status'] = false;
             $fullDetailsData['challan_status'] = false;
             $fullDetailsData['apply_date'] = date('d-m-Y', strtotime($details->created_at));
-            $fullDetailsData['fullDetailsData']['dataArray'] = new Collection([$basicElement, $addressElement, $penaltyElement, $witnessElement]);
+            $fullDetailsData['fullDetailsData']['dataArray'] = new Collection([$basicElement, $addressElement, $penaltyElement]);
 
             // Card Details
             $cardElement = $this->generateCardDtls($details);
@@ -1044,6 +1043,7 @@ class PenaltyRecordController extends Controller
             'challan_type'               => $req->challanType,
             'category_type_id'           => $req->categoryTypeId ?? 2,
             'ward_id'                    => $req->wardId,
+            'trade_license_no'           => $req->tradeLicenseNo,
         ];
     }
 

@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
@@ -120,6 +121,7 @@ class User extends Authenticatable
      */
     public function recordDetails()
     {
+        $docUrl = Config::get('constants.DOC_URL');
         return User::select(
             "id",
             "user_name",
@@ -132,7 +134,9 @@ class User extends Authenticatable
             "first_name",
             "middle_name",
             "last_name",
-            "created_at as date"
+            "created_at as date",
+            DB::raw("concat('$docUrl/',signature) as signature"),
+            DB::raw("concat('$docUrl/',profile_image) as profile_image"),
         )
             ->where('suspended', false)
             ->orderByDesc('id');

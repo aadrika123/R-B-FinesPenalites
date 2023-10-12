@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\DocUpload;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,7 @@ class PenaltyDocument extends Model
     public function storeDocument($req, $id, $applicationNo)
     {
         $data = [];
+        $docUpload = new DocUpload;
 
         $documentTypes = [
             'photo'      => 'Violation Image',
@@ -31,10 +33,14 @@ class PenaltyDocument extends Model
             if ($req->file($inputName)) {
                 $file = $req->file($inputName);
                 $refImageName = Str::random(5);
-
                 $extention = $file->getClientOriginalExtension();
-                $imageName = time() . '-' . $refImageName . '.' . $extention;
-                $file->move(public_path('FinePenalty/'), $imageName);
+
+                #_Doc Upload through a Class
+                $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/');
+
+                // $extention = $file->getClientOriginalExtension();
+                // $imageName = time() . '-' . $refImageName . '.' . $extention;
+                // $file->move(public_path('FinePenalty/'), $imageName);
 
                 $docMetadata = new PenaltyDocument([
                     'applied_record_id' => $id,

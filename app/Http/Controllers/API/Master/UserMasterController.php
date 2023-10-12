@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Master;
 
+use App\DocUpload;
 use App\Http\Controllers\Controller;
 use App\Mail\VerifyEmail;
 use App\Models\UlbWardMaster;
@@ -54,17 +55,29 @@ class UserMasterController extends Controller
         try {
             $authUser = authUser($req);
             $metaReqs = [];
+            $docUpload = new DocUpload;
             $isGroupExists = $this->_mUsers->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("User Already Existing");
+
             if ($req->file('signature')) {
+                $refImageName = Str::random(5);
                 $file = $req->file('signature');
-                $docPath = $file->move(public_path('FinePenalty/Users'), $file->getClientOriginalName());
-                $file_name = 'FinePenalty/Users/' . $file->getClientOriginalName();
+                $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/Users');
                 $metaReqs = array_merge($metaReqs, [
-                    'signature' => $file_name,
+                    'signature' => $imageName,
                 ]);
             }
+
+            if ($req->file('profile')) {
+                $refImageName = Str::random(5);
+                $file = $req->file('profile');
+                $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/Users');
+                $metaReqs = array_merge($metaReqs, [
+                    'profile_image' => $imageName,
+                ]);
+            }
+
             $metaReqs = array_merge($metaReqs, [
                 'first_name'     => $req->firstName,
                 'middle_name'    => $req->middleName,
@@ -159,6 +172,7 @@ class UserMasterController extends Controller
             $getData = $this->_mUsers->recordDetails($req)->where('id', $req->userId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
+
             return responseMsgs(true, "View User", $getData, "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
