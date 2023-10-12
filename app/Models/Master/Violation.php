@@ -44,7 +44,7 @@ class Violation extends Model
      * Get All Records
      */
     public function recordDetails()
-    {   
+    {
         return Violation::select(
             DB::raw("violations.id,violations.violation_name,violations.penalty_amount, violations.on_spot,
             sections.violation_section, departments.department_name,users.user_name as created_by,
@@ -70,7 +70,7 @@ class Violation extends Model
     public function getList($req)
     {
         return Violation::select(
-            DB::raw("id,violation_name,penalty_amount,section_id,department_id,
+            DB::raw("id,violation_name,penalty_amount,section_id,on_spot,department_id,
         CASE 
             WHEN status = '0' THEN 'Deactivated'  
             WHEN status = '1' THEN 'Active'

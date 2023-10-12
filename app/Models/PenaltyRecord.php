@@ -33,7 +33,6 @@ class PenaltyRecord extends Model
 
     /**
      * | Read Record Details
-        remove left join from document
      */
     public function recordDetail()
     {
@@ -42,9 +41,11 @@ class PenaltyRecord extends Model
             'penalty_applied_records.*',
             'violations.violation_name',
             'violations.section_id',
+            'violations.department_id',
             'violations.violation_name as section_definition',
             'sections.violation_section',
             'departments.department_name as department',
+            'ulb_ward_masters.ward_name',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -59,7 +60,7 @@ class PenaltyRecord extends Model
             ->join('violations', 'violations.id', 'penalty_applied_records.violation_id')
             ->join('sections', 'sections.id',  'violations.section_id')
             ->join('departments', 'departments.id', 'violations.department_id')
-            // ->join('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
+            ->leftjoin('ulb_ward_masters', 'ulb_ward_masters.id', 'penalty_applied_records.ward_id')
             ->orderByDesc('penalty_applied_records.id');
     }
 

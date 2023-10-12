@@ -117,6 +117,8 @@ class PenaltyRecordController extends Controller
 
             if (!$penaltyDetails)
                 throw new Exception("Data Not Found");
+
+
             return responseMsgs(true, "View Records", $penaltyDetails, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "0602", responseTime(), $req->getMethod(), $req->deviceId);
@@ -446,23 +448,23 @@ class PenaltyRecordController extends Controller
             DB::commit();
 
             #_Whatsaap Message
-            // if (strlen($finalRecord->mobile) == 10) {
+            if (strlen($finalRecord->mobile) == 10) {
 
-            //     $whatsapp2 = (Whatsapp_Send(
-            //         $finalRecord->mobile,
-            //         "rmc_fp_1",
-            //         [
-            //             "content_type" => "text",
-            //             [
-            //                 $finalRecord->full_name ?? "Violator",
-            //                 $challanRecord->challan_no,
-            //                 $section,
-            //                 $challanRecord->total_amount,
-            //                 (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
-            //             ]
-            //         ]
-            //     ));
-            // }
+                $whatsapp2 = (Whatsapp_Send(
+                    $finalRecord->mobile,
+                    "rmc_fp_1",
+                    [
+                        "content_type" => "text",
+                        [
+                            $finalRecord->full_name ?? "Violator",
+                            $challanRecord->challan_no,
+                            $section,
+                            $challanRecord->total_amount,
+                            (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
+                        ]
+                    ]
+                ));
+            }
 
             return responseMsgs(true, "", $data, "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -582,6 +584,7 @@ class PenaltyRecordController extends Controller
                 'violations.violation_name',
                 'sections.violation_section',
                 'tran_no',
+                'ward_name',
                 DB::raw(
                     "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
                     TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
@@ -589,6 +592,7 @@ class PenaltyRecordController extends Controller
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
+                ->leftjoin('ulb_ward_masters', 'ulb_ward_masters.id', 'penalty_final_records.ward_id')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
                 ->where('penalty_challans.id', $req->challanId)
@@ -606,7 +610,10 @@ class PenaltyRecordController extends Controller
                 ->where('penalty_documents.challan_type', $finalRecord->challan_type)
                 ->first();
 
+            // $doc = collect($document)->pluck('geo_tagged_image');
+
             $data = collect($finalRecord)->merge($document);
+            // return  $data = collect($document)->merge($finalRecord);
 
             if ($data->isEmpty())
                 throw new Exception("No Data Found againt this challan.");
