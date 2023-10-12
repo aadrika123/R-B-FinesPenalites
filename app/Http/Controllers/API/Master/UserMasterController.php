@@ -46,6 +46,7 @@ class UserMasterController extends Controller
             'address'                 => 'nullable|string',
             'employeeCode'            => 'required|string',
             // 'signature'               => 'nullable|file',
+            // 'profile'               => 'nullable|file',
             'email'                   => 'required|email',
             // 'password'                => 'required|string', 
             // 'confirmPassword'         => 'required|same:password',
