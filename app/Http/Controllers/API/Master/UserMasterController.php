@@ -90,10 +90,10 @@ class UserMasterController extends Controller
 
             $htmlEmailContent = "<p>Hello,</p><p>You have requested to set your password. Click the link below to reset it:</p><a href='{$resetLink}'>Reset Password</a><p>If you didn't request this password reset, you can ignore this email.</p>";
 
-            Mail::raw($emailContent, function ($message) use ($user) {
-                $message->to($user->email);
-                $message->subject('Password Reset');
-            });
+            // Mail::raw($emailContent, function ($message) use ($user) {
+            //     $message->to($user->email);
+            //     $message->subject('Password Reset');
+            // });
 
             return responseMsgs(true, "Password Set Link Send to your email !", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
