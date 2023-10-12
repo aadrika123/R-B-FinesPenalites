@@ -70,18 +70,18 @@ class Violation extends Model
     public function getList($req)
     {
         return Violation::select(
-            DB::raw("id,violation_name,penalty_amount,section_id,on_spot,department_id,
+            DB::raw("violations.id,violation_name,penalty_amount,section_id,violation_section,on_spot,violations.department_id,
         CASE 
-            WHEN status = '0' THEN 'Deactivated'  
-            WHEN status = '1' THEN 'Active'
+            WHEN violations.status = '0' THEN 'Deactivated'  
+            WHEN violations.status = '1' THEN 'Active'
         END as status,
-        TO_CHAR(created_at::date,'dd-mm-yyyy') as date,
-        TO_CHAR(created_at,'HH12:MI:SS AM') as time
+        TO_CHAR(violations.created_at::date,'dd-mm-yyyy') as date,
+        TO_CHAR(violations.created_at,'HH12:MI:SS AM') as time
         ")
         )
-            ->where('section_id', $req->sectionId)
-            ->where('department_id', $req->departmentId)
-            ->where('status', 1)
+            ->join('sections', 'sections.id', 'violations.section_id')
+            ->where('violations.department_id', $req->departmentId)
+            ->where('violations.status', 1)
             ->orderByDesc('id')
             ->get();
     }

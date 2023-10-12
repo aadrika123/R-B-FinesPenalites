@@ -143,12 +143,11 @@ class ViolationController extends Controller
 
 
     /**
-     * | Get Violation List By Department Id & Section Id
+     * | Get Violation List By Department Id
      */
-    public function getViolationListBySectionId(Request $req)
+    public function violationByDepartment(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'sectionId' => 'required',
             'departmentId' => 'required',
         ]);
         if ($validator->fails())

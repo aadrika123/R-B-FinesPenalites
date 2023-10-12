@@ -9,6 +9,7 @@ use App\Http\Controllers\API\Master\ViolationController;
 use App\Http\Controllers\API\Master\ViolationSectionController;
 use App\Http\Controllers\API\Master\WfRoleMasterController;
 use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Penalty\PaymentController;
 use App\Http\Controllers\Penalty\PenaltyRecordController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -92,7 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('violation/crud/get', 'ViolationById');                                  #_Get By Id --------------- 0403
         Route::post('violation/crud/list', 'getViolation');                                  #_Get All ----------------- 0404
         Route::post('violation/crud/delete', 'deleteViolation');                             #_Delete ------------------ 0405
-        Route::post('violation/list', 'getViolationListBySectionId');                        #_Get All ----------------- 0406
+        Route::post('violation/by-department', 'violationByDepartment');                     #_Violation By Department-- 0406
         Route::post('violation/onspot', 'onSpotViolation');                                  #_Get All ----------------- 0407
     });
 

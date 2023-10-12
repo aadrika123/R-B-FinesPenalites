@@ -110,6 +110,7 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $docUrl = Config::get('constants.DOC_URL');
             $penaltyDetails = $this->mPenaltyRecord->recordDetail()
                 //query for chalan no
                 ->where('penalty_applied_records.id', $req->id)
@@ -118,16 +119,16 @@ class PenaltyRecordController extends Controller
             if (!$penaltyDetails)
                 throw new Exception("Data Not Found");
 
-            // $document = PenaltyDocument::select(
-            //     DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
-            // )
-            //     ->where('penalty_documents.applied_record_id', $penaltyDetails->id)
-            //     ->where('penalty_documents.challan_type', 'Via Verification')
-            //     ->first();
-            // $data = collect($finalRecord)->merge($document);
+            $document = PenaltyDocument::select(
+                DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
+            )
+                ->where('penalty_documents.applied_record_id', $penaltyDetails->id)
+                ->where('penalty_documents.challan_type', 'Via Verification')
+                ->first();
+            $data = collect($penaltyDetails)->merge($document);
 
 
-            return responseMsgs(true, "View Records", $penaltyDetails, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $data, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), [], "", "0602", responseTime(), $req->getMethod(), $req->deviceId);
         }

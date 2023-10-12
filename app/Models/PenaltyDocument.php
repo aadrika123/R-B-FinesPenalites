@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PenaltyDocument extends Model
 {
@@ -29,25 +30,20 @@ class PenaltyDocument extends Model
         foreach ($documentTypes as $inputName => $documentName) {
             if ($req->file($inputName)) {
                 $file = $req->file($inputName);
+                $refImageName = Str::random(5);
 
-                // $refImageName = rand();
-                // $extention = $file->getClientOriginalExtension();
-                // $imageName = time() . '-' . $refImageName . '.' . $extention;
-
-                $docPath = $file->move(public_path('FinePenalty/'), $file->getClientOriginalName());
-                $file_name = 'FinePenalty/' . $file->getClientOriginalName();
-                $docType = $file->getClientOriginalExtension();
+                $extention = $file->getClientOriginalExtension();
+                $imageName = time() . '-' . $refImageName . '.' . $extention;
+                $file->move(public_path('FinePenalty/'), $imageName);
 
                 $docMetadata = new PenaltyDocument([
                     'applied_record_id' => $id,
-                    'document_type' => $docType,
-                    'document_path' => $file_name,
+                    'document_type' => $extention,
+                    'document_path' => $imageName,
                     'document_name' => $documentName,
                     'latitude'      => $req->latitude ?? null,
                     'longitude'     => $req->longitude ?? null,
                     'challan_type'  => $req->challanType,
-                    'document_verified_by' => authUser()->id,
-                    'document_verified_at' => Carbon::now(),
                 ]);
                 $docMetadata->save();
                 $data["{$inputName}_details"] = $docMetadata;
