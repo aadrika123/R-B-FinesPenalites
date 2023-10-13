@@ -10,8 +10,10 @@ use App\Models\PenaltyFinalRecord;
 use App\Models\PenaltyTransaction;
 use App\Models\Master\Section;
 use App\Models\Master\Violation;
-use App\Models\Payment\CcAvenueReq;
-use App\Models\Payment\CcAvenueResponse;
+use App\Models\Payment\RazorpayReq;
+use App\Models\Payment\RazorpayResponse;
+use App\Models\PenaltyDailycollection;
+use App\Models\PenaltyDailycollectiondetail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +21,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Exception;
+use Razorpay\Api\Api;
 
 /**
  * =======================================================================================================
@@ -32,7 +35,7 @@ class PaymentController extends Controller
 {
 
     /**
-     * | Save Pine lab Request
+     * | Save Razor Pay Request
      */
     public function initiatePayment(Request $req)
     {
@@ -47,7 +50,12 @@ class PaymentController extends Controller
             return validationError($validator);
 
         try {
-            $mCcAvenueReq =  new CcAvenueReq();
+
+            $keyId        = Config::get('constants.RAZORPAY_KEY');
+            $secret       = Config::get('constants.RAZORPAY_SECRET');
+            $mRazorpayReq = new RazorpayReq();
+            $api          = new Api($keyId, $secret);
+
             $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
             if (!$penaltyDetails)
@@ -57,9 +65,10 @@ class PaymentController extends Controller
             if (!$challanDetails)
                 throw new Exception("Challan Not Found");
 
+            $orderData = $api->order->create(array('amount' => $challanDetails->total_amount * 100, 'currency' => 'INR',));
             $user  = authUser();
             $mReqs = [
-                "order_id"       => $this->getOrderId(),
+                "order_id"       => $orderData['id'],
                 "merchant_id"    => $req->merchantId,
                 "challan_id"     => $req->challanId,
                 "application_id" => $req->applicationId,
@@ -69,7 +78,7 @@ class PaymentController extends Controller
                 "ulb_id"         => $user->ulb_id ?? $penaltyDetails->ulb_id,
                 "ip_address"     => getClientIpAddress()
             ];
-            $data = $mCcAvenueReq->store($mReqs);
+            $data = $mRazorpayReq->store($mReqs);
 
             return responseMsgs(true, "Order id is", ['order_id' => $data->order_id], "0701", 01, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -78,17 +87,17 @@ class PaymentController extends Controller
     }
 
     /**
-     * | Save Pine lab Response
+     * | Save Razor Pay Response
      */
-    public function savePinelabResponse(Request $req)
+    public function saveRazorpayResponse(Request $req)
     {
         $idGeneration = new IdGenerationParam();
         try {
             Storage::disk('public')->put($req->order_id . '.json', json_encode($req->all()));
             $mSection            = new Section();
             $mViolation          = new Violation();
-            $mCcAvenueReq        = new CcAvenueReq();
-            $mCcAvenueResponse   = new CcAvenueResponse();
+            $mRazorpayReq        = new RazorpayReq();
+            $mRazorpayResponse   = new RazorpayResponse();
             $mPenaltyTransaction = new PenaltyTransaction();
             $todayDate           = Carbon::now();
             $penaltyDetails    = PenaltyFinalRecord::find($req->applicationId);
@@ -105,7 +114,7 @@ class PaymentController extends Controller
             $idGeneration  = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
             $transactionNo = $idGeneration->generate();
 
-            $paymentData = $mCcAvenueReq->getPaymentRecord($req);
+            $paymentData = $mRazorpayReq->getPaymentRecord($req);
 
             if (collect($paymentData)->isEmpty())
                 throw new Exception("Payment Data not available");
@@ -117,13 +126,13 @@ class PaymentController extends Controller
                     "payment_id"      => $req->paymentId,
                     "challan_id"      => $req->challanId,
                     "application_id"  => $req->applicationId,
-                    "res_ref_no"      => $transactionNo,                         // flag
-                    "response_msg"    => $pinelabData['Response']['ResponseMsg'],
-                    "response_code"   => $pinelabData['Response']['ResponseCode'],
+                    // "res_ref_no"      => $transactionNo,                         // flag
+                    // "response_msg"    => $pinelabData['Response']['ResponseMsg'],
+                    // "response_code"   => $pinelabData['Response']['ResponseCode'],
                     "description"     => $req->description,
                 ];
 
-                $data = $mCcAvenueResponse->store($mReqs);
+                $data = $mRazorpayResponse->store($mReqs);
             }
 
             # data transfer to the respective module's database 
@@ -201,21 +210,7 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * | Generate Order Id
-     */
-    protected function getOrderId()
-    {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $randomString = '';
-        for ($i = 0; $i < 10; $i++) {
-            $index = rand(0, strlen($characters) - 1);
-            $randomString .= $characters[$index];
-        }
-        $orderId = (("Order_" . date('dmyhism') . $randomString));
-        $orderId = explode("=", chunk_split($orderId, 26, "="))[0];
-        return $orderId;
-    }
+
 
     #=================================================================================================================================
     #==============================================           CASH VERIFICATION          =============================================
@@ -231,12 +226,11 @@ class PaymentController extends Controller
             'userId' => 'nullable|int'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
             $mPenaltyTransaction = new PenaltyTransaction();
             $userId =  $req->userId;
             $date = date('Y-m-d', strtotime($req->date));
-
 
             if (isset($userId)) {
                 $data = $mPenaltyTransaction->cashDtl($date)
@@ -249,6 +243,20 @@ class PaymentController extends Controller
                     ->get();
             }
 
+            $collection = collect($data->groupBy("user_id")->values());
+
+            $data = $collection->map(function ($val) use ($date) {
+                $total =  $val->sum('total_amount');
+                return [
+                    "id" => $val[0]['id'],
+                    "user_id" => $val[0]['user_id'],
+                    "officer_name" => $val[0]['user_name'],
+                    "mobile" => $val[0]['mobile'],
+                    "penalty_amount" => $total,
+                    "date" => Carbon::parse($date)->format('d-m-Y'),
+                ];
+            });
+
             return responseMsgs(true, "Cash Verification List", $data, "010201", "1.0", "", "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
@@ -259,12 +267,13 @@ class PaymentController extends Controller
      */
     public function cashVerificationDtl(Request $req)
     {
+        $validator = Validator::make($req->all(), [
+            "date" => "required|date",
+            "userId" => "required|int",
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
         try {
-            $req->validate([
-                "date" => "required|date",
-                "userId" => "required|numeric",
-
-            ]);
             $mPenaltyTransaction = new PenaltyTransaction();
             $userId =  $req->userId;
             $date = date('Y-m-d', strtotime($req->date));
@@ -288,38 +297,44 @@ class PaymentController extends Controller
     }
     /**
      * | For Verification of cash
+        save data in collection detail is pending and update verify status in transaction table
      */
-    public function verifyCash(Request $request)
+    public function verifyCash(Request $req)
     {
+        $validator = Validator::make($req->all(), [
+            "date"          => "required|date",
+            "tcId"          => "required|int",
+            "depositAmount" => "required|numeric",
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
         try {
-            $user = authUser($request);
+            $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
-            $mRevDailycollection = new RevDailycollection();
-            $receiptIdParam      = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
+            $mPenaltyDailycollection       = new PenaltyDailycollection();
+            $mPenaltyDailycollectiondetail = new PenaltyDailycollectiondetail();
+            $receiptIdParam                = Config::get('constants.ID_GENERATION_PARAMS.CASH_VERIFICATION_ID');
             DB::beginTransaction();
-            $idGeneration  = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
-            $transactionNo = $idGeneration->generate();
-            $cashParamId   = Config::get('constants.CASH_VERIFICATION_ID');
+            $idGeneration  = new IdGeneration($receiptIdParam, $user->ulb_id, 000, 0);
+            $receiptNo = $idGeneration->generate();
 
-            $mReqs = new Request([
-                "tran_no" => $tranNo,
-                "user_id" => $userId,
-                "demand_date" => Carbon::now(),  //   <- to be changed
-                "deposit_date" => Carbon::now(),
-                "ulb_id" => $ulbId,
-                "tc_id" => 1,                    //   <- to be changed
-            ]);
+            $mReqs = [
+                "receipt_no"     => $receiptNo,
+                "user_id"        => $userId,
+                "tran_date"      => $req->date,
+                "deposit_date"   => Carbon::now(),
+                "deposit_amount" => $req->depositAmount,
+                "tc_id"          => $req->tcId,
+            ];
 
-            #_Multiple Database Connection Started
-            DB::beginTransaction();
-            $collectionId =  $mRevDailycollection->store($mReqs);
+            $collectionId =  $mPenaltyDailycollection->store($mReqs);
 
             DB::commit();
-            return responseMsgs(true, "Cash Verified", '', "010201", "1.0", "", "POST", $request->deviceId ?? "");
+            return responseMsgs(true, "Cash Verified", ["receipt_no" => $receiptNo], "010201", "1.0", "", "POST", $req->deviceId ?? "");
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $request->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
         }
     }
 }

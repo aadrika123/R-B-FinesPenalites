@@ -644,6 +644,7 @@ class PenaltyRecordController extends Controller
     /**
      * | Offline Challan Payment
      * | API Id : 0614
+        condition of section fails if section is in words
      */
     public function offlinechallanPayment(Request $req)
     {

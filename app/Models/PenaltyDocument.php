@@ -45,7 +45,7 @@ class PenaltyDocument extends Model
                 $docMetadata = new PenaltyDocument([
                     'applied_record_id' => $id,
                     'document_type' => $extention,
-                    'document_path' => $imageName,
+                    'document_path' => 'FinePenalty/' . $imageName,
                     'document_name' => $documentName,
                     'latitude'      => $req->latitude ?? null,
                     'longitude'     => $req->longitude ?? null,

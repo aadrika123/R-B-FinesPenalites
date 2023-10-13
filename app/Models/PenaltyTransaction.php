@@ -48,6 +48,9 @@ class PenaltyTransaction extends Model
      */
     public function cashDtl($date)
     {
-        return PenaltyTransaction::where('tran_date', $date);
+        return PenaltyTransaction::select('penalty_transactions.*', 'users.user_name', 'users.id as user_id', 'mobile')
+            ->join('users', 'users.id', 'penalty_transactions.tran_by')
+            // ->join('')
+            ->where('tran_date', $date);
     }
 }

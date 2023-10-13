@@ -147,8 +147,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Controller No : 7
      */
     Route::controller(PaymentController::class)->group(function () {
-        Route::post('fines/ccavenue/initiate-payment', 'initiatePayment');
-        Route::post('fines/ccavenue/save-response', 'savePinelabResponse');
+        Route::post('fines/razorpay/initiate-payment', 'initiatePayment');
+        Route::post('fines/razorpay/save-response', 'saveRazorpayResponse');
         Route::post('fines/cash-verification-list', 'listCashVerification');
         Route::post('fines/cash-verification-dtl', 'cashVerificationDtl');
         Route::post('fines/verify-cash', 'verifyCash');
@@ -178,5 +178,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('user/crud/delete', 'deleteUser');                                          #_Delete ------------------ 0905
         Route::post('user/set-password', 'setPassword')->withoutMiddleware('auth:sanctum');     #_Set Password ------------ 0906
         Route::post('ward-list', 'wardList');                                                   #_Ward List --------------- 0907
+        Route::post('user/role-assign', 'roleAssign');                                          #_Role Assignment --------- 0908
     });
 });

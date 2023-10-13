@@ -69,6 +69,7 @@ class PenaltyChallan extends Model
         return PenaltyChallan::select(
             'penalty_challans.*',
             'full_name',
+            'payment_status',
             DB::raw(
                 "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
                 TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",

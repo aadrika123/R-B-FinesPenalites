@@ -8,7 +8,19 @@ use Illuminate\Database\Eloquent\Model;
 class WfRoleusermap extends Model
 {
     use HasFactory;
+    protected $guarded = [];
 
+    /**
+     * |
+     */
+    public function store($req)
+    {
+        return WfRoleusermap::create($req);
+    }
+
+    /**
+     * |
+     */
     public function getRoleIdByUserId($userId)
     {
         $roles = WfRoleusermap::select('id', 'wf_role_id', 'user_id')

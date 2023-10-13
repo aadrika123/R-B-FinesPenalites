@@ -123,18 +123,20 @@ class User extends Authenticatable
     {
         $docUrl = Config::get('constants.DOC_URL');
         return User::select(
-            "id",
-            "user_name",
-            "mobile",
-            "email",
-            "user_type",
-            "address",
-            "designation",
-            "employee_code",
-            "first_name",
-            "middle_name",
-            "last_name",
-            "created_at as date",
+            "users.id",
+            "users.user_name",
+            "users.mobile",
+            "users.email",
+            "users.user_type",
+            "users.address",
+            "users.designation",
+            "users.employee_code",
+            "users.first_name",
+            "users.middle_name",
+            "users.last_name",
+            "users.created_at as date",
+            "wf_role_id",
+            "role_name",
             DB::raw(
                 "CASE 
                         WHEN profile_image IS NULL THEN ''
@@ -148,6 +150,8 @@ class User extends Authenticatable
                 END as signature",
             )
         )
+            ->leftjoin('wf_roleusermaps', 'wf_roleusermaps.user_id', 'users.id')
+            ->leftjoin('wf_roles', 'wf_roles.id', 'wf_roleusermaps.wf_role_id')
             ->where('suspended', false)
             ->orderByDesc('id');
         // ->get();

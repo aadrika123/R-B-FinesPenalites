@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Mail\VerifyEmail;
 use App\Models\UlbWardMaster;
 use App\Models\User;
+use App\Models\WfRole;
+use App\Models\WfRoleusermap;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -121,11 +123,11 @@ class UserMasterController extends Controller
     public function updateUser(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'userId'                  => 'required|numeric',
+            'userId'                  => 'required',
             'firstName'               => 'required|string',
             'lastName'                => 'required|string',
             'designation'             => 'required|string',
-            'mobileNo'                => 'required|numeric|digits:10',
+            'mobileNo'                => 'required|digits:10',
             'address'                 => 'required|string',
             'employeeCode'            => 'required|string',
             'signature'               => 'nullable|file',
@@ -144,9 +146,8 @@ class UserMasterController extends Controller
                 'middle_name'    => $req->middleName,
                 'last_name'      => $req->lastName,
                 'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
-                'mobile'         => $req->mobile,
+                'mobile'         => $req->mobileNo,
                 'email'          => $req->email,
-                'ulb_id'         => $user->id,
                 'address'        => $req->address,
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
@@ -270,6 +271,55 @@ class UserMasterController extends Controller
             return responseMsgs(true, "Ward List", $wardList, "0907", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0907", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Role Assign
+     */
+    public function roleAssign(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'userId' => 'required|int',
+            'roleId' => 'required|int',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $mWfRoleusermap = new WfRoleusermap();
+            $mWfRole = new WfRole();
+            $mUser = $this->_mUsers;
+
+            $roleDtl = $mWfRole->find($req->roleId);
+            $userDtl = $mUser->find($req->userId);
+            if (!$roleDtl)
+                throw new Exception("Role Not Available");
+
+            if (!$userDtl)
+                throw new Exception("User Not Available");
+
+            $roleMap =  $mWfRoleusermap->where('wf_role_id', $req->roleId)
+                ->where('user_id', $req->userId)
+                ->first();
+
+            if ($roleMap)
+                throw new Exception("User Already Mapped To This Role");
+
+            $mreq = [
+                "wf_role_id" => $req->roleId,
+                "user_id"    => $req->userId,
+                "created_by" => authUser()->id,
+            ];
+            DB::beginTransaction();
+
+            $mWfRoleusermap->store($mreq);
+            $userDtl->update(["user_type" => $roleDtl->user_type]);
+
+            DB::commit();
+            return responseMsgs(true, "Role Assigned to the user", "", "0908", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "0908", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }
