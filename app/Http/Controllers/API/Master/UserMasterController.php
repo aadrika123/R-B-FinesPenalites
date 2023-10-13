@@ -123,7 +123,6 @@ class UserMasterController extends Controller
         $validator = Validator::make($req->all(), [
             'userId'                  => 'required|numeric',
             'firstName'               => 'required|string',
-            'middleName'              => 'required|string',
             'lastName'                => 'required|string',
             'designation'             => 'required|string',
             'mobileNo'                => 'required|numeric|digits:10',

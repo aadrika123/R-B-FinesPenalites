@@ -33,7 +33,7 @@ class PenaltyDocument extends Model
             if ($req->file($inputName)) {
                 $file = $req->file($inputName);
                 $refImageName = Str::random(5);
-                $extention = $file->getClientOriginalExtension();
+                $extention = $file->extension();
 
                 #_Doc Upload through a Class
                 $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/');

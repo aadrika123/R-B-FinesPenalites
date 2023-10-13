@@ -135,8 +135,18 @@ class User extends Authenticatable
             "middle_name",
             "last_name",
             "created_at as date",
-            DB::raw("concat('$docUrl/',signature) as signature"),
-            DB::raw("concat('$docUrl/',profile_image) as profile_image"),
+            DB::raw(
+                "CASE 
+                        WHEN profile_image IS NULL THEN ''
+                            else 
+                        concat('$docUrl/','FinePenalty/Users/',profile_image)
+                END as profile_image,
+                CASE 
+                        WHEN signature IS NULL THEN ''
+                            else
+                        concat('$docUrl/','FinePenalty/Users/',signature)
+                END as signature",
+            )
         )
             ->where('suspended', false)
             ->orderByDesc('id');

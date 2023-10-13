@@ -13,7 +13,7 @@ class DocUpload
      */
     public function upload($refImageName, $image, $relativePath)
     {
-        $extention = $image->getClientOriginalExtension();
+        $extention = $image->extension();
         $imageName = time() . '-' . $refImageName . '.' . $extention;
         $image->move($relativePath, $imageName);
 

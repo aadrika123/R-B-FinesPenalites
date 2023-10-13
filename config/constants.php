@@ -12,9 +12,10 @@ return [
     ],
 
     "ID_GENERATION_PARAMS" => [
-        "APPLICATION"   => 1,
-        "CHALLAN"       => 2,
-        "RECEIPT"       => 3,
+        "APPLICATION"                => 1,
+        "CHALLAN"                    => 2,
+        "RECEIPT"                    => 3,
+        "CASH_VERIFICATION_ID" => 4
     ],
 
     "WHATSAPP_TOKEN"        => env("WHATSAPP_TOKEN", "xxx"),

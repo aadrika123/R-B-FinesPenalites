@@ -139,6 +139,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('report/challan-wise', 'challanData');                                                    #_challan wise report ------------- 0618
         Route::post('report/collection-wise', 'collectionData');                                              #_collection wise report ---------- 0619
         Route::post('report/comparison', 'comparisonReport');                                                 #_comparison report --------------- 0620
+        Route::post('v2/penalty-record/get-challan', 'mobileChallanDetails');                                 #_get challans details mobile ----- 0621
     });
 
     /**
@@ -148,6 +149,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::controller(PaymentController::class)->group(function () {
         Route::post('fines/ccavenue/initiate-payment', 'initiatePayment');
         Route::post('fines/ccavenue/save-response', 'savePinelabResponse');
+        Route::post('fines/cash-verification-list', 'listCashVerification');
+        Route::post('fines/cash-verification-dtl', 'cashVerificationDtl');
+        Route::post('fines/verify-cash', 'verifyCash');
     });
 
     /**

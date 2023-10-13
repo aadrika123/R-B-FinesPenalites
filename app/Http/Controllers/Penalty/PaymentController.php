@@ -216,4 +216,110 @@ class PaymentController extends Controller
         $orderId = explode("=", chunk_split($orderId, 26, "="))[0];
         return $orderId;
     }
+
+    #=================================================================================================================================
+    #==============================================           CASH VERIFICATION          =============================================
+    #=================================================================================================================================
+
+    /**
+     * | Unverified Cash Verification List
+     */
+    public function listCashVerification(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'date' => 'required|date',
+            'userId' => 'nullable|int'
+        ]);
+        if ($validator->fails())
+            return responseMsgs(false, $validator->errors(), []);
+        try {
+            $mPenaltyTransaction = new PenaltyTransaction();
+            $userId =  $req->userId;
+            $date = date('Y-m-d', strtotime($req->date));
+
+
+            if (isset($userId)) {
+                $data = $mPenaltyTransaction->cashDtl($date)
+                    ->where('user_id', $userId)
+                    ->get();
+            }
+
+            if (!isset($userId)) {
+                $data = $mPenaltyTransaction->cashDtl($date)
+                    ->get();
+            }
+
+            return responseMsgs(true, "Cash Verification List", $data, "010201", "1.0", "", "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
+        }
+    }
+    /**
+     * | Tc Collection Dtl
+     */
+    public function cashVerificationDtl(Request $req)
+    {
+        try {
+            $req->validate([
+                "date" => "required|date",
+                "userId" => "required|numeric",
+
+            ]);
+            $mPenaltyTransaction = new PenaltyTransaction();
+            $userId =  $req->userId;
+            $date = date('Y-m-d', strtotime($req->date));
+            $details = $mPenaltyTransaction->cashDtl($date, $userId)
+                ->where('tran_by', $userId)
+                ->get();
+
+            if (collect($details)->isEmpty())
+                throw new Exception("No Application Found for this id");
+
+            $data['tranDtl'] = collect($details)->values();
+            $data['Cash'] = collect($details)->where('payment_mode', 'CASH')->sum('total_amount');
+            $data['totalAmount'] =  $details->sum('total_amount');
+            $data['numberOfTransaction'] =  $details->count();
+            $data['date'] = Carbon::parse($date)->format('d-m-Y');
+
+            return responseMsgs(true, "Cash Verification Details", remove_null($data), "010201", "1.0", "", "POST", $req->deviceId ?? "");
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
+        }
+    }
+    /**
+     * | For Verification of cash
+     */
+    public function verifyCash(Request $request)
+    {
+        try {
+            $user = authUser($request);
+            $userId = $user->id;
+            $ulbId = $user->ulb_id;
+            $mRevDailycollection = new RevDailycollection();
+            $receiptIdParam      = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
+            DB::beginTransaction();
+            $idGeneration  = new IdGeneration($receiptIdParam, $penaltyDetails->ulb_id, $section, 0);
+            $transactionNo = $idGeneration->generate();
+            $cashParamId   = Config::get('constants.CASH_VERIFICATION_ID');
+
+            $mReqs = new Request([
+                "tran_no" => $tranNo,
+                "user_id" => $userId,
+                "demand_date" => Carbon::now(),  //   <- to be changed
+                "deposit_date" => Carbon::now(),
+                "ulb_id" => $ulbId,
+                "tc_id" => 1,                    //   <- to be changed
+            ]);
+
+            #_Multiple Database Connection Started
+            DB::beginTransaction();
+            $collectionId =  $mRevDailycollection->store($mReqs);
+
+            DB::commit();
+            return responseMsgs(true, "Cash Verified", '', "010201", "1.0", "", "POST", $request->deviceId ?? "");
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $request->deviceId ?? "");
+        }
+    }
 }

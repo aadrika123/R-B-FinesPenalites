@@ -42,4 +42,12 @@ class PenaltyTransaction extends Model
             ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
             ->join('departments', 'departments.id', 'violations.department_id');
     }
+
+    /**
+     * | Details for Cash Verification
+     */
+    public function cashDtl($date)
+    {
+        return PenaltyTransaction::where('tran_date', $date);
+    }
 }

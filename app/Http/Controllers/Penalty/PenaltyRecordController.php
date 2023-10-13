@@ -120,12 +120,17 @@ class PenaltyRecordController extends Controller
                 throw new Exception("Data Not Found");
 
             $document = PenaltyDocument::select(
+                'id',
+                'document_name',
+                'document_type',
                 DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
             )
                 ->where('penalty_documents.applied_record_id', $penaltyDetails->id)
                 ->where('penalty_documents.challan_type', 'Via Verification')
-                ->first();
-            $data = collect($penaltyDetails)->merge($document);
+                ->get();
+
+            $data['penaltyDetails'] = $penaltyDetails;
+            $data['document'] = $document;
 
             return responseMsgs(true, "View Records", $data, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -1066,5 +1071,70 @@ class PenaltyRecordController extends Controller
         if ($totalRecord == 5)
             throw new Exception("E-Rickshaw has been Seized");
         return $fine = $rickshawFine[$totalRecord];
+    }
+
+    /**
+     * | Get Challan Details
+     * | API Id : 0620
+     */
+    public function mobileChallanDetails(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'challanId' => 'required|numeric'
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $docUrl = Config::get('constants.DOC_URL');
+            $todayDate = Carbon::now();
+            $mPenaltyChallan = new PenaltyChallan();
+            $perPage = $req->perPage ?? 10;
+            $user = authUser($req);
+
+            $finalRecord = PenaltyChallan::select(
+                'penalty_final_records.*',
+                'penalty_final_records.id as application_id',
+                'penalty_challans.*',
+                'penalty_challans.id',
+                'violations.violation_name',
+                'sections.violation_section',
+                'tran_no',
+                'ward_name',
+                DB::raw(
+                    "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
+                     TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
+                )
+            )
+                ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
+                ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
+                ->leftjoin('ulb_ward_masters', 'ulb_ward_masters.id', 'penalty_final_records.ward_id')
+                ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
+                ->join('sections', 'sections.id', 'violations.section_id')
+                ->where('penalty_challans.id', $req->challanId)
+                ->first();
+
+            if (!$finalRecord)
+                throw new Exception("Final Record Not Found");
+
+            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
+
+            $document = PenaltyDocument::select(
+                DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
+            )
+                ->where('penalty_documents.applied_record_id', $appliedRecordId)
+                ->where('penalty_documents.challan_type', $finalRecord->challan_type)
+                ->get();
+
+            $data['challanDetails'] = $finalRecord;
+            $data['document'] = $document;
+
+            $totalAmountInWord = getHindiIndianCurrency($finalRecord->total_amount);
+            $data['challanDetails']['amount_in_words'] = $totalAmountInWord . ' मात्र';
+
+            return responseMsgs(true, "", $data, "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "", "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
     }
 }
