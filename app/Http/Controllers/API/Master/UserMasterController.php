@@ -298,12 +298,13 @@ class UserMasterController extends Controller
             if (!$userDtl)
                 throw new Exception("User Not Available");
 
-            $roleMap =  $mWfRoleusermap->where('wf_role_id', $req->roleId)
-                ->where('user_id', $req->userId)
+            $roleMap =  $mWfRoleusermap->where('user_id', $req->userId)
+                ->orderByDesc('id')
                 ->first();
 
+                #_Check if working fine or not
             if ($roleMap)
-                throw new Exception("User Already Mapped To This Role");
+            $roleMap->update(['is_suspended',true]);
 
             $mreq = [
                 "wf_role_id" => $req->roleId,

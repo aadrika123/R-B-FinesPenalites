@@ -257,9 +257,9 @@ class PaymentController extends Controller
                 ];
             });
 
-            return responseMsgs(true, "Cash Verification List", $data, "010201", "1.0", "", "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "Cash Verification List", $data, "0703", "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "0703", "1.0", responseTime(), "POST", $req->deviceId);
         }
     }
     /**
@@ -290,9 +290,9 @@ class PaymentController extends Controller
             $data['numberOfTransaction'] =  $details->count();
             $data['date'] = Carbon::parse($date)->format('d-m-Y');
 
-            return responseMsgs(true, "Cash Verification Details", remove_null($data), "010201", "1.0", "", "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "Cash Verification Details", remove_null($data), "0704", "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "0704", "1.0", responseTime(), "POST", $req->deviceId);
         }
     }
     /**
@@ -312,6 +312,7 @@ class PaymentController extends Controller
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
+            $mPenaltyTransaction           = new PenaltyTransaction();
             $mPenaltyDailycollection       = new PenaltyDailycollection();
             $mPenaltyDailycollectiondetail = new PenaltyDailycollectiondetail();
             $receiptIdParam                = Config::get('constants.ID_GENERATION_PARAMS.CASH_VERIFICATION_ID');
@@ -329,12 +330,21 @@ class PaymentController extends Controller
             ];
 
             $collectionId =  $mPenaltyDailycollection->store($mReqs);
+            //Update collection details table
+            // $mPenaltyTransaction->where('tran_by',$req->tcId)
+            // ->where('tran_date',$req->date)
+            // ->get();
+            // $mPenaltyDailycollection->store($collectionDtlsReqs);
+
+            //Update transaction table
+            // $mPenaltyTransaction->update(['verify_status',1])
+            // ->whereIn('id',$req->id);
 
             DB::commit();
-            return responseMsgs(true, "Cash Verified", ["receipt_no" => $receiptNo], "010201", "1.0", "", "POST", $req->deviceId ?? "");
+            return responseMsgs(true, "Cash Verified", ["receipt_no" => $receiptNo], "0705", "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "010201", "1.0", "", "POST", $req->deviceId ?? "");
+            return responseMsgs(false, $e->getMessage(), "", "0705", "1.0", responseTime(), "POST", $req->deviceId);
         }
     }
 }

@@ -502,6 +502,7 @@ class PenaltyRecordController extends Controller
             $challanDtl =   $mPenaltyRecord->recordDetail()
                 ->whereDate('penalty_applied_records.created_at', $todayDate)
                 ->orderbyDesc('penalty_applied_records.id')
+                // ->where('penalty_applied_records.user_id',$userId)
                 ->take(10)
                 ->get();
 
@@ -526,6 +527,7 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $challanDtl = $mPenaltyChallan->recentChallanDetails()
                 ->where('challan_date', $todayDate)
+                // ->where('penalty_applied_records.user_id',$userId)
                 ->take(10)
                 ->get();
 
@@ -884,6 +886,9 @@ class PenaltyRecordController extends Controller
             return validationError($validator);
         try {
             $user = authUser($req);
+            $userId = $req->userId;
+            if($req->type == 'mobile')
+            $userId = $user->id;
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
             $data = PenaltyFinalRecord::select(
@@ -913,8 +918,8 @@ class PenaltyRecordController extends Controller
             if ($req->challanCategory)
                 $data = $data->where("category_type_id", $req->challanCategory);
 
-            if ($req->userId)
-                $data = $data->where("approved_by", $req->userId);
+            if ($userId)
+                $data = $data->where("approved_by", $userId);
 
             $data = $data
                 ->paginate($perPage);
@@ -941,6 +946,9 @@ class PenaltyRecordController extends Controller
             return validationError($validator);
         try {
             $user = authUser($req);
+            $userId = $req->userId;
+            if($req->type == 'mobile')
+            $userId = $user->id;
             $perPage = $req->perPage ?? 10;
             $data = PenaltyTransaction::select(
                 '*'
@@ -964,8 +972,8 @@ class PenaltyRecordController extends Controller
             if ($req->challanCategory)
                 $data = $data->where("category_type_id", $req->challanCategory);
 
-            if ($req->userId)
-                $data = $data->where("approved_by", $req->userId);
+            if ($userId)
+                $data = $data->where("approved_by", $userId);
 
             $data = $data
                 ->paginate($perPage);
