@@ -289,6 +289,7 @@ class PaymentController extends Controller
             $data['totalAmount'] =  $details->sum('total_amount');
             $data['numberOfTransaction'] =  $details->count();
             $data['date'] = Carbon::parse($date)->format('d-m-Y');
+            $data['tcId'] = $userId;
 
             return responseMsgs(true, "Cash Verification Details", remove_null($data), "0704", "1.0", responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
@@ -304,7 +305,7 @@ class PaymentController extends Controller
         $validator = Validator::make($req->all(), [
             "date"          => "required|date",
             "tcId"          => "required|int",
-            "depositAmount" => "required|numeric",
+            "id"            => "required|array",
         ]);
         if ($validator->fails())
             return validationError($validator);
@@ -320,25 +321,31 @@ class PaymentController extends Controller
             $idGeneration  = new IdGeneration($receiptIdParam, $user->ulb_id, 000, 0);
             $receiptNo = $idGeneration->generate();
 
+            $totalAmount = $mPenaltyTransaction->whereIn('id', $req->id)->sum('total_amount');
+
             $mReqs = [
                 "receipt_no"     => $receiptNo,
                 "user_id"        => $userId,
-                "tran_date"      => $req->date,
+                "tran_date"      => Carbon::parse($req->date)->format('Y-m-d'),
                 "deposit_date"   => Carbon::now(),
-                "deposit_amount" => $req->depositAmount,
+                "deposit_amount" => $totalAmount,
                 "tc_id"          => $req->tcId,
             ];
 
-            $collectionId =  $mPenaltyDailycollection->store($mReqs);
+            $collectionDtl =  $mPenaltyDailycollection->store($mReqs);
             //Update collection details table
-            // $mPenaltyTransaction->where('tran_by',$req->tcId)
-            // ->where('tran_date',$req->date)
-            // ->get();
-            // $mPenaltyDailycollection->store($collectionDtlsReqs);
+
+            foreach ($req->id as $id) {
+                $collectionDtlsReqs = [
+                    "collection_id"  => $collectionDtl->id,
+                    "transaction_id" => $id,
+                ];
+                $mPenaltyDailycollectiondetail->store($collectionDtlsReqs);
+            }
 
             //Update transaction table
-            // $mPenaltyTransaction->update(['verify_status',1])
-            // ->whereIn('id',$req->id);
+            $mPenaltyTransaction->whereIn('id', $req->id)
+                ->update(['verify_status' => 1]);
 
             DB::commit();
             return responseMsgs(true, "Cash Verified", ["receipt_no" => $receiptNo], "0705", "1.0", responseTime(), "POST", $req->deviceId);

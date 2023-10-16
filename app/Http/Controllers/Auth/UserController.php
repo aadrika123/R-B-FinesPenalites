@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\UserRegistrationRequest;
 use App\Http\Requests\InfractionRecordingFormRequest;
 use App\Models\PenaltyRecord;
 use App\Models\User;
+use App\Models\WfRoleusermap;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -53,7 +54,7 @@ class UserController extends Controller
         if ($validated->fails())
             return validationError($validated);
         try {
-            // $mWfRoleusermap = new WfRoleusermap();
+            $mWfRoleusermap = new WfRoleusermap();
             $user = $this->_mUser->getUserByEmail($req->email);
             if (!$user)
                 throw new Exception("Oops! Given email does not exist");
@@ -61,7 +62,7 @@ class UserController extends Controller
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
                 $token = $user->createToken('my-app-token')->plainTextToken;
-                // $menuRoleDetails = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
+                $roleDetail = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
                 // if (empty(collect($menuRoleDetails)->first())) {
                 //     throw new Exception('User has No Roles!');
                 // }
@@ -71,7 +72,8 @@ class UserController extends Controller
                 // });
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
-                // $data['userDetails']['role'] = $role;
+                $data['userDetails']['role_name'] = $roleDetail['role'] ?? "";
+
                 return responseMsgs(true, "You have Logged In Successfully", $data, 0101, "1.0", responseTime(), "POST", $req->deviceId);
             }
             throw new Exception("Password Not Matched");

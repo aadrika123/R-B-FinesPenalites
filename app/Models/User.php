@@ -91,6 +91,8 @@ class User extends Authenticatable
     public function getList()
     {
         return User::select('*')
+            ->where('suspended', false)
+            ->whereIn('user_type', ['EO', 'JSK'])
             ->orderBy('id')
             ->get();
     }
@@ -111,9 +113,16 @@ class User extends Authenticatable
      */
     public function checkExisting($req)
     {
-        return User::where('email', $req->email)
+        $userDtl = User::where('email', $req->email)
             ->where('suspended', false)
-            ->get();
+            ->first();
+
+        if (!$userDtl)
+            $userDtl = User::where('mobile', $req->mobileNo)
+                ->where('suspended', false)
+                ->first();
+
+        return $userDtl;
     }
 
     /**
@@ -153,6 +162,7 @@ class User extends Authenticatable
             ->leftjoin('wf_roleusermaps', 'wf_roleusermaps.user_id', 'users.id')
             ->leftjoin('wf_roles', 'wf_roles.id', 'wf_roleusermaps.wf_role_id')
             ->where('suspended', false)
+            // ->where('wf_roleusermaps.is_suspended', false)
             ->orderByDesc('id');
         // ->get();
     }

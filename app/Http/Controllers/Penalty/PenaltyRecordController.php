@@ -887,8 +887,8 @@ class PenaltyRecordController extends Controller
         try {
             $user = authUser($req);
             $userId = $req->userId;
-            if($req->type == 'mobile')
-            $userId = $user->id;
+            if ($req->type == 'mobile')
+                $userId = $user->id;
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
             $data = PenaltyFinalRecord::select(
@@ -947,8 +947,8 @@ class PenaltyRecordController extends Controller
         try {
             $user = authUser($req);
             $userId = $req->userId;
-            if($req->type == 'mobile')
-            $userId = $user->id;
+            if ($req->type == 'mobile')
+                $userId = $user->id;
             $perPage = $req->perPage ?? 10;
             $data = PenaltyTransaction::select(
                 '*'
@@ -1128,6 +1128,9 @@ class PenaltyRecordController extends Controller
             $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
 
             $document = PenaltyDocument::select(
+                'id',
+                'document_name',
+                'document_type',
                 DB::raw("concat('$docUrl/',penalty_documents.document_path) as geo_tagged_image")
             )
                 ->where('penalty_documents.applied_record_id', $appliedRecordId)

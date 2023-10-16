@@ -50,6 +50,8 @@ class PenaltyTransaction extends Model
     {
         return PenaltyTransaction::select('penalty_transactions.*', 'users.user_name', 'users.id as user_id', 'mobile')
             ->join('users', 'users.id', 'penalty_transactions.tran_by')
+            ->where('penalty_transactions.status', 1)
+            ->where('verify_status', 2)
             // ->join('')
             ->where('tran_date', $date);
     }

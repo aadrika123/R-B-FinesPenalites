@@ -47,7 +47,7 @@ class UserMasterController extends Controller
             'mobileNo'                => 'required|numeric|digits:10',
             'address'                 => 'nullable|string',
             'employeeCode'            => 'required|string',
-            // 'signature'               => 'nullable|file',
+            // 'signature'             => 'nullable|file',
             // 'profile'               => 'nullable|file',
             'email'                   => 'required|email',
             // 'password'                => 'required|string', 
@@ -139,8 +139,8 @@ class UserMasterController extends Controller
             $user = authUser($req);
             $getUser = $this->_mUsers::findOrFail($req->userId);
             $isExists = $this->_mUsers->checkExisting($req);
-            if ($isExists && $isExists->where('id', '!=', $req->userId)->isNotEmpty())
-                throw new Exception("User Already Existing");
+            // if ($isExists && collect($isExists)->where('id', '!=', $req->userId)->isNotEmpty())
+            //     throw new Exception("User Already Existing");
             $metaReqs = [
                 'first_name'     => $req->firstName,
                 'middle_name'    => $req->middleName,
@@ -302,9 +302,9 @@ class UserMasterController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-                #_Check if working fine or not
+            #_Check if working fine or not
             if ($roleMap)
-            $roleMap->update(['is_suspended',true]);
+                $roleMap->update(['is_suspended' => true]);
 
             $mreq = [
                 "wf_role_id" => $req->roleId,
