@@ -92,6 +92,7 @@ class UserMasterController extends Controller
                 'address'        => $req->address,
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
+                'created_by'     => authUser()->id,
             ]);
 
             $user = $this->_mUsers->store($metaReqs);
@@ -187,7 +188,9 @@ class UserMasterController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
+            DB::enableQueryLog();
             $getData = $this->_mUsers->recordDetails($req)->get();
+            // dd(DB::getQueryLog($getData));
             return responseMsgs(true, "View All User's Record", $getData, "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -302,7 +305,6 @@ class UserMasterController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-            #_Check if working fine or not
             if ($roleMap)
                 $roleMap->update(['is_suspended' => true]);
 

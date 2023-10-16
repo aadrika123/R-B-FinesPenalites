@@ -156,8 +156,6 @@ trait FinesTrait
             ['displayString' => 'Violation Section', 'final' => $final->violation_section,  'applied' => $applied->violation_section,],
             ['displayString' => 'Violation Place',   'final' => $final->violation_place,    'applied' => $applied->violation_place,],
             ['displayString' => 'Penalty Amount',    'final' => '₹' . $final->total_amount, 'applied' => '₹' . $applied->amount,],
-            ['displayString' => 'Witness Name',      'final' => $final->witness_name,       'applied' => $applied->witness_name,],
-            ['displayString' => 'Witness Mobile',    'final' => $final->witness_mobile,     'applied' => $applied->witness_mobile,],
             ['displayString' => 'Applier/Approver',  'final' => $final->user_name,          'applied' => $applied->user_name,],
             // ['displayString' => 'Name of Violator', 'final' => $final->full_name, 'applied' => $applied->full_name,],
             // ['displayString' => 'Mobile No', $final->mobile, $applied->mobile]

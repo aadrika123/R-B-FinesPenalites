@@ -299,7 +299,6 @@ class PenaltyRecordController extends Controller
             $details = array();
             $mPenaltyRecord = new PenaltyRecord();
             // $mWorkflowTracks = new WorkflowTrack();
-            // $mCustomDetails = new CustomDetail();
             // $mForwardBackward = new WorkflowMap();
             $details = $mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.status', 1)
@@ -327,12 +326,6 @@ class PenaltyRecordController extends Controller
                 'headerTitle' => "Address Details",
                 'data' => $addressDetails
             ];
-
-            // $witnessDetails = $this->generateWitnessDetails($details);
-            // $witnessElement = [
-            //     'headerTitle' => "Witness Details",
-            //     'data' => $witnessDetails
-            // ];
 
             $fullDetailsData['application_no'] = $details->application_no;
             $fullDetailsData['payment_status'] = false;
@@ -891,6 +884,7 @@ class PenaltyRecordController extends Controller
                 'sections.violation_section',
                 'penalty_challans.id as challan_id',
                 'penalty_challans.total_amount',
+                'penalty_challans.challan_date',
                 'penalty_final_records.challan_type',
                 'user_name',
                 'category_type as challan_category',

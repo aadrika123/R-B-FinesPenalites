@@ -28,9 +28,6 @@ return new class extends Migration
             $table->integer('violation_section_id');
             $table->integer('penalty_amount');
             $table->boolean('previous_violation_offence')->nullable();
-            $table->integer('witness')->nullable();
-            $table->string('witness_name')->nullable();
-            $table->string('witness_mobile')->nullable();
             $table->string('photo')->nullable();
             $table->string('video_audio')->nullable();
             $table->string('pdf')->nullable();

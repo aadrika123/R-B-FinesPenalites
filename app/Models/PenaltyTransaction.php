@@ -52,7 +52,6 @@ class PenaltyTransaction extends Model
             ->join('users', 'users.id', 'penalty_transactions.tran_by')
             ->where('penalty_transactions.status', 1)
             ->where('verify_status', 2)
-            // ->join('')
             ->where('tran_date', $date);
     }
 }

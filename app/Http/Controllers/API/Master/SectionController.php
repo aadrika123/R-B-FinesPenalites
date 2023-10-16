@@ -36,7 +36,8 @@ class SectionController extends Controller
 
             $metaReqs = [
                 'department_id' => $req->departmentId,
-                'violation_section'   => strtoupper($req->violationSection)
+                'violation_section' => strtoupper($req->violationSection),
+                'created_by'        => authUser()->id
             ];
             $this->_mSections->store($metaReqs); // Store in Violations table
             return responseMsgs(true, "Records Added Successfully", $metaReqs, "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);

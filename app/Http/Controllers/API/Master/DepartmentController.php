@@ -34,7 +34,8 @@ class DepartmentController extends Controller
                 throw new Exception("Department Already Existing");
 
             $metaReqs = [
-                'department_name'   => strtoupper($req->departmentName)
+                'department_name' => strtoupper($req->departmentName),
+                'created_by'      => authUser()->id
             ];
             $this->_mDepartments->store($metaReqs); // Store in Violations table
             return responseMsgs(true, "Records Added Successfully", $metaReqs, "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -45,7 +46,7 @@ class DepartmentController extends Controller
 
     // Edit records
     public function updateDepartment(Request $req)
-    { 
+    {
         $validator = Validator::make($req->all(), [
             'departmentId'                => 'required|numeric',
             'departmentName'        => 'required|string'
@@ -59,7 +60,6 @@ class DepartmentController extends Controller
                 throw new Exception("Department Already Existing");
             $metaReqs = [
                 'department_name' => strtoupper($req->departmentName),
-                'updated_at' => Carbon::now()
             ];
             $getData->update($metaReqs); // Store in Violations table
             return responseMsgs(true, "Records Updated Successfully", $metaReqs, "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -121,5 +121,4 @@ class DepartmentController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
 }

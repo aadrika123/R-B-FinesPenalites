@@ -159,7 +159,12 @@ class User extends Authenticatable
                 END as signature",
             )
         )
-            ->leftjoin('wf_roleusermaps', 'wf_roleusermaps.user_id', 'users.id')
+
+            ->leftjoin('wf_roleusermaps', function ($join) {
+                $join->on('wf_roleusermaps.user_id', 'users.id')
+                    ->where('wf_roleusermaps.is_suspended', false);
+            })
+            // ->leftjoin('wf_roleusermaps', 'wf_roleusermaps.user_id', 'users.id')
             ->leftjoin('wf_roles', 'wf_roles.id', 'wf_roleusermaps.wf_role_id')
             ->where('suspended', false)
             // ->where('wf_roleusermaps.is_suspended', false)
