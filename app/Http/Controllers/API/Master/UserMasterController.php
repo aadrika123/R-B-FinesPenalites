@@ -93,6 +93,7 @@ class UserMasterController extends Controller
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
                 'created_by'     => authUser()->id,
+                'password'       => Hash::make($req->firstName . '@' . substr($req->mobileNo, 7, 3)),
             ]);
 
             $user = $this->_mUsers->store($metaReqs);
@@ -100,19 +101,16 @@ class UserMasterController extends Controller
             $user->update(["remember_token" => $token]);
 
             // $url = "http://203.129.217.246/fines";
-            $url = "http://192.168.0.159:5000/fines";
-            $resetLink = $url . "/set-password/{$token}/{$user->id}";
-
-            $emailContent = "Hello,\n\nYou have requested to set your password. Click the link below to reset it:\n\n{$resetLink}\n\nIf you didn't request this password reset, you can ignore this email.";
-
-            $htmlEmailContent = "<p>Hello,</p><p>You have requested to set your password. Click the link below to reset it:</p><a href='{$resetLink}'>Reset Password</a><p>If you didn't request this password reset, you can ignore this email.</p>";
-
+            // $url = "http://192.168.0.159:5000/fines";
+            // $resetLink = $url . "/set-password/{$token}/{$user->id}";
+            // $emailContent = "Hello,\n\nYou have requested to set your password. Click the link below to reset it:\n\n{$resetLink}\n\nIf you didn't request this password reset, you can ignore this email.";
+            // $htmlEmailContent = "<p>Hello,</p><p>You have requested to set your password. Click the link below to reset it:</p><a href='{$resetLink}'>Reset Password</a><p>If you didn't request this password reset, you can ignore this email.</p>";
             // Mail::raw($emailContent, function ($message) use ($user) {
             //     $message->to($user->email);
             //     $message->subject('Password Reset');
             // });
 
-            return responseMsgs(true, "Password Set Link Send to your email !", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Your Password is First Name @ Last 3 digit of your mobile No.", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
