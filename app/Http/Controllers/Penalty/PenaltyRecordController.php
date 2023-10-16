@@ -347,9 +347,6 @@ class PenaltyRecordController extends Controller
             // $levelComment = $mWorkflowTracks->getTracksByRefId($mRefTable, $req->applicationId);
             // $fullDetailsData['levelComment'] = $levelComment;
 
-            // $citizenComment = $mWorkflowTracks->getCitizenTracks($mRefTable, $req->applicationId, $details->user_id);
-            // $fullDetailsData['citizenComment'] = $citizenComment;
-
             $metaReqs['customFor'] = 'PENALTY';
             $metaReqs['wfRoleId'] = $details->current_role;
             $metaReqs['workflowId'] = $details->workflow_id;
@@ -359,9 +356,6 @@ class PenaltyRecordController extends Controller
             // $fullDetailsData['roleDetails'] = collect($forwardBackward)['original']['data'];
 
             $fullDetailsData['timelineData'] = collect($req);
-
-            // $custom = $mCustomDetails->getCustomDetails($req);
-            // $fullDetailsData['departmentalPost'] = collect($custom)['original']['data'];
 
             return responseMsgs(true, "Penalty Details", $fullDetailsData, "0608", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
@@ -419,9 +413,6 @@ class PenaltyRecordController extends Controller
                 'violation_id'                => $req->violationId,
                 'amount'                      => $penaltyAmount,
                 'previous_violation_offence'  => $req->previousViolationOffence,
-                'witness'                     => $req->witness,
-                'witness_name'                => $req->witnessName,
-                'witness_mobile'              => $req->witnessMobile,
                 'applied_record_id'           => $req->id,
                 'version_no'                  => 0,
                 'application_no'              => $penaltyRecord->application_no,
@@ -1045,9 +1036,6 @@ class PenaltyRecordController extends Controller
             'violation_id'               => $req->violationId,
             'amount'                     => $req->penaltyAmount,
             'previous_violation_offence' => $req->previousViolationOffence ?? 0,
-            'witness'                    => $req->isWitness ?? 0,
-            'witness_name'               => $req->witnessName,
-            'witness_mobile'             => $req->witnessMobile,
             'application_no'             => $applicationNo,
             'current_role'               => 2,
             'workflow_id'                => 1,
