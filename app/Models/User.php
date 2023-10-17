@@ -92,7 +92,7 @@ class User extends Authenticatable
     {
         return User::select('*')
             ->where('suspended', false)
-            ->whereIn('user_type', ['EO', 'JSK'])
+            ->where('user_type', 'EO')
             ->orderBy('id')
             ->get();
     }
