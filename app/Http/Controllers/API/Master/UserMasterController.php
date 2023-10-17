@@ -68,7 +68,7 @@ class UserMasterController extends Controller
                 $file = $req->file('signature');
                 $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/Users');
                 $metaReqs = array_merge($metaReqs, [
-                    'signature' => $imageName,
+                    'signature' => 'FinePenalty/Users/' . $imageName,
                 ]);
             }
 
@@ -77,7 +77,7 @@ class UserMasterController extends Controller
                 $file = $req->file('profile');
                 $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/Users');
                 $metaReqs = array_merge($metaReqs, [
-                    'profile_image' => $imageName,
+                    'profile_image' => 'FinePenalty/Users/' . $imageName,
                 ]);
             }
 
@@ -186,7 +186,6 @@ class UserMasterController extends Controller
     {
         try {
             $perPage = $req->perPage ?? 10;
-            DB::enableQueryLog();
             $getData = $this->_mUsers->recordDetails($req)->get();
 
             $filteredData = $getData->filter(function ($item) {

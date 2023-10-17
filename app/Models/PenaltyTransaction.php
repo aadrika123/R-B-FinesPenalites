@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class PenaltyTransaction extends Model
 {
@@ -21,6 +23,7 @@ class PenaltyTransaction extends Model
      */
     public function tranDtl()
     {
+        $docUrl = Config::get('constants.DOC_URL');
         return PenaltyTransaction::select(
             'penalty_transactions.id',
             'tran_no',
@@ -35,10 +38,18 @@ class PenaltyTransaction extends Model
             'challan_date',
             'violations.violation_name',
             'departments.department_name as department',
+            DB::raw(
+                "CASE 
+                    WHEN signature IS NULL THEN ''
+                        else
+                    concat('$docUrl/',signature)
+                END as signature",
+            )
 
         )
             ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_transactions.application_id')
             ->join('penalty_challans', 'penalty_challans.id', 'penalty_transactions.challan_id')
+            ->join('users', 'users.id', 'penalty_transactions.tran_by')
             ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
             ->join('departments', 'departments.id', 'violations.department_id');
     }

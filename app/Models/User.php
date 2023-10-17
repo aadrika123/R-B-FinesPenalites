@@ -150,12 +150,12 @@ class User extends Authenticatable
                 "CASE 
                         WHEN profile_image IS NULL THEN ''
                             else 
-                        concat('$docUrl/','FinePenalty/Users/',profile_image)
+                        concat('$docUrl/',profile_image)
                 END as profile_image,
                 CASE 
                         WHEN signature IS NULL THEN ''
                             else
-                        concat('$docUrl/','FinePenalty/Users/',signature)
+                        concat('$docUrl/',signature)
                 END as signature",
             )
         )

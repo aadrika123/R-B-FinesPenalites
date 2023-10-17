@@ -584,14 +584,21 @@ class PenaltyRecordController extends Controller
                 'sections.violation_section',
                 'tran_no',
                 'ward_name',
+                'users.user_name',
                 DB::raw(
                     "TO_CHAR(penalty_challans.challan_date,'DD-MM-YYYY') as challan_date,
-                    TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date",
+                    TO_CHAR(penalty_challans.payment_date,'DD-MM-YYYY') as payment_date,
+                    CASE 
+                        WHEN signature IS NULL THEN ''
+                            else
+                        concat('$docUrl/',signature)
+                END as signature",
                 )
             )
                 ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
                 ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
                 ->leftjoin('ulb_ward_masters', 'ulb_ward_masters.id', 'penalty_final_records.ward_id')
+                ->join('users', 'users.id', 'penalty_final_records.approved_by')
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', 'violations.section_id')
                 ->where('penalty_challans.id', $req->challanId)
@@ -609,13 +616,15 @@ class PenaltyRecordController extends Controller
                 ->where('penalty_documents.challan_type', $finalRecord->challan_type)
                 ->first();
 
-            // $doc = collect($document)->pluck('geo_tagged_image');
-
             $data = collect($finalRecord)->merge($document);
-            // return  $data = collect($document)->merge($finalRecord);
 
             if ($data->isEmpty())
                 throw new Exception("No Data Found againt this challan.");
+
+            if ($data['violation_section'] == 602)
+                $data['challan_print_type'] = 1;
+            else
+                $data['challan_print_type'] = 0;
 
             $totalAmountInWord = getHindiIndianCurrency($data['total_amount']);
             $data['amount_in_words'] = $totalAmountInWord . ' मात्र';
@@ -1066,7 +1075,7 @@ class PenaltyRecordController extends Controller
 
     /**
      * | Get Challan Details
-     * | API Id : 0620
+     * | API Id : 0621
      */
     public function mobileChallanDetails(Request $req)
     {
@@ -1125,10 +1134,37 @@ class PenaltyRecordController extends Controller
             $totalAmountInWord = getHindiIndianCurrency($finalRecord->total_amount);
             $data['challanDetails']['amount_in_words'] = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $data, "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, "0621", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0621", "01", responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Get Record By Id
+     * | API Id : 0622
+     * | Version 2 of ApiId = 0602
+     */
+    public function showV2(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'id' => 'required|numeric'
+        ]);
+
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $penaltyDetails = $this->mPenaltyRecord->recordDetail()
+                ->where('penalty_applied_records.id', $req->id)
+                ->first();
+
+            if (!$penaltyDetails)
+                throw new Exception("Data Not Found");
+
+            return responseMsgs(true, "View Records", $penaltyDetails, "0622",  responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            return responseMsgs(false, $e->getMessage(), [], "", "0622", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

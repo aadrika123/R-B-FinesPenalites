@@ -140,6 +140,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('report/collection-wise', 'collectionData');                                              #_collection wise report ---------- 0619
         Route::post('report/comparison', 'comparisonReport');                                                 #_comparison report --------------- 0620
         Route::post('v2/penalty-record/get-challan', 'mobileChallanDetails');                                 #_get challans details mobile ----- 0621
+        Route::post('v2/penalty-record/crud/show', 'showV2');                                                 #_penalty record ------------------ 0622
     });
 
     /**
