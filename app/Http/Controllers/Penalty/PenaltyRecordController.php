@@ -1098,6 +1098,7 @@ class PenaltyRecordController extends Controller
                 'penalty_challans.id',
                 'violations.violation_name',
                 'sections.violation_section',
+                'penalty_transactions.payment_mode',
                 'tran_no',
                 'ward_name',
                 DB::raw(
