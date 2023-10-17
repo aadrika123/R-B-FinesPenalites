@@ -165,6 +165,7 @@ class User extends Authenticatable
                     ->where('wf_roleusermaps.is_suspended', false);
             })
             ->leftjoin('wf_roles', 'wf_roles.id', 'wf_roleusermaps.wf_role_id')
+            //check if the role is suspended or not
             ->where('suspended', false)
             ->orderByDesc('id');
     }

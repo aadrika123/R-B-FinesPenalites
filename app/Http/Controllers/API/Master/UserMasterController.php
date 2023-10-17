@@ -188,8 +188,12 @@ class UserMasterController extends Controller
             $perPage = $req->perPage ?? 10;
             DB::enableQueryLog();
             $getData = $this->_mUsers->recordDetails($req)->get();
-            // dd(DB::getQueryLog($getData));
-            return responseMsgs(true, "View All User's Record", $getData, "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
+
+            $filteredData = $getData->filter(function ($item) {
+                return $item['user_type'] !== 'ADMIN';
+            });
+
+            return responseMsgs(true, "View All User's Record", $filteredData->values(), "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -209,8 +213,11 @@ class UserMasterController extends Controller
             $metaReqs =  [
                 'suspended' => true
             ];
-            $delete = $this->_mUsers::findOrFail($req->userId);
-            $delete->update($metaReqs);
+            $user = $this->_mUsers::findOrFail($req->userId);
+            $user->update($metaReqs);
+
+
+
             return responseMsgs(true, "User Deleted", $metaReqs, "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);

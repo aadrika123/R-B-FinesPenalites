@@ -8,7 +8,7 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str; 
+use Illuminate\Support\Str;
 
 /**
  * =======================================================================================================
@@ -39,11 +39,14 @@ class WfRoleMasterController extends Controller
             return responseMsgs(false, $validator->errors(), []);
         try {
             $user = authUser($req);
-            $words = explode(' ', $req->roleName); 
+            $words = explode(' ', $req->roleName);
             $acronym = '';
-            foreach ($words as $word) {
-                $acronym .= strtoupper(substr($word, 0, 1)); 
-            }
+            if (sizeof($words) > 1) {
+                foreach ($words as $word) {
+                    $acronym .= strtoupper(substr($word, 0, 1));
+                }
+            } else
+                $acronym = strtoupper($req->roleName);
             $isGroupExists = $this->_mWfRoles->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("WfRole Already Existing");
@@ -62,7 +65,7 @@ class WfRoleMasterController extends Controller
 
     // Edit WfRole By Id
     public function updateRole(Request $req)
-    { 
+    {
         $validator = Validator::make($req->all(), [
             'roleId'           => 'required|numeric',
             'roleName'         => 'required|string'
@@ -71,10 +74,10 @@ class WfRoleMasterController extends Controller
             return responseMsgs(false, $validator->errors(), []);
         try {
             $user = authUser($req);
-            $words = explode(' ', $req->roleName); 
+            $words = explode(' ', $req->roleName);
             $acronym = '';
             foreach ($words as $word) {
-                $acronym .= strtoupper(substr($word, 0, 1)); 
+                $acronym .= strtoupper(substr($word, 0, 1));
             }
             $getData = $this->_mWfRoles::findOrFail($req->roleId);
             $isExists = $this->_mWfRoles->checkExisting($req);
@@ -86,7 +89,7 @@ class WfRoleMasterController extends Controller
                 'created_by' => $user->id,
                 'updated_at' => Carbon::now()
             ];
-            $getData->update($metaReqs); 
+            $getData->update($metaReqs);
             return responseMsgs(true, "Role Updated Successfully", $metaReqs, "0802", "01", responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", "0802", "01", responseTime(), $req->getMethod(), $req->deviceId);
@@ -147,5 +150,4 @@ class WfRoleMasterController extends Controller
             return responseMsgs(false, $e->getMessage(), "", "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
 }

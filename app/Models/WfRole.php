@@ -39,9 +39,9 @@ class WfRole extends Model
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('status', 1)
-        ->orderByDesc('id')
-        ->get();
+            ->where('status', 1)
+            ->orderByDesc('id')
+            ->get();
     }
 
     /*Read all Records by*/
@@ -53,8 +53,7 @@ class WfRole extends Model
         TO_CHAR(created_at,'HH12:MI:SS AM') as time
         ")
         )
-        ->where('is_suspended', false)
-        ->orderByDesc('id');
-        // ->get();
+            ->where('is_suspended', false)
+            ->orderByDesc('id');
     }
 }
