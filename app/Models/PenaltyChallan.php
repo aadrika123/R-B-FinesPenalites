@@ -68,6 +68,7 @@ class PenaltyChallan extends Model
     {
         return PenaltyChallan::select(
             'penalty_challans.*',
+            'penalty_final_records.id as application_id',
             'full_name',
             'payment_status',
             DB::raw(
