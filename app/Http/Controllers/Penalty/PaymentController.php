@@ -93,7 +93,7 @@ class PaymentController extends Controller
     {
         $idGeneration = new IdGenerationParam();
         try {
-            Storage::disk('public')->put($req->order_id . '.json', json_encode($req->all()));
+            Storage::disk('public')->put($req->orderId . '.json', json_encode($req->all()));
             $mSection            = new Section();
             $mViolation          = new Violation();
             $mRazorpayReq        = new RazorpayReq();
@@ -101,12 +101,10 @@ class PaymentController extends Controller
             $mPenaltyTransaction = new PenaltyTransaction();
             $todayDate           = Carbon::now();
             $penaltyDetails    = PenaltyFinalRecord::find($req->applicationId);
-            $receiptIdParam    = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
-            $responseCode      = Config::get('payment-constants.PINELAB_RESPONSE_CODE');
-            $user              = authUser();
-            $pinelabData       = $req->pinelabResponseBody;
-            $detail            = (object)($req->pinelabResponseBody['Detail'] ?? []);
+            $challanDetails    = PenaltyChallan::where('penalty_record_id', $req->applicationId)->where('status', 1)->first();
 
+            $receiptIdParam    = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
+            $user              = authUser();
 
             $violationDtl  = $mViolation->violationById($penaltyDetails->violation_id);
             $sectionId     = $violationDtl->section_id;
@@ -122,91 +120,52 @@ class PaymentController extends Controller
                 $mReqs = [
                     "request_id"      => $paymentData->id,
                     "order_id"        => $req->orderId,
-                    "merchant_id"     => $req->merchantId,
+                    "merchant_id"     => $req->mid,
                     "payment_id"      => $req->paymentId,
                     "challan_id"      => $req->challanId,
                     "application_id"  => $req->applicationId,
+                    "amount"          => $req->amount,
+                    "ulb_id"          => $penaltyDetails->ulb_id,
+                    "ip_address"      => getClientIpAddress(),
                     // "res_ref_no"      => $transactionNo,                         // flag
                     // "response_msg"    => $pinelabData['Response']['ResponseMsg'],
                     // "response_code"   => $pinelabData['Response']['ResponseCode'],
-                    "description"     => $req->description,
+                    // "description"     => $req->description,
                 ];
 
                 $data = $mRazorpayResponse->store($mReqs);
             }
 
-            # data transfer to the respective module's database 
-            $moduleData = [
-                'id'                => $req->applicationId,
-                'order_id'          => $req->order_id,
-                'amount'            => $req->amount,
-                'workflowId'        => $req->workflowId,
-                'userId'            => $user->id,
-                'ulbId'             => $user->ulb_id,
-                'gatewayType'       => "CC AVENUE",         #_CcAvenue Id
-                'transactionNo'     => $transactionNo,
-                'TransactionDate'   => $detail->TransactionDate ?? null,
-                'HostResponse'      => $detail->HostResponse ?? null,
-                'CardEntryMode'     => $detail->CardEntryMode ?? null,
-                'ExpiryDate'        => $detail->ExpiryDate ?? null,
-                'InvoiceNumber'     => $detail->InvoiceNumber ?? null,
-                'MerchantAddress'   => $detail->MerchantAddress ?? null,
-                'TransactionTime'   => $detail->TransactionTime ?? null,
-                'TerminalId'        => $detail->TerminalId ?? null,
-                'TransactionType'   => $detail->TransactionType ?? null,
-                'CardNumber'        => $detail->CardNumber ?? null,
-                'MerchantId'        => $detail->MerchantId ?? null,
-                'PlutusVersion'     => $detail->PlutusVersion ?? null,
-                'PosEntryMode'      => $detail->PosEntryMode ?? null,
-                'RetrievalReferenceNumber' => $detail->RetrievalReferenceNumber ?? null,
-                'BillingRefNo'             => $detail->BillingRefNo ?? null,
-                'BatchNumber'              => $detail->BatchNumber ?? null,
-                'Remark'                   => $detail->Remark ?? null,
-                'AcquiringBankCode'        => $detail->AcquiringBankCode ?? null,
-                'MerchantName'             => $detail->MerchantName ?? null,
-                'MerchantCity'             => $detail->MerchantCity ?? null,
-                'ApprovalCode'             => $detail->ApprovalCode ?? null,
-                'CardType'                 => $detail->CardType ?? null,
-                'PrintCardholderName'      => $detail->PrintCardholderName ?? null,
-                'AcquirerName'             => $detail->AcquirerName ?? null,
-                'LoyaltyPointsAwarded'     => $detail->LoyaltyPointsAwarded ?? null,
-                'CardholderName'           => $detail->CardholderName ?? null,
-                'AuthAmoutPaise'           => $detail->AuthAmoutPaise ?? null,
-                'PlutusTransactionLogID'   => $detail->PlutusTransactionLogID ?? null
-            ];
-
-
-            if ($pinelabData['Response']['ResponseCode'] == 00) {                           // Success Response code(00)
+            if ($req->status == "AUTHORIZED") {                           // Success Response code(AUTHORIZED)
                 $paymentData->payment_status = 1;
                 $paymentData->save();
 
                 # calling function for the modules
-                if ($paymentData->module_id) {
-                    $reqs = [
-                        "application_id" => $req->applicationId,
-                        "challan_id"     => $req->challanId,
-                        "tran_no"        => $transactionNo,
-                        "tran_date"      => $todayDate,
-                        "tran_by"        => $user->id,
-                        "payment_mode"   => strtoupper('ONLINE'),
-                        "amount"         => $challanDetails->amount,
-                        "penalty_amount" => $challanDetails->penalty_amount,
-                        "total_amount"   => $challanDetails->total_amount,
-                    ];
-                    DB::beginTransaction();
-                    $tranDtl = $mPenaltyTransaction->store($reqs);
-                    $penaltyDetails->payment_status = 1;
-                    $penaltyDetails->save();
+                $reqs = [
+                    "application_id" => $req->applicationId,
+                    "challan_id"     => $challanDetails->id,
+                    "tran_no"        => $transactionNo,
+                    "tran_date"      => $req->date,
+                    "tran_by"        => $user->id,
+                    "payment_mode"   => strtoupper('ONLINE'),
+                    "amount"         => $challanDetails->amount,
+                    "penalty_amount" => $challanDetails->penalty_amount,
+                    "total_amount"   => $challanDetails->total_amount,
+                    "verify_status"  => 1,
+                ];
+                DB::beginTransaction();
+                $tranDtl = $mPenaltyTransaction->store($reqs);
+                $penaltyDetails->payment_status = 1;
+                $penaltyDetails->save();
 
-                    $challanDetails->payment_date = $todayDate;
-                    $challanDetails->save();
-                    DB::commit();
-                }
+                $challanDetails->payment_date = $req->date;
+                $challanDetails->save();
+                DB::commit();
             } else
                 throw new Exception("Payment Cancelled");
-            return responseMsgs(true, "Data Saved", $data, 0702, 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Data Saved", $data, "0702", 01, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", 0702, 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", "0702", 01, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
