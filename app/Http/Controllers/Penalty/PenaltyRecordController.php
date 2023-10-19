@@ -1117,7 +1117,7 @@ class PenaltyRecordController extends Controller
             if (!$finalRecord)
                 throw new Exception("Final Record Not Found");
 
-            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->id;
+            $appliedRecordId =  $finalRecord->applied_record_id ?? $finalRecord->application_id;
 
             $document = PenaltyDocument::select(
                 'id',
