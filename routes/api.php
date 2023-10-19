@@ -149,7 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
      */
     Route::controller(PaymentController::class)->group(function () {
         Route::post('fines/razorpay/initiate-payment', 'initiatePayment');        #_Initiate Online Payment ----------------- 0701
-        Route::post('fines/razorpay/save-response', 'saveRazorpayResponse');       #_Save Response of Online Payment --------- 0702
+        Route::post('fines/razorpay/save-response', 'saveRazorpayResponse');      #_Save Response of Online Payment --------- 0702
         Route::post('fines/cash-verification-list', 'listCashVerification');      #_List of Cash Verification --------------- 0703
         Route::post('fines/cash-verification-dtl', 'cashVerificationDtl');        #_Cash Verification Detail ---------------- 0704
         Route::post('fines/verify-cash', 'verifyCash');                           #_Verify Cash ----------------------------- 0705

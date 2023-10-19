@@ -70,6 +70,12 @@ class UserController extends Controller
                 //     $values = $value['roles'];
                 //     return $values;
                 // });
+
+                if ($req->type == 'mobile') {
+                    $data['appStatus'] = 'native';
+                    $data['url']       = 'site2.aadrikainfomedia.in/finesMobile';
+                }
+
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
                 $data['userDetails']['role_name'] = $roleDetail['role'] ?? "";
