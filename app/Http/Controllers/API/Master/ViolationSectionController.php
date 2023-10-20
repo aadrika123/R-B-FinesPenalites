@@ -42,7 +42,7 @@ class ViolationSectionController extends Controller
     public function createViolationSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'violationSection' => 'required|string',
+            'violationSection' => 'required',
             'department' => 'required|string',
             'sectionDefinition' => 'required|string',
         ]);
@@ -70,7 +70,7 @@ class ViolationSectionController extends Controller
     {
         $validator = Validator::make($req->all(), [
             'id'               => 'required|numeric',
-            'violationSection' => 'required|string',
+            'violationSection' => 'required',
             'department' => 'required|string',
             'sectionDefinition' => 'required|string',
         ]);
