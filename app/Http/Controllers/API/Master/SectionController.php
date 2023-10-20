@@ -25,7 +25,7 @@ class SectionController extends Controller
     {
         $validator = Validator::make($req->all(), [
             "departmentId"          => 'required|numeric',
-            'violationSection'      => 'required|string'
+            'violationSection'      => 'required'
         ]);
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
