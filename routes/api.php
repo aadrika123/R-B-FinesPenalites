@@ -49,6 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('department/crud/get', 'getDepartmentById');                              #_Get By Id --------------- 0203
         Route::post('department/crud/list', 'getDepartmentList');                             #_Get All ----------------- 0204
         Route::post('department/crud/delete', 'deleteDepartment');                            #_Delete ------------------ 0205
+        /**
+         to be removed from front and backend
+         */
+        Route::post('department/list', 'getDepartmentList');                            #_Get All ------------------ 0205
     });
 
     /**
