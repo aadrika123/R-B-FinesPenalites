@@ -50,13 +50,13 @@ class UserMasterController extends Controller
             // 'signature'             => 'nullable|file',
             // 'profile'               => 'nullable|file',
             'email'                   => 'required|email',
-            // 'password'                => 'required|string', 
-            // 'confirmPassword'         => 'required|same:password',
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
-            $authUser = authUser($req);
+            $apiId = "0901";
+            $version = "01";
+            $authUser = authUser();
             $metaReqs = [];
             $docUpload = new DocUpload;
             $isGroupExists = $this->_mUsers->checkExisting($req);
@@ -82,18 +82,19 @@ class UserMasterController extends Controller
             }
 
             $metaReqs = array_merge($metaReqs, [
-                'first_name'     => $req->firstName,
-                'middle_name'    => $req->middleName,
-                'last_name'      => $req->lastName,
-                'user_name'      => $req->firstName . ' ' . $req->middleName . ' ' . $req->lastName,
+                'first_name'     => ucfirst($req->firstName),
+                'middle_name'    => ucfirst($req->middleName),
+                'last_name'      => ucfirst($req->lastName),
+                'user_name'      => ucfirst($req->firstName) . ' ' . ucfirst($req->middleName) . ' ' . ucfirst($req->lastName),
                 'mobile'         => $req->mobileNo,
                 'email'          => $req->email,
                 'ulb_id'         => $authUser->ulb_id,
                 'address'        => $req->address,
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
-                'created_by'     => authUser()->id,
-                'password'       => Hash::make($req->firstName . '@' . substr($req->mobileNo, 7, 3)),
+                'created_by'     => $authUser->id,
+                'password'       => Hash::make(ucfirst($req->firstName) . '@' . substr($req->mobileNo, 7, 3)),
+                'ip_address'     => getClientIpAddress(),
             ]);
 
             $user = $this->_mUsers->store($metaReqs);
@@ -110,9 +111,9 @@ class UserMasterController extends Controller
             //     $message->subject('Password Reset');
             // });
 
-            return responseMsgs(true, "Your Password is First Name @ Last 3 digit of your mobile No.", $metaReqs, "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Your Password is First Name @ Last 3 digit of your mobile No.", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0901", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -135,7 +136,9 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
-            $user = authUser($req);
+            $apiId = "0902";
+            $version = "01";
+            $user = authUser();
             $getUser = $this->_mUsers::findOrFail($req->userId);
             $isExists = $this->_mUsers->checkExisting($req);
             // if ($isExists && collect($isExists)->where('id', '!=', $req->userId)->isNotEmpty())
@@ -152,9 +155,9 @@ class UserMasterController extends Controller
                 'employee_code'  => $req->employeeCode,
             ];
             $getUser->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "User Updated Successfully", $metaReqs, "0902", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "User Updated Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0902", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",                  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -169,13 +172,15 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return responseMsgs(false, $validator->errors(), []);
         try {
+            $apiId = "0903";
+            $version = "01";
             $getData = $this->_mUsers->recordDetails($req)->where('id', $req->userId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
 
-            return responseMsgs(true, "View User", $getData, "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View User", $getData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0903", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -185,6 +190,8 @@ class UserMasterController extends Controller
     public function getUserList(Request $req)
     {
         try {
+            $apiId = "0904";
+            $version = "01";
             $perPage = $req->perPage ?? 10;
             $getData = $this->_mUsers->recordDetails($req)->get();
 
@@ -192,9 +199,9 @@ class UserMasterController extends Controller
                 return $item['user_type'] !== 'ADMIN';
             });
 
-            return responseMsgs(true, "View All User's Record", $filteredData->values(), "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All User's Record", $filteredData->values(), $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0904", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",                             $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -209,17 +216,16 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
-            $metaReqs =  [
-                'suspended' => true
-            ];
+            $apiId = "0905";
+            $version = "01";
             $user = $this->_mUsers::findOrFail($req->userId);
-            $user->update($metaReqs);
+            $user->update([
+                'suspended' => true
+            ]);
 
-
-
-            return responseMsgs(true, "User Deleted", $metaReqs, "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "User Deleted", "",    $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0905", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -235,6 +241,8 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0906";
+            $version = "01";
             //check user suspended status
             $userDetail = User::where('id', $req->id)
                 ->where('suspended', false)
@@ -251,9 +259,9 @@ class UserMasterController extends Controller
             $userDetail->password = Hash::make($req->password);
             $userDetail->save();
 
-            return responseMsgs(true, "Password Reset Succesfully", "", "0906", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Password Reset Succesfully", "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0906", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",            $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -268,6 +276,8 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0907";
+            $version = "01";
             $ulbId = $req->ulbId ?? authUser()->ulb_id;
             if (!$ulbId)
                 throw new Exception("Please Provide Ulb");
@@ -275,9 +285,9 @@ class UserMasterController extends Controller
             $mUlbWardMaster = new UlbWardMaster();
             $wardList = $mUlbWardMaster->getWardList($ulbId);
 
-            return responseMsgs(true, "Ward List", $wardList, "0907", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Ward List", $wardList, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0907", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -293,6 +303,8 @@ class UserMasterController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0908";
+            $version = "01";
             $mWfRoleusermap = new WfRoleusermap();
             $mWfRole = new WfRole();
             $mUser = $this->_mUsers;
@@ -309,24 +321,25 @@ class UserMasterController extends Controller
                 ->orderByDesc('id')
                 ->first();
 
-            if ($roleMap)
-                $roleMap->update(['is_suspended' => true]);
-
             $mreq = [
                 "wf_role_id" => $req->roleId,
                 "user_id"    => $req->userId,
                 "created_by" => authUser()->id,
             ];
+
             DB::beginTransaction();
+
+            if ($roleMap)
+                $roleMap->update(['is_suspended' => true]);
 
             $mWfRoleusermap->store($mreq);
             $userDtl->update(["user_type" => $roleDtl->user_type]);
 
             DB::commit();
-            return responseMsgs(true, "Role Assigned to the user", "", "0908", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Role Assigned to the user", "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0908", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",           $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

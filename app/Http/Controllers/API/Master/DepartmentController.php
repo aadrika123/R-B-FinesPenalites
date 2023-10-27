@@ -27,8 +27,10 @@ class DepartmentController extends Controller
             'departmentName'        => 'required|string'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0201";
+            $version = "01";
             $isGroupExists = $this->_mDepartments->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("Department Already Existing");
@@ -38,9 +40,9 @@ class DepartmentController extends Controller
                 'created_by'      => authUser()->id
             ];
             $this->_mDepartments->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Added Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0201", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $metaReqs, $apiId, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -48,12 +50,14 @@ class DepartmentController extends Controller
     public function updateDepartment(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'departmentId'                => 'required|numeric',
+            'departmentId'          => 'required|int',
             'departmentName'        => 'required|string'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0202";
+            $version = "01";
             $getData = $this->_mDepartments::findOrFail($req->departmentId);
             $isExists = $this->_mDepartments->checkExisting($req);
             if ($isExists && $isExists->where('id', '!=', $req->departmentId)->isNotEmpty())
@@ -62,9 +66,9 @@ class DepartmentController extends Controller
                 'department_name' => strtoupper($req->departmentName),
             ];
             $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Updated Successfully", $metaReqs, "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Updated Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0202", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -74,17 +78,19 @@ class DepartmentController extends Controller
     public function getDepartmentById(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'departmentId' => 'required|numeric'
+            'departmentId' => 'required|int'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0203";
+            $version = "01";
             $getData = $this->_mDepartments->recordDetails()->where('departments.id', $req->departmentId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "View Records", $getData, "0203", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $getData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0203", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
@@ -93,10 +99,12 @@ class DepartmentController extends Controller
     public function getDepartmentList(Request $req)
     {
         try {
+            $apiId = "0204";
+            $version = "01";
             $getData = $this->_mDepartments->recordDetails()->get();
-            return responseMsgs(true, "View All Records", $getData, "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All Records", $getData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -109,16 +117,18 @@ class DepartmentController extends Controller
             'departmentId' => 'required'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
-            $metaReqs =  [
-                'status' => 0
-            ];
-            $delete = $this->_mDepartments::findOrFail($req->departmentId);
-            $delete->update($metaReqs);
-            return responseMsgs(true, "Deleted Successfully", $metaReqs, "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            $apiId = "0205";
+            $version = "01";
+            $departmentDtl = $this->_mDepartments::findOrFail($req->departmentId);
+            $departmentDtl->update([
+                'status' => 0,
+                "updated_at" => Carbon::now()
+            ]);
+            return responseMsgs(true, "Deleted Successfully", [], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

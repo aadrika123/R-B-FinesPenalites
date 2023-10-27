@@ -25,6 +25,7 @@ class UserRegistrationRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:30',
+            'name' => 'required|string|max:30',
             'email' => 'required|email|unique:users|max:100',
             'password' => [
                 'required',
@@ -63,10 +64,10 @@ class UserRegistrationRequest extends FormRequest
      * @return Illuminate\Http\Exceptions\HttpResponseException
      */
 
-     protected function failedValidation(Validator $validator)
-     {
-         throw new HttpResponseException(response()->json($validator->errors(), 422));
-     }
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json($validator->errors(), 422));
+    }
 
     /**
      * Get the error messages for the defined validation rules.

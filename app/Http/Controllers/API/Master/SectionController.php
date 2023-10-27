@@ -24,12 +24,14 @@ class SectionController extends Controller
     public function createSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            "departmentId"          => 'required|numeric',
+            "departmentId"          => 'required|int',
             'violationSection'      => 'required'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0301";
+            $version = "01";
             $isGroupExists = $this->_mSections->checkExisting($req);
             if (collect($isGroupExists)->isNotEmpty())
                 throw new Exception("Section Already Existing");
@@ -40,9 +42,9 @@ class SectionController extends Controller
                 'created_by'        => authUser()->id
             ];
             $this->_mSections->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Added Successfully", $metaReqs, "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Added Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0301", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -50,13 +52,15 @@ class SectionController extends Controller
     public function updateSection(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'sectionId'             => 'required|numeric',
-            'departmentId'          => 'required|numeric',
+            'sectionId'             => 'required|int',
+            'departmentId'          => 'required|int',
             'violationSection'        => 'required|string'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0302";
+            $version = "01";
             $getData = $this->_mSections::findOrFail($req->sectionId);
             $isExists = $this->_mSections->checkExisting($req);
             if ($isExists && $isExists->where('id', '!=', $req->sectionId)->isNotEmpty())  // pending
@@ -66,9 +70,9 @@ class SectionController extends Controller
                 'violation_section'   => strtoupper($req->violationSection)
             ];
             $getData->update($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Records Updated Successfully", $metaReqs, "0302", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Updated Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0302", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -78,17 +82,19 @@ class SectionController extends Controller
     public function getSectionById(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'sectionId' => 'required|numeric'
+            'sectionId' => 'required|int'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0303";
+            $version = "01";
             $getData = $this->_mSections->recordDetails($req)->where('sections.id', $req->sectionId)->first();
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "View Records", $getData, "0303", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $getData, $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0303", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
@@ -97,10 +103,12 @@ class SectionController extends Controller
     public function getSectionList(Request $req)
     {
         try {
+            $apiId = "0304";
+            $version = "01";
             $getData = $this->_mSections->recordDetails($req)->get();
-            return responseMsgs(true, "View All Records", $getData, "0304", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All Records", $getData, $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0304", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -113,16 +121,15 @@ class SectionController extends Controller
             'sectionId' => 'required'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
-            $metaReqs =  [
-                'status' => 0
-            ];
-            $delete = $this->_mSections::findOrFail($req->sectionId);
-            $delete->update($metaReqs);
-            return responseMsgs(true, "Deleted Successfully", $metaReqs, "0305", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            $apiId = "0305";
+            $version = "01";
+            $sectionDetail = $this->_mSections::findOrFail($req->sectionId);
+            $sectionDetail->update(['status' => 0]);
+            return responseMsgs(true, "Deleted Successfully", "", $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0305", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -137,11 +144,13 @@ class SectionController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0306";
+            $version = "01";
             $mChallanCategories = new Section();
             $getData = $mChallanCategories->getList($req);
-            return responseMsgs(true, "View Section List", $getData, "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Section List", $getData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0306", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

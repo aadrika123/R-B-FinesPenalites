@@ -36,8 +36,10 @@ class WfRoleMasterController extends Controller
             'roleName'        => 'required|string'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0801";
+            $version = "01";
             $user = authUser($req);
             $words = explode(' ', $req->roleName);
             $acronym = '';
@@ -53,13 +55,12 @@ class WfRoleMasterController extends Controller
             $metaReqs = [
                 'role_name'   => $req->roleName,
                 'user_type'   => $acronym,
-                'created_by' => $user->id,
+                'created_by'  => $user->id,
             ];
-            // return $metaReqs; 
             $this->_mWfRoles->store($metaReqs); // Store in Violations table
-            return responseMsgs(true, "Role Added Successfully", $metaReqs, "0801", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Role Added Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0801", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",                $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -71,8 +72,10 @@ class WfRoleMasterController extends Controller
             'roleName'         => 'required|string'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0802";
+            $version = "01";
             $user = authUser($req);
             $words = explode(' ', $req->roleName);
             $acronym = '';
@@ -86,13 +89,13 @@ class WfRoleMasterController extends Controller
             $metaReqs = [
                 'role_name'   => $req->roleName,
                 'user_type'   => $acronym,
-                'created_by' => $user->id,
-                'updated_at' => Carbon::now()
+                'created_by'  => $user->id,
+                'updated_at'  => Carbon::now()
             ];
             $getData->update($metaReqs);
-            return responseMsgs(true, "Role Updated Successfully", $metaReqs, "0802", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Role Updated Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0802", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",                  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -105,15 +108,17 @@ class WfRoleMasterController extends Controller
             'roleId' => 'required|numeric'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0803";
+            $version = "01";
             $getData = $this->_mWfRoles->recordDetails()->where('id', $req->roleId)->first();
             return $getData;
             if (collect($getData)->isEmpty())
                 throw new Exception("Data Not Found");
-            return responseMsgs(true, "View Role", $getData, "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Role", $getData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0803", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
     /**
@@ -122,10 +127,12 @@ class WfRoleMasterController extends Controller
     public function getRoleList(Request $req)
     {
         try {
+            $apiId = "0804";
+            $version = "01";
             $getData = $this->_mWfRoles->recordDetails()->get();
-            return responseMsgs(true, "View All Role's Records", $getData, "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All Role's Records", $getData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0204", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",               $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -138,16 +145,17 @@ class WfRoleMasterController extends Controller
             'roleId' => 'required'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
-            $metaReqs =  [
+            $apiId = "0805";
+            $version = "01";
+            $role = $this->_mWfRoles::findOrFail($req->roleId);
+            $role->update([
                 'is_suspended' => true,
-            ];
-            $delete = $this->_mWfRoles::findOrFail($req->roleId);
-            $delete->update($metaReqs);
-            return responseMsgs(true, "Role Deleted", $metaReqs, "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            ]);
+            return responseMsgs(true, "Role Deleted", "",    $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0205", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

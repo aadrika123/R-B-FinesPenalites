@@ -57,6 +57,8 @@ class PenaltyRecordController extends Controller
     public function store(InfractionRecordingFormRequest $req)
     {
         try {
+            $apiId = "0601";
+            $version = "01";
             $mSection = new Section();
             $mViolation = new Violation();
             $mPenaltyDocument = new PenaltyDocument();
@@ -90,10 +92,10 @@ class PenaltyRecordController extends Controller
             }
 
             DB::commit();
-            return responseMsgs(true, "Records Added Successfully", $data, "0601",  responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Records Added Successfully", $data, $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), [], "", "0601", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -110,6 +112,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0602";
+            $version = "01";
             $docUrl = Config::get('constants.DOC_URL');
             $penaltyDetails = $this->mPenaltyRecord->recordDetail()
                 //query for chalan no
@@ -132,9 +136,9 @@ class PenaltyRecordController extends Controller
             $data['penaltyDetails'] = $penaltyDetails;
             $data['document'] = $document;
 
-            return responseMsgs(true, "View Records", $data, "0602",  responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $data, $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "0602", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -145,6 +149,8 @@ class PenaltyRecordController extends Controller
     public function activeAll(Request $req)
     {
         try {
+            $apiId = "0603";
+            $version = "01";
             $perPage = $req->perPage ?? 10;
             $recordData = $this->mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.status', 1);
@@ -157,9 +163,9 @@ class PenaltyRecordController extends Controller
                 ])->thenReturn()
                 ->paginate($perPage);
 
-            return responseMsgs(true, "View All Active Records", $penaltyDetails, "0603", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View All Active Records", $penaltyDetails, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "0603", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -173,17 +179,19 @@ class PenaltyRecordController extends Controller
             'id' => 'required'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0604";
+            $version = "01";
             $metaReqs =  [
                 'status' => 0
             ];
             $delete = $this->mPenaltyRecord::findOrFail($req->id);
             $delete->update($metaReqs);
 
-            return responseMsgs(true, "Deleted Successfully", $req->id, "0604",  responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Deleted Successfully", $req->id, $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "0604", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -197,15 +205,17 @@ class PenaltyRecordController extends Controller
             'applicationNo' => 'required|string'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
+            $apiId = "0605";
+            $version = "01";
             $getData = $this->mPenaltyRecord->searchByAppNo($req);
             $perPage = $req->perPage ? $req->perPage : 10;
             $list    = $getData->paginate($perPage);
 
-            return responseMsgs(true, "View Searched Records", $list, "0605", responseTime(), responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Searched Records", $list, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "0605", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -229,6 +239,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0606";
+            $version = "01";
             $mPenaltyDocument = new PenaltyDocument();
             $applicationDtls = $this->mPenaltyRecord->find($req->applicationId);
             if (!$applicationDtls)
@@ -238,9 +250,9 @@ class PenaltyRecordController extends Controller
             if (collect($show)->isEmpty())
                 throw new Exception("Data Not Found");
 
-            return responseMsgs(true, "View Records", $show, "0606", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $show, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "0606", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -251,6 +263,8 @@ class PenaltyRecordController extends Controller
     public function inbox(Request $req)
     {
         try {
+            $apiId = "0607";
+            $version = "01";
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
@@ -279,9 +293,9 @@ class PenaltyRecordController extends Controller
                 ->thenReturn()
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", remove_null($inbox), "0607", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", remove_null($inbox), $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0607", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -296,6 +310,8 @@ class PenaltyRecordController extends Controller
             return validationError($validator);
 
         try {
+            $apiId = "0608";
+            $version = "01";
             $details = array();
             $mPenaltyRecord = new PenaltyRecord();
             // $mWorkflowTracks = new WorkflowTrack();
@@ -350,9 +366,9 @@ class PenaltyRecordController extends Controller
 
             $fullDetailsData['timelineData'] = collect($req);
 
-            return responseMsgs(true, "Penalty Details", $fullDetailsData, "0608", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Penalty Details", $fullDetailsData, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0608", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -369,6 +385,8 @@ class PenaltyRecordController extends Controller
             return validationError($validator);
 
         try {
+            $apiId = "0609";
+            $version = "01";
             $user = authUser($req);
             $userId = $user->id;
             $ulbId = $user->ulb_id;
@@ -463,10 +481,10 @@ class PenaltyRecordController extends Controller
                 ));
             }
 
-            return responseMsgs(true, "", $data, "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0609", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -477,6 +495,8 @@ class PenaltyRecordController extends Controller
     public function recentApplications(Request $req)
     {
         try {
+            $apiId = "0610";
+            $version = "01";
             $todayDate = now()->toDateString();
             $user = authUser($req);
             $userId = $user->id;
@@ -490,10 +510,10 @@ class PenaltyRecordController extends Controller
                 ->take(10)
                 ->get();
 
-            return responseMsgs(true, "Recent Applications", $challanDtl, "0610", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Recent Applications", $challanDtl, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0610", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -504,6 +524,8 @@ class PenaltyRecordController extends Controller
     public function recentChallans(Request $req)
     {
         try {
+            $apiId = "0611";
+            $version = "01";
             $todayDate = Carbon::now();
             $mPenaltyChallan = new PenaltyChallan();
             $user = authUser($req);
@@ -515,10 +537,10 @@ class PenaltyRecordController extends Controller
                 ->take(10)
                 ->get();
 
-            return responseMsgs(true, "Recent Challans", $challanDtl, "0611", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Recent Challans", $challanDtl, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0611", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -529,6 +551,8 @@ class PenaltyRecordController extends Controller
     public function searchChallan(Request $req)
     {
         try {
+            $apiId = "0612";
+            $version = "01";
             $challanExpiredDate = Carbon::now()->addDay(14)->toDateString();
             $perPage = $req->perPage ?? 10;
             $mPenaltyChallan = new PenaltyChallan();
@@ -549,10 +573,10 @@ class PenaltyRecordController extends Controller
                 ])->thenReturn()
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $challanList, "0612", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $challanList,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0612", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -569,6 +593,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0613";
+            $version = "01";
             $docUrl = Config::get('constants.DOC_URL');
             $todayDate = Carbon::now();
             $mPenaltyChallan = new PenaltyChallan();
@@ -629,10 +655,10 @@ class PenaltyRecordController extends Controller
             $totalAmountInWord = getHindiIndianCurrency($data['total_amount']);
             $data['amount_in_words'] = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $data, "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0613", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -651,6 +677,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0614";
+            $version = "01";
             $mSection = new Section();
             $mViolation = new Violation();
             $mPenaltyTransaction = new PenaltyTransaction();
@@ -692,10 +720,10 @@ class PenaltyRecordController extends Controller
             $challanDetails->payment_date = $todayDate;
             $challanDetails->save();
             DB::commit();
-            return responseMsgs(true, "", $tranDtl, "0614", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $tranDtl,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0614", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -711,6 +739,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0615";
+            $version = "01";
             $mPenaltyTransaction = new PenaltyTransaction();
             $user = authUser($req);
             $todayDate = Carbon::now();
@@ -723,9 +753,9 @@ class PenaltyRecordController extends Controller
             $totalAmountInWord = getHindiIndianCurrency($tranDtl->total_amount);
             $tranDtl->amount_in_words = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $tranDtl, "0615", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $tranDtl,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0615", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -736,6 +766,8 @@ class PenaltyRecordController extends Controller
     public function onSpotChallan(InfractionRecordingFormRequest $req)
     {
         try {
+            $apiId = "0616";
+            $version = "01";
             $mSection = new Section();
             $mViolation = new Violation();
             $mPenaltyChallan = new PenaltyChallan();
@@ -807,10 +839,10 @@ class PenaltyRecordController extends Controller
             //     ));
             // }
 
-            return responseMsgs(true, "", $data, "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0616", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -829,6 +861,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0617";
+            $version = "01";
             $user = authUser($req);
             $perPage = $req->perPage ?? 10;
             $todayDate =  $req->date ?? now()->toDateString();
@@ -855,9 +889,9 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data, "0617", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0617", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -878,6 +912,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0618";
+            $version = "01";
             $user = authUser($req);
             $userId = $req->userId;
             if ($req->type == 'mobile')
@@ -918,9 +954,9 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data, "0618", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0618", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -939,6 +975,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0619";
+            $version = "01";
             $user = authUser($req);
             $userId = $req->userId;
             if ($req->type == 'mobile')
@@ -972,9 +1010,9 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data, "0619", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0619", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -990,6 +1028,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0620";
+            $version = "01";
             $mPenaltyRecord = new PenaltyRecord();
             $mPenaltyFinalRecord = new PenaltyFinalRecord();
             $finalRecord = $mPenaltyFinalRecord->recordDetail()
@@ -1015,9 +1055,9 @@ class PenaltyRecordController extends Controller
 
             $data = $this->comparison($finalRecord, $appliedRecord);
 
-            return responseMsgs(true, "Comparison Report", $data, "0620", 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Comparison Report", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0620", 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -1085,6 +1125,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0621";
+            $version = "01";
             $docUrl = Config::get('constants.DOC_URL');
             $todayDate = Carbon::now();
             $mPenaltyChallan = new PenaltyChallan();
@@ -1135,10 +1177,10 @@ class PenaltyRecordController extends Controller
             $totalAmountInWord = getHindiIndianCurrency($finalRecord->total_amount);
             $data['challanDetails']['amount_in_words'] = $totalAmountInWord . ' मात्र';
 
-            return responseMsgs(true, "", $data, "0621", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0621", "01", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -1156,6 +1198,8 @@ class PenaltyRecordController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0622";
+            $version = "01";
             $penaltyDetails = $this->mPenaltyRecord->recordDetail()
                 ->where('penalty_applied_records.id', $req->id)
                 ->first();
@@ -1163,9 +1207,9 @@ class PenaltyRecordController extends Controller
             if (!$penaltyDetails)
                 throw new Exception("Data Not Found");
 
-            return responseMsgs(true, "View Records", $penaltyDetails, "0622",  responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "View Records", $penaltyDetails,  $apiId, $version,  responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "", "0622", responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), [], "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

@@ -7,15 +7,18 @@ use App\Http\Requests\Auth\ChangePassRequest;
 use App\Http\Requests\Auth\OtpChangePass;
 use App\Http\Requests\Auth\UserRegistrationRequest;
 use App\Http\Requests\InfractionRecordingFormRequest;
+use App\Models\AppStatus;
 use App\Models\PenaltyRecord;
 use App\Models\User;
 use App\Models\WfRoleusermap;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class UserController extends Controller
 {
@@ -26,18 +29,6 @@ class UserController extends Controller
         $this->_mUser = new User();
     }
 
-    /**
-     * | Registration for users 
-     */
-    public function register(UserRegistrationRequest $req)
-    {
-        try {
-            $data = $this->_mUser->insertData($req);
-            return responseMsgs(true, "User Registration Done Successfully", $data, "0102", "", responseTime(), "POST", $req->deviceId ?? "");
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), [], "0102", "", responseTime(), "POST", $req->deviceId ?? "");
-        }
-    }
     /**
      * | User Login
      */
@@ -55,6 +46,9 @@ class UserController extends Controller
             return validationError($validated);
         try {
             $mWfRoleusermap = new WfRoleusermap();
+            $mAppStatus = new AppStatus();
+            $apiId   = "0101";
+            $version = "01";
             $user = $this->_mUser->getUserByEmail($req->email);
             if (!$user)
                 throw new Exception("Oops! Given email does not exist");
@@ -63,28 +57,22 @@ class UserController extends Controller
             if (Hash::check($req->password, $user->password)) {
                 $token = $user->createToken('my-app-token')->plainTextToken;
                 $roleDetail = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
-                // if (empty(collect($menuRoleDetails)->first())) {
-                //     throw new Exception('User has No Roles!');
-                // }
-                // $role = collect($menuRoleDetails)->map(function ($value, $key) {
-                //     $values = $value['roles'];
-                //     return $values;
-                // });
+                $appData = $mAppStatus->where('status', 1)->first();
 
                 if ($req->type == 'mobile') {
-                    $data['appStatus'] = 'native';
-                    $data['url']       = 'site2.aadrikainfomedia.in/finesMobile';
+                    $data['appStatus'] = $appData->app_status;
+                    $data['url']       = $appData->url;
                 }
 
                 $data['token'] = $token;
                 $data['userDetails'] = $user;
                 $data['userDetails']['role_name'] = $roleDetail['role'] ?? "";
 
-                return responseMsgs(true, "You have Logged In Successfully", $data, 0101, "1.0", responseTime(), "POST", $req->deviceId);
+                return responseMsgs(true, "You have Logged In Successfully", $data, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
             }
             throw new Exception("Password Not Matched");
         } catch (Exception $e) {
-            return responseMsg(false, $e->getMessage(), "");
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -94,10 +82,14 @@ class UserController extends Controller
     public function logout(Request $req)
     {
         try {
-            $req->user()->currentAccessToken()->delete();                               // Delete the Current Accessable Token
-            return responseMsgs(true, "You have Logged Out", [], "", "0103", responseTime(), "POST", $req->deviceId);
+            $apiId = "0102";
+            $version = "01";
+            $token = $req->user()->currentAccessToken();                               #_Current Accessable Token
+            $token->expires_at = Carbon::now();
+            $token->save();
+            return responseMsgs(true, "You have Logged Out", [], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return response()->json($e, 400);
+            return responseMsgs(false, $e->getMessage(), [], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -107,17 +99,25 @@ class UserController extends Controller
     public function changePass(ChangePassRequest $request)
     {
         try {
-            $id = auth()->user()->id;
-            $user = User::find($id);
+            $apiId = "0103";
+            $version = "01";
+            $userId = auth()->user()->id;
+            $user = User::find($userId);
             $validPassword = Hash::check($request->password, $user->password);
             if ($validPassword) {
+                #_Save New Password
                 $user->password = Hash::make($request->newPassword);
                 $user->save();
-                return responseMsgs(true, 'Successfully Changed the Password', "", "", "02", ".ms", "POST", $request->deviceId);
+
+                #_Token Expire
+                $token = $request->user()->currentAccessToken();                               #_Current Accessable Token
+                $token->expires_at = Carbon::now();
+                $token->save();
+                return responseMsgs(true, 'Successfully Changed the Password', "", $apiId, $version, responseTime(), $request->getMethod(), $request->deviceId);
             }
             throw new Exception("Old Password dosen't Match!");
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "02", ".ms", "POST", $request->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
 
@@ -125,45 +125,51 @@ class UserController extends Controller
      * | Change Password by OTP 
      * | Api Used after the OTP Validation
      */
-    public function changePasswordByOtp(OtpChangePass $request)
-    {
-        try {
-            $id = auth()->user()->id;
-            $user = User::find($id);
-            $user->password = Hash::make($request->password);
-            $user->save();
-            return responseMsgs(true, 'Successfully Changed the Password', "", "", "0104", ".ms", "POST", $request->deviceId);
-        } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "0104", ".ms", "POST", $request->deviceId);
-        }
-    }
+    // public function changePasswordByOtp(OtpChangePass $request)
+    // {
+    //     try {
+    //         $apiId = "0104";
+    //         $version = "01";
+    //         $id = auth()->user()->id;
+    //         $user = User::find($id);
+    //         $user->password = Hash::make($request->password);
+    //         $user->save();
+
+    //         #_Token Expire
+    //         $token = $request->user()->currentAccessToken();                               #_Current Accessable Token
+    //         $token->expires_at = Carbon::now();
+    //         $token->save();
+    //         return responseMsgs(true, 'Successfully Changed the Password', "", $apiId, $version, responseTime(), $request->getMethod(), $request->deviceId);
+    //     } catch (Exception $e) {
+    //         return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $request->getMethod(), $request->deviceId);
+    //     }
+    // }
 
     /**
      * | For Showing Logged In User Details 
-     * | #user_id= Get the id of current user 
-     * | if $redis available then get the value from redis key
-     * | if $redis not available then get the value from sql database
+     * | $userId = Get the id of current user 
      */
     public function myProfileDetails(Request $req)
     {
         try {
+            $apiId = "0105";
+            $version = "01";
             $userId = auth()->user()->id;
             $mUser = new User();
             $details = $mUser->getUserById($userId);
-            // return $details; die; 
             $usersDetails = [
-                'id'        => $details->id,
-                'NAME'      => $details->name,
-                // 'USER_NAME' => $details->user_name,
-                // 'mobile'    => $details->mobile,
-                'email'     => $details->email,
-                // 'ulb_id'    => $details->ulb_id,
-                // 'ulb_name'  => $details->ulb_name,
+                'id'            => $details->id,
+                'name'          => $details->user_name,
+                'mobile'        => $details->mobile,
+                'email'         => $details->email,
+                'ulb_name'      => $details->ulb_name,
+                'signature'     => $details->signature,
+                'profile_image' => $details->profile_image,
             ];
 
-            return responseMsgs(true, "Data Fetched", $usersDetails, 010101, "0105", responseTime(), $req->getMethod(), "");
+            return responseMsgs(true, "Data Fetched", $usersDetails, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "", "0105", ".ms", "POST", "");
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 }

@@ -50,7 +50,8 @@ class PaymentController extends Controller
             return validationError($validator);
 
         try {
-
+            $apiId = "0701";
+            $version = "01";
             $keyId        = Config::get('constants.RAZORPAY_KEY');
             $secret       = Config::get('constants.RAZORPAY_SECRET');
             $mRazorpayReq = new RazorpayReq();
@@ -80,9 +81,9 @@ class PaymentController extends Controller
             ];
             $data = $mRazorpayReq->store($mReqs);
 
-            return responseMsgs(true, "Order id is", ['order_id' => $data->order_id], "0701", 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Order id is", ['order_id' => $data->order_id], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0701", 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -93,6 +94,8 @@ class PaymentController extends Controller
     {
         $idGeneration = new IdGenerationParam();
         try {
+            $apiId = "0702";
+            $version = "01";
             Storage::disk('public')->put($req->orderId . '.json', json_encode($req->all()));
             $mSection            = new Section();
             $mViolation          = new Violation();
@@ -163,9 +166,9 @@ class PaymentController extends Controller
                 DB::commit();
             } else
                 throw new Exception("Payment Cancelled");
-            return responseMsgs(true, "Data Saved", $data, "0702", 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Data Saved", $data, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0702", 01, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -187,6 +190,8 @@ class PaymentController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0703";
+            $version = "01";
             $mPenaltyTransaction = new PenaltyTransaction();
             $userId =  $req->userId;
             $date = date('Y-m-d', strtotime($req->date));
@@ -216,9 +221,9 @@ class PaymentController extends Controller
                 ];
             });
 
-            return responseMsgs(true, "Cash Verification List", $data, "0703", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(true, "Cash Verification List", $data, $apiId, $version, responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0703", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), "POST", $req->deviceId);
         }
     }
     /**
@@ -233,6 +238,8 @@ class PaymentController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
+            $apiId = "0704";
+            $version = "01";
             $mPenaltyTransaction = new PenaltyTransaction();
             $userId =  $req->userId;
             $date = date('Y-m-d', strtotime($req->date));
@@ -250,9 +257,9 @@ class PaymentController extends Controller
             $data['date'] = Carbon::parse($date)->format('d-m-Y');
             $data['tcId'] = $userId;
 
-            return responseMsgs(true, "Cash Verification Details", remove_null($data), "0704", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(true, "Cash Verification Details", remove_null($data), $apiId, $version, responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", "0704", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), "POST", $req->deviceId);
         }
     }
     /**
@@ -269,7 +276,9 @@ class PaymentController extends Controller
         if ($validator->fails())
             return validationError($validator);
         try {
-            $user = authUser($req);
+            $apiId = "0705";
+            $version = "01";
+            $user = authUser();
             $userId = $user->id;
             $ulbId = $user->ulb_id;
             $mPenaltyTransaction           = new PenaltyTransaction();
@@ -307,10 +316,10 @@ class PaymentController extends Controller
                 ->update(['verify_status' => 1]);
 
             DB::commit();
-            return responseMsgs(true, "Cash Verified", ["receipt_no" => $receiptNo], "0705", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(true, "Cash Verified", ["receipt_no" => $receiptNo], $apiId, $version, responseTime(), "POST", $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", "0705", "1.0", responseTime(), "POST", $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), "POST", $req->deviceId);
         }
     }
 }

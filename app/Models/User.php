@@ -37,27 +37,7 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    //insert registration
-    public function insertData($req)
-    {
-        $mObject = new User();
-        $dataArr = array();
-        $ip = getClientIpAddress();
-        $insert = [
-            $mObject->name        = $req['name'],
-            $mObject->email       = $req['email'],
-            $mObject->password    = Hash::make($req->password),
-            //   $mObject->remember_token  = createToken('auth_token')->plainTextToken
-        ];
-        // print_r($insert);die;
-        // $token = $mObject->createToken('auth_token')->plainTextToken;
-        $mObject->save($insert);
-        $dataArr['name'] = $mObject->name;
-        $dataArr['email'] = $mObject->email;
-        $dataArr['password'] = $mObject->password;
-        // $dataArr['token'] = $token;
-        return $dataArr;
-    }
+
 
     /**
      * | Get User by Email
@@ -70,10 +50,28 @@ class User extends Authenticatable
 
     public function getUserById($userId)
     {
-        return User::select('users.*')
-            // ->join('ulb_masters', 'ulb_masters.id', 'users.ulb_id')
+        $docUrl = Config::get('constants.DOC_URL');
+        $user = User::select(
+            'users.*',
+            'ulb_masters.ulb_name',
+            DB::raw(
+                "CASE 
+                    WHEN profile_image IS NULL THEN ''
+                        else 
+                    concat('$docUrl/',profile_image)
+            END as profile_image,
+            CASE 
+                    WHEN signature IS NULL THEN ''
+                        else
+                    concat('$docUrl/',signature)
+            END as signature",
+            )
+        )
+            ->join('ulb_masters', 'ulb_masters.id', 'users.ulb_id')
             ->where('users.id', $userId)
+            ->where('users.suspended', false)
             ->first();
+        return $user;
     }
 
     /**
