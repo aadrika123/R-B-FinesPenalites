@@ -432,6 +432,7 @@ class PenaltyRecordController extends Controller
                 'ulb_id'                      => $penaltyRecord->ulb_id,
                 'challan_type'                => $penaltyRecord->challan_type,
                 'category_type_id'            => $penaltyRecord->category_type_id,
+                'ward_id'                     => $penaltyRecord->ward_id,
                 'approved_by'                 => $userId,
                 'guardian_name'               => $req->guardianName,
                 'violation_place'             => $req->violationPlace,
@@ -513,7 +514,7 @@ class PenaltyRecordController extends Controller
             return responseMsgs(true, "Recent Applications", $challanDtl, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",              $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -540,7 +541,7 @@ class PenaltyRecordController extends Controller
             return responseMsgs(true, "Recent Challans", $challanDtl, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
             DB::rollBack();
-            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",          $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
