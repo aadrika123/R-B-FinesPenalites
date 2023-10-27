@@ -46,7 +46,6 @@ class PenaltyRecord extends Model
             'sections.violation_section',
             'departments.department_name as department',
             'ulb_ward_masters.ward_name',
-            // 'penalty_documents.*',
             DB::raw(
                 "CASE 
                         WHEN penalty_applied_records.status = '1' THEN 'Active'
@@ -61,7 +60,6 @@ class PenaltyRecord extends Model
             ->join('sections', 'sections.id',  'violations.section_id')
             ->join('departments', 'departments.id', 'violations.department_id')
             ->leftjoin('ulb_ward_masters', 'ulb_ward_masters.id', 'penalty_applied_records.ward_id')
-            // ->join('penalty_documents', 'penalty_documents.applied_record_id', 'penalty_applied_records.id')
             ->orderByDesc('penalty_applied_records.id');
     }
 

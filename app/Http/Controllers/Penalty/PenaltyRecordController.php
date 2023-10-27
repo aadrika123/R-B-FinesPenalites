@@ -506,7 +506,7 @@ class PenaltyRecordController extends Controller
             $challanDtl =   $mPenaltyRecord->recordDetail()
                 ->whereDate('penalty_applied_records.created_at', $todayDate)
                 ->orderbyDesc('penalty_applied_records.id')
-                // ->where('penalty_applied_records.user_id',$userId)
+                ->where('penalty_applied_records.user_id', $userId)
                 ->take(10)
                 ->get();
 
@@ -533,7 +533,7 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $challanDtl = $mPenaltyChallan->recentChallanDetails()
                 ->where('challan_date', $todayDate)
-                // ->where('penalty_applied_records.user_id',$userId)
+                ->where('penalty_final_records.approved_by', $userId)
                 ->take(10)
                 ->get();
 
