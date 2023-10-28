@@ -134,7 +134,7 @@ class UserMasterController extends Controller
             'email'                   => 'required|email',
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
             $apiId = "0902";
             $version = "01";
@@ -188,7 +188,7 @@ class UserMasterController extends Controller
             'userId' => 'required|numeric'
         ]);
         if ($validator->fails())
-            return responseMsgs(false, $validator->errors(), []);
+            return validationError($validator);
         try {
             $apiId = "0903";
             $version = "01";

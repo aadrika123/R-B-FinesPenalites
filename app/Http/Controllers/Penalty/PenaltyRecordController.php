@@ -438,6 +438,7 @@ class PenaltyRecordController extends Controller
                 'violation_place'             => $req->violationPlace,
                 'remarks'                     => $req->remarks,
                 'vehicle_no'                  => $req->vehicleNo,
+                'applied_by'                  => $penaltyRecord->user_id,
             ];
 
             DB::beginTransaction();
@@ -506,8 +507,8 @@ class PenaltyRecordController extends Controller
 
             $challanDtl =   $mPenaltyRecord->recordDetail()
                 ->whereDate('penalty_applied_records.created_at', $todayDate)
-                ->orderbyDesc('penalty_applied_records.id')
                 ->where('penalty_applied_records.user_id', $userId)
+                ->orderbyDesc('penalty_applied_records.id')
                 ->take(10)
                 ->get();
 
@@ -534,7 +535,7 @@ class PenaltyRecordController extends Controller
             $ulbId = $user->ulb_id;
             $challanDtl = $mPenaltyChallan->recentChallanDetails()
                 ->where('challan_date', $todayDate)
-                // ->where('penalty_final_records.approved_by', $userId)
+                ->where('penalty_final_records.applied_by', $userId)
                 ->take(10)
                 ->get();
 
@@ -793,6 +794,7 @@ class PenaltyRecordController extends Controller
             $applicationNo = $idGeneration->generate();
             $metaReqs      = $this->generateRequest($req, $applicationNo);
             $metaReqs['approved_by'] = $user->id;
+            $metaReqs['applied_by']  = $user->id;
             $metaReqs['challan_type'] = "On Spot";
             $finalRecord =  $mPenaltyFinalRecord->store($metaReqs);
             $idGeneration = new IdGeneration($challanIdParam, $finalRecord->ulb_id, $section, 0);
