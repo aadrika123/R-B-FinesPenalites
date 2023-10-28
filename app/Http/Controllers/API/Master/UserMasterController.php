@@ -139,10 +139,10 @@ class UserMasterController extends Controller
             $apiId = "0902";
             $version = "01";
             $user = authUser();
+            $docUpload = new DocUpload;
             $getUser = $this->_mUsers::findOrFail($req->userId);
             $isExists = $this->_mUsers->checkExisting($req);
-            // if ($isExists && collect($isExists)->where('id', '!=', $req->userId)->isNotEmpty())
-            //     throw new Exception("User Already Existing");
+
             $metaReqs = [
                 'first_name'     => $req->firstName,
                 'middle_name'    => $req->middleName,
@@ -154,6 +154,24 @@ class UserMasterController extends Controller
                 'designation'    => $req->designation,
                 'employee_code'  => $req->employeeCode,
             ];
+
+            if ($req->file('signature')) {
+                $refImageName = Str::random(5);
+                $file = $req->file('signature');
+                $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/Users');
+                $metaReqs = array_merge($metaReqs, [
+                    'signature' => 'FinePenalty/Users/' . $imageName,
+                ]);
+            }
+
+            if ($req->file('profile')) {
+                $refImageName = Str::random(5);
+                $file = $req->file('profile');
+                $imageName = $docUpload->upload($refImageName, $file, 'FinePenalty/Users');
+                $metaReqs = array_merge($metaReqs, [
+                    'profile_image' => 'FinePenalty/Users/' . $imageName,
+                ]);
+            }
             $getUser->update($metaReqs); // Store in Violations table
             return responseMsgs(true, "User Updated Successfully", $metaReqs, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
