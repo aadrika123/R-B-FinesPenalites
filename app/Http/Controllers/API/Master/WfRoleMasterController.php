@@ -79,9 +79,12 @@ class WfRoleMasterController extends Controller
             $user = authUser($req);
             $words = explode(' ', $req->roleName);
             $acronym = '';
-            foreach ($words as $word) {
-                $acronym .= strtoupper(substr($word, 0, 1));
-            }
+            if (sizeof($words) > 1) {
+                foreach ($words as $word) {
+                    $acronym .= strtoupper(substr($word, 0, 1));
+                }
+            } else
+                $acronym = strtoupper($req->roleName);
             $getData = $this->_mWfRoles::findOrFail($req->roleId);
             $isExists = $this->_mWfRoles->checkExisting($req);
             if ($isExists && $isExists->where('id', '!=', $req->roleId)->isNotEmpty())
