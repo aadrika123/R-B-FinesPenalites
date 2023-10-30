@@ -243,7 +243,8 @@ class UserMasterController extends Controller
                 ->first();
 
             $user->update(['suspended' => true]);
-            $roleMaps->update(['is_suspended' => true]);
+            if ($roleMaps)
+                $roleMaps->update(['is_suspended' => true]);
 
             return responseMsgs(true, "User Deleted", "",    $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
