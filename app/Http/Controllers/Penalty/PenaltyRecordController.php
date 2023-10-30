@@ -884,6 +884,7 @@ class PenaltyRecordController extends Controller
                 ->join('sections', 'sections.id', '=', 'violations.section_id')
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->whereBetween('penalty_final_records.created_at', [$req->fromDate . ' 00:00:00', $req->uptoDate . ' 23:59:59'])
+                ->where('penalty_challans.status', 1)
                 ->orderbyDesc('penalty_final_records.id');
 
             if ($req->violationId) {
@@ -892,9 +893,9 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Violation Wise Challan Data", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",                 $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
@@ -943,6 +944,7 @@ class PenaltyRecordController extends Controller
                 ->join('users', 'users.id', 'penalty_final_records.approved_by')
                 ->join('challan_categories', 'challan_categories.id', 'penalty_final_records.category_type_id')
                 ->whereBetween('penalty_challans.challan_date', [$req->fromDate, $req->uptoDate])
+                ->where('penalty_challans.status', 1)
                 ->orderbyDesc('penalty_challans.id');
 
             if ($req->challanType)
@@ -957,9 +959,9 @@ class PenaltyRecordController extends Controller
             $data = $data
                 ->paginate($perPage);
 
-            return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(true, "Challan Generated Report", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, $e->getMessage(), "",              $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
