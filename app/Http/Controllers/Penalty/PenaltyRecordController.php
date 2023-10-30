@@ -999,6 +999,7 @@ class PenaltyRecordController extends Controller
                 ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
                 ->join('sections', 'sections.id', '=', 'violations.section_id')
                 ->join('penalty_challans', 'penalty_challans.id', 'penalty_transactions.challan_id')
+                ->where('penalty_transactions.status', 1)
                 ->whereBetween('tran_date', [$req->fromDate, $req->uptoDate]);
 
             if ($req->challanType)
