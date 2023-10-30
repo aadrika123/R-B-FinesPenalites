@@ -236,10 +236,14 @@ class UserMasterController extends Controller
         try {
             $apiId = "0905";
             $version = "01";
+            $mWfRoleusermap = new WfRoleusermap();
             $user = $this->_mUsers::findOrFail($req->userId);
-            $user->update([
-                'suspended' => true
-            ]);
+            $roleMaps = $mWfRoleusermap->where('user_id', $req->userId)
+                ->orderByDesc('id')
+                ->first();
+
+            $user->update(['suspended' => true]);
+            $roleMaps->update(['is_suspended' => true]);
 
             return responseMsgs(true, "User Deleted", "",    $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
