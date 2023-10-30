@@ -239,6 +239,7 @@ class UserMasterController extends Controller
             $mWfRoleusermap = new WfRoleusermap();
             $user = $this->_mUsers::findOrFail($req->userId);
             $roleMaps = $mWfRoleusermap->where('user_id', $req->userId)
+                ->where('is_suspended', false)
                 ->orderByDesc('id')
                 ->first();
 
