@@ -1042,7 +1042,6 @@ class PenaltyRecordController extends Controller
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->join('users', 'users.id', 'penalty_final_records.approved_by')
                 ->where('penalty_final_records.id', $req->applicationId)
-                ->where('penalty_final_records.status', 1)
                 ->first();
             if (!$finalRecord)
                 throw new Exception("Final Record Not Found");
@@ -1054,7 +1053,6 @@ class PenaltyRecordController extends Controller
                 ->join('penalty_challans', 'penalty_challans.penalty_record_id', 'penalty_final_records.id')
                 ->join('users', 'users.id', 'penalty_applied_records.user_id')
                 ->where('penalty_applied_records.id', $finalRecord->applied_record_id)
-                ->where('penalty_applied_records.status', 1)
                 ->first();
             if (!$appliedRecord)
                 throw new Exception("Applied Record Not Found");
