@@ -559,8 +559,8 @@ class PenaltyRecordController extends Controller
             $perPage = $req->perPage ?? 10;
             $mPenaltyChallan = new PenaltyChallan();
             $user = authUser($req);
-            $userId = $user->id;
-            $ulbId = $user->ulb_id;
+            // $userId = $user->id;
+            // $ulbId = $user->ulb_id;
             $challanDtl = $mPenaltyChallan->details();
 
             if ($req->challanType)
