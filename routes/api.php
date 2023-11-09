@@ -115,7 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/approve', 'approvePenalty');                                              #_penalty approval ---------------- 0609
         Route::post('penalty-record/recent-applications', 'recentApplications');                              #_get recent applications --------- 0610
         Route::post('penalty-record/recent-challans', 'recentChallans');                                      #_get recent challans ------------- 0611
-        Route::post('penalty-record/challan-search', 'searchChallan');                                        #_get search challans ------------- 0612
+        Route::post('penalty-record/challan-search', 'searchChallan')->withoutMiddleware('auth:sanctum');                                        #_get search challans ------------- 0612
         Route::post('penalty-record/get-challan', 'challanDetails');                                          #_get challans details ------------ 0613
         Route::post('penalty-record/offline-challan-payment', 'offlinechallanPayment');                       #_challan payment  ---------------- 0614
         Route::post('penalty-record/payment-receipt', 'paymentReceipt')->withoutMiddleware('auth:sanctum');   #_get payment receipt details ----- 0615
@@ -133,11 +133,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Controller No : 7
      */
     Route::controller(PaymentController::class)->group(function () {
-        Route::post('fines/razorpay/initiate-payment', 'initiatePayment');        #_Initiate Online Payment ----------------- 0701
-        Route::post('fines/razorpay/save-response', 'saveRazorpayResponse');      #_Save Response of Online Payment --------- 0702
-        Route::post('fines/cash-verification-list', 'listCashVerification');      #_List of Cash Verification --------------- 0703
-        Route::post('fines/cash-verification-dtl', 'cashVerificationDtl');        #_Cash Verification Detail ---------------- 0704
-        Route::post('fines/verify-cash', 'verifyCash');                           #_Verify Cash ----------------------------- 0705
+        Route::post('fines/razorpay/initiate-payment', 'initiatePayment');                                        #_Initiate Online Payment ----------------- 0701
+        Route::post('fines/razorpay/save-response', 'saveRazorpayResponse')->withoutMiddleware('auth:sanctum');   #_Save Response of Online Payment --------- 0702
+        Route::post('fines/cash-verification-list', 'listCashVerification');                                      #_List of Cash Verification --------------- 0703
+        Route::post('fines/cash-verification-dtl', 'cashVerificationDtl');                                        #_Cash Verification Detail ---------------- 0704
+        Route::post('fines/verify-cash', 'verifyCash');                                                           #_Verify Cash ----------------------------- 0705
+        Route::post('fines/citizen-online-payment', 'initiatePayment')->withoutMiddleware('auth:sanctum');        #_Initiate Online Payment By Citizen ------ 0702
     });
 
     /**
