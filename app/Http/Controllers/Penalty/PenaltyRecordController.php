@@ -601,7 +601,7 @@ class PenaltyRecordController extends Controller
             $todayDate = Carbon::now();
             $mPenaltyChallan = new PenaltyChallan();
             $perPage = $req->perPage ?? 10;
-            $user = authUser($req);
+            $user = authUser();
 
             $finalRecord = PenaltyChallan::select(
                 'penalty_final_records.*',

@@ -116,7 +116,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/recent-applications', 'recentApplications');                              #_get recent applications --------- 0610
         Route::post('penalty-record/recent-challans', 'recentChallans');                                      #_get recent challans ------------- 0611
         Route::post('penalty-record/challan-search', 'searchChallan')->withoutMiddleware('auth:sanctum');                                        #_get search challans ------------- 0612
-        Route::post('penalty-record/get-challan', 'challanDetails');                                          #_get challans details ------------ 0613
+        Route::post('penalty-record/get-challan', 'challanDetails')->withoutMiddleware('auth:sanctum');                                          #_get challans details ------------ 0613
         Route::post('penalty-record/offline-challan-payment', 'offlinechallanPayment');                       #_challan payment  ---------------- 0614
         Route::post('penalty-record/payment-receipt', 'paymentReceipt')->withoutMiddleware('auth:sanctum');   #_get payment receipt details ----- 0615
         Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                                       #_get on-spot challans ------------ 0616
