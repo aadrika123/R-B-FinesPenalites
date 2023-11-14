@@ -467,20 +467,39 @@ class PenaltyRecordController extends Controller
             #_Whatsaap Message
             if (strlen($finalRecord->mobile) == 10) {
 
-                $whatsapp2 = (Whatsapp_Send(
-                    $finalRecord->mobile,
-                    "rmc_fp_1",
-                    [
-                        "content_type" => "text",
+                if ($section == 602) {
+                    $whatsapp2 = (Whatsapp_Send(
+                        $finalRecord->mobile,
+                        "rmc_fp_sec602",
                         [
-                            $finalRecord->full_name ?? "Violator",
-                            $challanRecord->challan_no,
-                            $section,
-                            $challanRecord->total_amount,
-                            (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
+                            "content_type" => "text",
+                            [
+                                $finalRecord->full_name ?? "Violator",
+                                $challanRecord->challan_no,
+                                $section,
+                                $challanRecord->total_amount,
+                                (($challanRecord->challan_date)->addDay(14))->format('d-m-Y'),
+                                $challanRecord->id
+                            ]
                         ]
-                    ]
-                ));
+                    ));
+                } else {
+                    $whatsapp2 = (Whatsapp_Send(
+                        $finalRecord->mobile,
+                        "rmc_fp_1",
+                        [
+                            "content_type" => "text",
+                            [
+                                $finalRecord->full_name ?? "Violator",
+                                $challanRecord->challan_no,
+                                $section,
+                                $challanRecord->total_amount,
+                                (($challanRecord->challan_date)->addDay(14))->format('d-m-Y'),
+                                $challanRecord->id
+                            ]
+                        ]
+                    ));
+                }
             }
 
             return responseMsgs(true, "", $data, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
@@ -672,9 +691,9 @@ class PenaltyRecordController extends Controller
     public function offlinechallanPayment(Request $req)
     {
         $validator = Validator::make($req->all(), [
-            'applicationId' => 'required|numeric',
-            'challanId' => 'required|numeric',
-            'paymentMode' => 'required'
+            'challanId'     => 'required|int',
+            'paymentMode'   => 'required',
+            'applicationId' => 'nullable|int'
         ]);
         if ($validator->fails())
             return validationError($validator);
@@ -685,8 +704,8 @@ class PenaltyRecordController extends Controller
             $mViolation = new Violation();
             $mPenaltyTransaction = new PenaltyTransaction();
             $receiptIdParam = Config::get('constants.ID_GENERATION_PARAMS.RECEIPT');
-            $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
+            $penaltyDetails = PenaltyFinalRecord::find($challanDetails->penalty_record_id);
             $todayDate = Carbon::now();
             $user = authUser($req);
 
@@ -825,22 +844,42 @@ class PenaltyRecordController extends Controller
             DB::commit();
 
             #_Whatsaap Message
-            // if (strlen($finalRecord->mobile) == 10) {
-            //     $whatsapp2 = (Whatsapp_Send(
-            //         $finalRecord->mobile,
-            //         "rmc_fp_1",
-            //         [
-            //             "content_type" => "text",
-            //             [
-            //                 $finalRecord->full_name ?? "Violator",
-            //                 $challanRecord->challan_no,
-            //                 $section,
-            //                 $challanRecord->total_amount,
-            //                 (($challanRecord->challan_date)->addDay(14))->format('d-m-Y')
-            //             ]
-            //         ]
-            //     ));
-            // }
+            if (strlen($finalRecord->mobile) == 10) {
+
+                if ($section == 602) {
+                    $whatsapp2 = (Whatsapp_Send(
+                        $finalRecord->mobile,
+                        "rmc_fp_sec602",
+                        [
+                            "content_type" => "text",
+                            [
+                                $finalRecord->full_name ?? "Violator",
+                                $challanRecord->challan_no,
+                                $section,
+                                $challanRecord->total_amount,
+                                (($challanRecord->challan_date)->addDay(14))->format('d-m-Y'),
+                                $challanRecord->id
+                            ]
+                        ]
+                    ));
+                } else {
+                    $whatsapp2 = (Whatsapp_Send(
+                        $finalRecord->mobile,
+                        "rmc_fp_1",
+                        [
+                            "content_type" => "text",
+                            [
+                                $finalRecord->full_name ?? "Violator",
+                                $challanRecord->challan_no,
+                                $section,
+                                $challanRecord->total_amount,
+                                (($challanRecord->challan_date)->addDay(14))->format('d-m-Y'),
+                                $challanRecord->id
+                            ]
+                        ]
+                    ));
+                }
+            }
 
             return responseMsgs(true, "", $data,  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {

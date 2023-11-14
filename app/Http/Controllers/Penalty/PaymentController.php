@@ -42,7 +42,7 @@ class PaymentController extends Controller
         $validator = Validator::make($req->all(), [
             "amount"        => "required|numeric",
             "challanId"     => "required|int",
-            "applicationId" => "required|int",
+            "applicationId" => "nullable|int",
             "workflowId"    => "nullable|int",
         ]);
 
@@ -57,8 +57,8 @@ class PaymentController extends Controller
             $mRazorpayReq = new RazorpayReq();
             $api          = new Api($keyId, $secret);
 
-            $penaltyDetails = PenaltyFinalRecord::find($req->applicationId);
             $challanDetails = PenaltyChallan::find($req->challanId);
+            $penaltyDetails = PenaltyFinalRecord::find($challanDetails->penalty_record_id);
             if (!$penaltyDetails)
                 throw new Exception("Application Not Found");
             if ($penaltyDetails->payment_status == 1)
