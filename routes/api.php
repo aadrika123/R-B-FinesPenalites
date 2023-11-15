@@ -109,23 +109,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('penalty-record/crud/delete', 'delete');                                   #_Delete -------------- 0604
         Route::post('penalty-record/crud/search', 'searchByApplicationNo');                    #_Search -------------- 0605
 
-        Route::post('penalty-record/get-uploaded-document', 'getUploadedDocuments');                          #_get uploaded documents ---------- 0606
-        Route::post('penalty-record/inbox', 'inbox');                                                         #_inbox details ------------------- 0607
-        Route::post('penalty-record/detail', 'penaltyDetails');                                               #_penalty details ----------------- 0608
-        Route::post('penalty-record/approve', 'approvePenalty');                                              #_penalty approval ---------------- 0609
-        Route::post('penalty-record/recent-applications', 'recentApplications');                              #_get recent applications --------- 0610
-        Route::post('penalty-record/recent-challans', 'recentChallans');                                      #_get recent challans ------------- 0611
-        Route::post('penalty-record/challan-search', 'searchChallan')->withoutMiddleware('auth:sanctum');                                        #_get search challans ------------- 0612
-        Route::post('penalty-record/get-challan', 'challanDetails')->withoutMiddleware('auth:sanctum');                                          #_get challans details ------------ 0613
-        Route::post('penalty-record/offline-challan-payment', 'offlinechallanPayment');                       #_challan payment  ---------------- 0614
-        Route::post('penalty-record/payment-receipt', 'paymentReceipt')->withoutMiddleware('auth:sanctum');   #_get payment receipt details ----- 0615
-        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                                       #_get on-spot challans ------------ 0616
-        Route::post('report/violation-wise', 'violationData');                                                #_violations wise report ---------- 0617
-        Route::post('report/challan-wise', 'challanData');                                                    #_challan wise report ------------- 0618
-        Route::post('report/collection-wise', 'collectionData');                                              #_collection wise report ---------- 0619
-        Route::post('report/comparison', 'comparisonReport');                                                 #_comparison report --------------- 0620
-        Route::post('v2/penalty-record/get-challan', 'mobileChallanDetails');                                 #_get challans details mobile ----- 0621
-        Route::post('v2/penalty-record/crud/show', 'showV2');                                                 #_penalty record ------------------ 0622
+        Route::post('penalty-record/get-uploaded-document', 'getUploadedDocuments');                                       #_get uploaded documents ---------- 0606
+        Route::post('penalty-record/inbox', 'inbox');                                                                      #_inbox details ------------------- 0607
+        Route::post('penalty-record/detail', 'penaltyDetails');                                                            #_penalty details ----------------- 0608
+        Route::post('penalty-record/approve', 'approvePenalty');                                                           #_penalty approval ---------------- 0609
+        Route::post('penalty-record/recent-applications', 'recentApplications');                                           #_get recent applications --------- 0610
+        Route::post('penalty-record/recent-challans', 'recentChallans');                                                   #_get recent challans ------------- 0611
+        Route::post('penalty-record/challan-search', 'searchChallan')->withoutMiddleware('auth:sanctum');                  #_get search challans ------------- 0612
+        Route::post('penalty-record/get-challan', 'challanDetails')->withoutMiddleware('auth:sanctum');                    #_get challans details ------------ 0613
+        Route::post('penalty-record/offline-challan-payment', 'offlinechallanPayment');                                    #_challan payment  ---------------- 0614
+        Route::post('penalty-record/payment-receipt', 'paymentReceipt')->withoutMiddleware('auth:sanctum');                #_get payment receipt details ----- 0615
+        Route::post('penalty-record/on-spot-challan', 'onSpotChallan');                                                    #_get on-spot challans ------------ 0616
+        Route::post('report/violation-wise', 'violationData');                                                             #_violations wise report ---------- 0617
+        Route::post('report/challan-wise', 'challanData');                                                                 #_challan wise report ------------- 0618
+        Route::post('report/collection-wise', 'collectionData');                                                           #_collection wise report ---------- 0619
+        Route::post('report/comparison', 'comparisonReport');                                                              #_comparison report --------------- 0620
+        Route::post('v2/penalty-record/get-challan', 'mobileChallanDetails');                                              #_get challans details mobile ----- 0621
+        Route::post('v2/penalty-record/crud/show', 'showV2');                                                              #_penalty record ------------------ 0622
+        Route::post('penalty-record/citizen-challan-search', 'citizenSearchChallan')->withoutMiddleware('auth:sanctum');   #_get search challans ------------- 0623
+        Route::post('penalty-record/get-tran-no', 'getTranNo')->withoutMiddleware('auth:sanctum');                                  #_Get Tran No --------------------- 0624
     });
 
     /**

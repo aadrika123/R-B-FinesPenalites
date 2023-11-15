@@ -7,6 +7,7 @@ use App\Http\Requests\InfractionRecordingFormRequest;
 use App\IdGenerator\IdGeneration;
 use App\Models\Master\Section;
 use App\Models\Master\Violation;
+use App\Models\Payment\RazorpayResponse;
 use App\Models\PenaltyChallan;
 use App\Models\PenaltyDocument;
 use App\Models\PenaltyFinalRecord;
@@ -1257,4 +1258,96 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), [], "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+    /**
+     * | Citizen Challan Search
+     * | Api Id : 0623
+     */
+    public function citizenSearchChallan(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'applicationNo' => 'nullable|required_without_all:mobile,challanNo',
+            'challanNo'     => 'nullable|required_without_all:applicationNo,mobile',
+            'mobile'        => 'nullable|required_without_all:applicationNo,challanNo',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $apiId = "0623";
+            $version = "01";
+            $perPage = $req->perPage ?? 10;
+            $mPenaltyChallan = new PenaltyChallan();
+            $challanDtl = $mPenaltyChallan->details();
+
+            if (request()->has('applicationNo'))
+                $challanDtl
+                    ->where('application_no', request()->input('applicationNo'));
+
+            if (request()->has('mobile'))
+                $challanDtl
+                    ->where('mobile', request()->input('mobile'));
+
+            if (request()->has('challanNo'))
+                $challanDtl
+                    ->where('challan_no', request()->input('challanNo'));
+
+            $challanList = $challanDtl->paginate($perPage);
+
+            return responseMsgs(true, "", $challanList,       $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    /**
+     * | Get Tran No By Order Id
+     * | Api Id : 0624
+     */
+    public function getTranNo(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'orderId'   => 'required',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $apiId = "0624";
+            $version = "01";
+            $perPage = $req->perPage ?? 10;
+
+            $mRazorpayResponse =  new RazorpayResponse();
+            $transactionDtl = $mRazorpayResponse->getTranNo($req);
+
+            if (collect($transactionDtl)->isEmpty())
+                throw new Exception("No Transaction Found");
+
+            return responseMsgs(true, "", $transactionDtl,    $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
+
+    // public function getTranNo(Request $req)
+    // {
+    //     try {
+    //         $whatsapp2 = (Whatsapp_Send(
+    //             8797770238,
+    //             "test_file_v4",
+    //             [
+    //                 "content_type" => "text",
+    //                 [
+    //                     "Kawita Mam",
+    //                     "23-01-2023",
+    //                     "23-01-2023",
+    //                     "420",
+    //                     "https://business.facebook.com/wa"
+    //                 ]
+    //             ]
+    //         ));
+    //     } catch (Exception $e) {
+    //         return ["error" => $e->getMessage()];
+    //     }
+    // }
 }
