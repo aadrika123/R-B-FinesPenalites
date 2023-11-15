@@ -1328,26 +1328,4 @@ class PenaltyRecordController extends Controller
             return responseMsgs(false, $e->getMessage(), "",  $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
-
-    // public function getTranNo(Request $req)
-    // {
-    //     try {
-    //         $whatsapp2 = (Whatsapp_Send(
-    //             8797770238,
-    //             "test_file_v4",
-    //             [
-    //                 "content_type" => "text",
-    //                 [
-    //                     "Kawita Mam",
-    //                     "23-01-2023",
-    //                     "23-01-2023",
-    //                     "420",
-    //                     "https://business.facebook.com/wa"
-    //                 ]
-    //             ]
-    //         ));
-    //     } catch (Exception $e) {
-    //         return ["error" => $e->getMessage()];
-    //     }
-    // }
 }
