@@ -366,4 +366,40 @@ class UserMasterController extends Controller
             return responseMsgs(false, $e->getMessage(), "",           $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
+
+    /**
+     * | getOfficers
+     */
+    public function  getOfficers(Request $req)
+    {
+        $validator = Validator::make($req->all(), [
+            'userType' => 'required|in:EO,EC',
+        ]);
+        if ($validator->fails())
+            return validationError($validator);
+        try {
+            $apiId = "0909";
+            $version = "01";
+            $mUser = $this->_mUsers;
+
+            $data = $mUser->select(
+                'id',
+                'user_name',
+                'mobile',
+                'email',
+                'user_type',
+                'address'
+            )
+                ->where('user_type', $req->userType)
+                ->where('suspended', false)
+                ->orderBy('user_name')
+                ->get();
+
+            DB::commit();
+            return responseMsgs(true, "Officer Detail", $data, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return responseMsgs(false, $e->getMessage(), "",           $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+        }
+    }
 }

@@ -73,13 +73,15 @@ Route::middleware('auth:sanctum')->group(function () {
          Controller No : 4
      */
     Route::controller(ViolationController::class)->group(function () {
-        Route::post('violation/crud/save', 'createViolation');                               #_Save -------------------- 0401
-        Route::post('violation/crud/edit', 'updateViolation');                               #_Edit  ------------------- 0402
-        Route::post('violation/crud/get', 'ViolationById');                                  #_Get By Id --------------- 0403
-        Route::post('violation/crud/list', 'getViolation');                                  #_Get All ----------------- 0404
-        Route::post('violation/crud/delete', 'deleteViolation');                             #_Delete ------------------ 0405
-        Route::post('violation/by-department', 'violationByDepartment');                     #_Violation By Department-- 0406
-        Route::post('violation/onspot', 'onSpotViolation');                                  #_Get All ----------------- 0407
+        Route::post('violation/crud/save', 'createViolation');                                                  #_Save -------------------------------- 0401
+        Route::post('violation/crud/edit', 'updateViolation');                                                  #_Edit  ------------------------------- 0402
+        Route::post('violation/crud/get', 'ViolationById');                                                     #_Get By Id --------------------------- 0403
+        Route::post('violation/crud/list', 'getViolation');                                                     #_Get All ----------------------------- 0404
+        Route::post('violation/crud/delete', 'deleteViolation');                                                #_Delete ------------------------------ 0405
+        Route::post('violation/by-department', 'violationByDepartment');                                        #_Violation By Department-------------- 0406
+        Route::post('violation/onspot', 'onSpotViolation');                                                     #_Get All ----------------------------- 0407
+        Route::post('v2/violation/crud/list', 'getViolation')->withoutMiddleware('auth:sanctum');               #_Violation List Outside MiddleWare --- 0404
+
     });
 
     /**
@@ -168,5 +170,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('user/set-password', 'setPassword')->withoutMiddleware('auth:sanctum');     #_Set Password ------------ 0906
         Route::post('ward-list', 'wardList');                                                   #_Ward List --------------- 0907
         Route::post('user/role-assign', 'roleAssign');                                          #_Role Assignment --------- 0908
+        Route::post('user/enf-officer', 'getOfficers')->withoutMiddleware('auth:sanctum');      #_Get Officer Details ----- 0909
     });
 });
