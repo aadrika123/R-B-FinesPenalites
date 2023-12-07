@@ -975,6 +975,7 @@ class PenaltyRecordController extends Controller
                 'penalty_challans.total_amount',
                 'penalty_challans.challan_date',
                 'penalty_final_records.challan_type',
+                'penalty_final_records.payment_status',
                 'user_name',
                 'category_type as challan_category',
             )
