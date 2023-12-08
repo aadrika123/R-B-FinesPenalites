@@ -11,6 +11,7 @@ use App\Models\WfRole;
 use App\Models\WfRoleusermap;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -380,6 +381,7 @@ class UserMasterController extends Controller
         try {
             $apiId = "0909";
             $version = "01";
+            $docUrl = Config::get('constants.DOC_URL');
             $mUser = $this->_mUsers;
 
             $data = $mUser->select(
@@ -388,7 +390,14 @@ class UserMasterController extends Controller
                 'mobile',
                 'email',
                 'user_type',
-                'address'
+                'address',
+                DB::raw(
+                    "CASE 
+                            WHEN profile_image IS NULL THEN ''
+                                else 
+                            concat('$docUrl/',profile_image)
+                    END as profile_image"
+                )
             )
                 ->where('user_type', $req->userType)
                 ->where('suspended', false)
