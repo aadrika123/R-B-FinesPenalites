@@ -66,9 +66,9 @@ class PaymentController extends Controller
                 throw new Exception("Payment Already Done");
             if (!$challanDetails)
                 throw new Exception("Challan Not Found");
-dd('a');
             $orderData = $api->order->create(array('amount' => $challanDetails->total_amount * 100, 'currency' => 'INR',));
             $user  = authUser();
+            dd('a');
             $mReqs = [
                 "order_id"       => $orderData['id'],
                 "merchant_id"    => $req->merchantId,
