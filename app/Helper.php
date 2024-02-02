@@ -529,7 +529,7 @@ if (!function_exists('dateDiff')) {
 if (!function_exists('authUser')) {
     function authUser()
     {
-        return (auth()->user()??null);
+        return auth()->user();
     }
 }
 
