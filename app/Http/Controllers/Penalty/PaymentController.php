@@ -50,6 +50,7 @@ class PaymentController extends Controller
             return validationError($validator);
 
         try {
+            return($req->all());
             $apiId = "0701";
             $version = "01";
             $keyId        = Config::get('constants.RAZORPAY_KEY');

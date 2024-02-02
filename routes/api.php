@@ -142,7 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('fines/cash-verification-list', 'listCashVerification');                                      #_List of Cash Verification --------------- 0703
         Route::post('fines/cash-verification-dtl', 'cashVerificationDtl');                                        #_Cash Verification Detail ---------------- 0704
         Route::post('fines/verify-cash', 'verifyCash');                                                           #_Verify Cash ----------------------------- 0705
-        Route::post('fines/citizen-online-payment', 'initiatePayment')->withoutMiddleware('auth:sanctum');        #_Initiate Online Payment By Citizen ------ 0702
+        Route::post('fines/citizen-online-payment', 'initiatePayment')->withoutMiddleware('auth:sanctum');        #_Initiate Online Payment By Citizen ------ 0701
     });
 
     /**
