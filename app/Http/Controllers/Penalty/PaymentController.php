@@ -67,8 +67,8 @@ class PaymentController extends Controller
             if (!$challanDetails)
                 throw new Exception("Challan Not Found");
             $orderData = $api->order->create(array('amount' => $challanDetails->total_amount * 100, 'currency' => 'INR',));
-            $user  = authUser();
-            dd('a');
+            $user  = Auth()?authUser():null;
+            
             $mReqs = [
                 "order_id"       => $orderData['id'],
                 "merchant_id"    => $req->merchantId,
