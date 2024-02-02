@@ -84,7 +84,7 @@ class PaymentController extends Controller
 
             return responseMsgs(true, "Order id is", ['order_id' => $data->order_id], $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         } catch (Exception $e) {
-            return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
+            return responseMsgs(false, [$e->getMessage(),$e->getFile(),$e->getLine()], "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
     }
 
