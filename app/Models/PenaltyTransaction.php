@@ -49,7 +49,7 @@ class PenaltyTransaction extends Model
         )
             ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_transactions.application_id')
             ->join('penalty_challans', 'penalty_challans.id', 'penalty_transactions.challan_id')
-            ->join('users', 'users.id', 'penalty_transactions.tran_by')
+            ->leftjoin('users', 'users.id', 'penalty_transactions.tran_by')
             ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
             ->join('departments', 'departments.id', 'violations.department_id');
     }

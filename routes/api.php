@@ -9,6 +9,7 @@ use App\Http\Controllers\API\Master\ViolationController;
 use App\Http\Controllers\API\Master\ViolationSectionController;
 use App\Http\Controllers\API\Master\WfRoleMasterController;
 use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\DeactivationController;
 use App\Http\Controllers\Penalty\PaymentController;
 use App\Http\Controllers\Penalty\PenaltyRecordController;
 use Illuminate\Support\Facades\Route;
@@ -172,4 +173,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('user/role-assign', 'roleAssign');                                          #_Role Assignment --------- 0908
         Route::post('user/enf-officer', 'getOfficers')->withoutMiddleware('auth:sanctum');      #_Get Officer Details ----- 0909
     });
+
+    /**
+     * | Deactivation Conroller
+         Controller No : 10
+     */
+    Route::post('deactivate-application', [DeactivationController::class, 'deactivateApplication'])->withoutMiddleware('auth:sanctum');   #_Deactivate Application ------------1001
+    Route::post('deactivate-challan', [DeactivationController::class, 'deactivateChallan'])->withoutMiddleware('auth:sanctum');           #_Deactivate Application ------------1002
+    Route::post('deactivate-payment', [DeactivationController::class, 'deactivatePayment'])->withoutMiddleware('auth:sanctum');           #_Deactivate Application ------------1003
+
+
 });
