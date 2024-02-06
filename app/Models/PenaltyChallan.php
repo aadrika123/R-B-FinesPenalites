@@ -57,7 +57,10 @@ class PenaltyChallan extends Model
             ->join('penalty_final_records', 'penalty_final_records.id', 'penalty_challans.penalty_record_id')
             ->join('violations', 'violations.id', 'penalty_final_records.violation_id')
             ->join('sections', 'sections.id', 'violations.section_id')
-            ->leftjoin('penalty_transactions', 'penalty_transactions.challan_id', 'penalty_challans.id')
+            ->leftJoin('penalty_transactions', function ($join) {
+                $join->on('penalty_transactions.challan_id', '=', 'penalty_challans.id')
+                    ->where('penalty_transactions.status', 1);
+            })
             ->where('penalty_challans.status', 1)
             ->orderbyDesc('penalty_challans.id');
     }
