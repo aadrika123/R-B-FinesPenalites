@@ -15,20 +15,26 @@ class DeactivationController extends Controller
 
     /**
      * | Deactivate Application
+     * | Delete the Final Record Data & Challan
+     * | Request : applicationNo of Final Record
      */
     public function deactivateApplication(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
-            ["applicationId" => "required"]
+            ["applicationNo" => "required"]
         );
 
         if ($validator->fails())
             return validationError($validator);
         try {
-            $penaltyDtls = PenaltyFinalRecord::find($request->applicationId);
+            $penaltyDtls = PenaltyFinalRecord::where('application_no', $request->applicationNo)->where('status', 1)->first();
             $penaltyDtls->status = 0;
             $penaltyDtls->save();
+
+            $penaltyChalan = PenaltyChallan::where('penalty_record_id', $penaltyDtls->id)->where('status', 1)->first();
+            $penaltyChalan->status = 0;
+            $penaltyChalan->save();
 
             if ($penaltyDtls->applied_record_id) {
                 $penaltyAppliedRecord = PenaltyRecord::find($penaltyDtls->applied_record_id);
@@ -44,20 +50,28 @@ class DeactivationController extends Controller
 
     /**
      * | Deactivate Challan
+     * | Delete the challan and if challan is onSpot then delete the challan also
+     * | Request : challanNo
      */
     public function deactivateChallan(Request $request)
     {
         $validator = Validator::make(
             $request->all(),
-            ["challanId" => "required"]
+            ["challanNo" => "required"]
         );
 
         if ($validator->fails())
             return validationError($validator);
         try {
-            $challanDtls = PenaltyChallan::find($request->challanId);
+            $challanDtls = PenaltyChallan::where('challan_no', $request->challanNo)->first();
             $challanDtls->status = 0;
             $challanDtls->save();
+
+            if ($challanDtls->challan_type = 'On Spot') {
+                $finalRecordDtls =  PenaltyFinalRecord::find($challanDtls->penalty_record_id);
+                $finalRecordDtls->status = 0;
+                $finalRecordDtls->save();
+            }
 
             return responseMsgs(true, "Challan Deactivated", [], "1002", "01", responseTime(), $request->getMethod(), $request->deviceId);
         } catch (Exception $e) {
