@@ -48,8 +48,8 @@ class UserMasterController extends Controller
             'mobileNo'                => 'required|numeric|digits:10',
             'address'                 => 'nullable|string',
             'employeeCode'            => 'required|string',
-            // 'signature'             => 'nullable|file',
-            // 'profile'               => 'nullable|file',
+            'signature'               => 'nullable|mimes:jpeg,png,jpg|max:2048',
+            'profile'                 => 'nullable|mimes:jpeg,png,jpg|max:2048',
             'email'                   => 'required|email',
         ]);
         if ($validator->fails())
@@ -131,7 +131,8 @@ class UserMasterController extends Controller
             'mobileNo'                => 'required|digits:10',
             'address'                 => 'required|string',
             'employeeCode'            => 'required|string',
-            'signature'               => 'nullable|file',
+            'signature'               => 'nullable|mimes:jpeg,png,jpg|max:2048',
+            'profile'                 => 'nullable|mimes:jpeg,png,jpg|max:2048',
             'email'                   => 'required|email',
         ]);
         if ($validator->fails())

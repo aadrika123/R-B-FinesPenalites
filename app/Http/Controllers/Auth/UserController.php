@@ -51,11 +51,11 @@ class UserController extends Controller
             $version = "01";
             $user = $this->_mUser->getUserByEmail($req->email);
             if (!$user)
-                throw new Exception("Oops! Given email does not exist");
+                throw new Exception("Invalid Credentials");
             if ($user->suspended == true)
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
-                $token = $user->createToken('my-app-token')->plainTextToken;
+                $token = $user->createToken('my-app-token', ['expires_in' => 60])->plainTextToken;
                 $roleDetail = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
                 $appData = $mAppStatus->where('status', 1)->first();
 
@@ -70,7 +70,7 @@ class UserController extends Controller
 
                 return responseMsgs(true, "You have Logged In Successfully", $data, $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
             }
-            throw new Exception("Password Not Matched");
+            throw new Exception("Invalid Credentials");
         } catch (Exception $e) {
             return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $req->getMethod(), $req->deviceId);
         }
@@ -98,11 +98,12 @@ class UserController extends Controller
      */
     public function changePass(ChangePassRequest $request)
     {
-        try {
+        try {   
             $apiId = "0103";
             $version = "01";
             $userId = auth()->user()->id;
             $user = User::find($userId);
+             $request->password;
             $validPassword = Hash::check($request->password, $user->password);
             if ($validPassword) {
                 #_Save New Password
@@ -120,6 +121,7 @@ class UserController extends Controller
             return responseMsgs(false, $e->getMessage(), "", $apiId, $version, responseTime(), $request->getMethod(), $request->deviceId);
         }
     }
+
 
     /**
      * | Change Password by OTP 
