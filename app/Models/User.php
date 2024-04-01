@@ -45,6 +45,7 @@ class User extends Authenticatable
     public function getUserByEmail($email)
     {
         return User::where('email', $email)
+            ->where('suspended', false)
             ->first();
     }
 
