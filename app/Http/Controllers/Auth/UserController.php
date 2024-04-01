@@ -55,6 +55,21 @@ class UserController extends Controller
             if ($user->suspended == true)
                 throw new Exception("You are not authorized to log in!");
             if (Hash::check($req->password, $user->password)) {
+
+                $users = $this->_mUser->find($user->id);
+                $maAllow = $users->max_login_allow;
+                $remain = ($users->tokens->count("id")) - $maAllow;
+                $count = 0;
+                foreach ($users->tokens->sortBy("id") as  $key => $token) {
+                    if ($remain < $key) {
+                        break;
+                    }
+                    $count += 1;
+                    $token->expires_at = Carbon::now();
+                    $token->update();
+                    $token->delete();
+                }
+
                 $token = $user->createToken('my-app-token', ['expires_in' => 60])->plainTextToken;
                 $roleDetail = $mWfRoleusermap->getRoleDetailsByUserId($user->id);
                 $appData = $mAppStatus->where('status', 1)->first();
@@ -98,12 +113,12 @@ class UserController extends Controller
      */
     public function changePass(ChangePassRequest $request)
     {
-        try {   
+        try {
             $apiId = "0103";
             $version = "01";
             $userId = auth()->user()->id;
             $user = User::find($userId);
-             $request->password;
+            $request->password;
             $validPassword = Hash::check($request->password, $user->password);
             if ($validPassword) {
                 #_Save New Password
