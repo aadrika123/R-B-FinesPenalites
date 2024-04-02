@@ -26,7 +26,7 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware(['auth:sanctum','expireBearerToken','CorsMiddleware'])->group(function () {
+Route::middleware(['auth:sanctum','expireBearerToken'])->group(function () {
 
     /**
      * | 
