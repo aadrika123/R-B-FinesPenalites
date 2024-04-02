@@ -67,6 +67,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'expireBearerToken' => ExpireBearerToken::class,
+        'CorsMiddleware' =>  \App\Http\Middleware\Cors::class,
         // 'api.gateway' => ApiGatewayMiddleware::class,
         // 'log.route' => LogRoute::class,
         // 'apiPermission' => ApiPermission::class
