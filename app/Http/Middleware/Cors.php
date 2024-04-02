@@ -20,7 +20,6 @@ class Cors
 
         // Set the Access-Control-Allow-Origin header to the request's origin
         $response->headers->set('Access-Control-Allow-Origin', $request->header('Origin'));
-
         return $response;
     }
 }
