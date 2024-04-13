@@ -18,10 +18,11 @@ return [
     'paths' => ['/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
-// 
+    // 
     // 'allowed_origins' => ['*'],
-    // 'allowed_origins' => ['https://jharkhandegovernance.com'],   #_for Live
-    'allowed_origins' => ['https://aadrikainfomedia.com'],          #_for Staging
+    // 'allowed_origins' => ['https://jharkhandegovernance.com'],      #_for Live
+    // 'allowed_origins' => ['https://aadrikainfomedia.com'],          #_for Staging
+    'allowed_origins' => ['https://egov.rsccl.in'],                    #_for smart city
 
     'allowed_origins_patterns' => [],
 
