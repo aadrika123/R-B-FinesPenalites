@@ -572,6 +572,7 @@ class PenaltyRecordController extends Controller
      */
     public function searchChallan(Request $req)
     {
+        return ($req->all());
         try {
             $apiId = "0612";
             $version = "01";
